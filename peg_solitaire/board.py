@@ -71,6 +71,7 @@ class Diamond(Board):
         self.board[math.floor((board_size-1)/2)][math.floor((board_size-1)/2)] = 0
         self.board[board_size - 1][board_size - 1] = 0
         self.board[board_size - 3][board_size - 1] = 0
+        self.board[3][0] = 0
 
     def get_neighbors_indices(self, position, board_size):
         r, c = position
@@ -112,7 +113,7 @@ class Triangle(Board):
         r, c = position
         return [(r-1, c-1), (r-1, c), (r, c-1), (r, c+1), (r+1, c), (r+1, c+1)]
 
-board_size = 4
+board_size = 6
 board = Diamond(board_size)
 print(board)
 print(board.get_state())
