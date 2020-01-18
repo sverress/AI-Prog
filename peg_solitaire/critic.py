@@ -1,7 +1,8 @@
-class Critic():
+class Critic:
 
     def __init__(self):
         self.valueFunc = dict()
+        self.elig_trace = dict()
 
     def calculate_TDerror(self, reward, gamma):
         """

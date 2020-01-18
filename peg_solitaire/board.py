@@ -81,7 +81,16 @@ class Diamond(Board):
         return list(filtered_indices)
 
     def get_state(self):
-        return [item for sublist in self.board for item in sublist]
+        temp = [item for sublist in self.board for item in sublist]
+        temp = (str(w) for w in temp)
+        return ''.join(temp)
+
+    def get_SAP(self, action):
+        state = [item for sublist in self.board for item in sublist]
+        state = (str(w) for w in state)
+        actions = board.get_legal_actions()
+        action = (str(w) for w in state)
+        return ''.join(state).join(action)
 
     def get_legal_actions(self, board_size):
         actions = []
@@ -98,6 +107,9 @@ class Diamond(Board):
                             if self.board[indexNN[0]][indexNN[1]] == 1:
                                 actions.append([indexNN[0], indexNN[1], row, col])
         return actions
+
+    def is_end_state(self):
+        
 
 
 class Triangle(Board):
