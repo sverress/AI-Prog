@@ -40,6 +40,17 @@ class Board(ABC):
         except IndexError:
             return None
 
+    def get_state(self):
+        temp = [item for sublist in self.board for item in sublist]
+        temp = (str(w) for w in temp)
+        return ''.join(temp)
+
+    def get_SAP(self, action):
+        state = [item for sublist in self.board for item in sublist]
+        state = (str(w) for w in state)
+        action = (str(w) for w in action)
+        return ''.join(state) + ''.join(action)
+
     def get_neighbors(self, position: tuple, board_size):
         """
         Gets all the neighbors for the given position of the board
@@ -52,6 +63,20 @@ class Board(ABC):
         cells = filter(lambda cell: cell is not None, map(lambda pos: self.get_cell(pos), filtered_indices))
         return list(cells)
 
+    def is_end_state(self):
+        actions = self.get_legal_actions(self, board_size)
+        if not actions:
+            return True
+        return False
+
+    def do_action(self, action):
+        move_from = action[:2]
+        move_to = action[:-2]
+        self.board[move_from] = 0
+        self.board[move_to] = 1
+        self.board[]
+
+
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):
         """
@@ -59,6 +84,7 @@ class Board(ABC):
         :return: list of positions: [(x_index_1: int, y_index_1: int), (x_index_2: int, y_index_2: int), ...]
         """
         pass
+
 
 
 class Diamond(Board):
@@ -80,17 +106,6 @@ class Diamond(Board):
         filtered_indices = filter(lambda pos: pos[0] >= 0 and pos[1] >= 0 and pos[0] < board_size and pos[1] < board_size, indices)
         return list(filtered_indices)
 
-    def get_state(self):
-        temp = [item for sublist in self.board for item in sublist]
-        temp = (str(w) for w in temp)
-        return ''.join(temp)
-
-    def get_SAP(self, action):
-        state = [item for sublist in self.board for item in sublist]
-        state = (str(w) for w in state)
-        actions = board.get_legal_actions()
-        action = (str(w) for w in state)
-        return ''.join(state).join(action)
 
     def get_legal_actions(self, board_size):
         actions = []
@@ -108,25 +123,26 @@ class Diamond(Board):
                                 actions.append([indexNN[0], indexNN[1], row, col])
         return actions
 
-    def is_end_state(self):
-        
 
 
 class Triangle(Board):
     def initialize_board(self, board_size):
-        cell_index = 1
         for i in range(board_size):
             self.board.append([])
             for j in range(i+1):
-                self.board[i].append(chr(64+cell_index))
-                cell_index += 1
+                self.board[i].append(1)
 
-    def get_neighbors_indices(self, position):
+
+    def get_neighbors_indices(self, position, board_size):
         r, c = position
-        return [(r-1, c-1), (r-1, c), (r, c-1), (r, c+1), (r+1, c), (r+1, c+1)]
+        indices = [(r-1, c-1), (r-1, c), (r, c-1), (r, c+1), (r+1, c), (r+1, c+1)]
+        # Removing indices outside the board
+        filtered_indices = filter(lambda pos: pos[0] >= 0 and pos[1] >= 0 and pos[0] < board_size and pos[0] >= pos[1], indices)
+        return list(filtered_indices)
 
-board_size = 6
+board_size = 4
 board = Diamond(board_size)
 print(board)
 print(board.get_state())
+print(board.get_SAP([1,2,3,2]))
 print(board.get_legal_actions(board_size))

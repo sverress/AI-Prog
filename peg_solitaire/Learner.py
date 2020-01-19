@@ -8,9 +8,12 @@ board_size = 4
 init_board = Diamond(board_size)
 init_state = init_board.get_state()
 
-#Initialize critic
+# Exploration constant
+epsilon = 0.1
+
+# Initialize critic
 critic = Critic()
-critic.valueFunc[init_state] = random.uniform(0, 0.2)
+critic.update_value_func(init_state, random.uniform(0, 0.2))
 critic.elig_trace[init_state] = 0
 
 # Initialize actor

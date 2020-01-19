@@ -17,6 +17,12 @@ class Critic:
 
         return delta
 
+    def update_value_func(self, state, value):
+        self.valueFunc[state] = value
+
+    def update_elig_trace(self, state, action, value):
+        self.valueFunc[state] = value
+
 # eligibility trace
 
 # elig_trace(state) = gamma * lam
