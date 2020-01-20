@@ -156,9 +156,3 @@ class Triangle(Board):
         # Removing indices outside the board
         return list(filter(lambda pos: self.filter_positions(pos), indices))
 
-
-board = Diamond(4)
-print(board)
-board.do_action(board.get_legal_actions()[0])
-print(board)
-

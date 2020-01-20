@@ -1,12 +1,7 @@
 from p5 import *
 from peg_solitaire.gui.components import *
-
-# List of all nodes
-nodes = []
-# Distance between nodes
-SPACE = 80
-# Size of board
-SIZE = 4
+from peg_solitaire.board import Diamond
+import random
 
 
 def setup():
@@ -18,10 +13,17 @@ def setup():
         row = []
         for j in range(0, SIZE):
             # Creating nodes and adding space between them
-            row.append(Node(start + i * SPACE, start + j * SPACE))
+            row.append(Node((i, j), start + j * SPACE, start + i * SPACE, is_occupied=board.get_cell((i, j)) == 1))
         nodes.append(row)
-    # Setting some node to EMPTY
-    nodes[2][2].value = 0
+
+
+def board_changed():
+    action = random.choice(board.get_legal_actions())
+    board.do_action(action)
+    for entering_node in action.get_entering_positions():
+        nodes[entering_node[0]][entering_node[1]].set_value(True)
+    for leaving_node in action.get_leaving_positions():
+        nodes[leaving_node[0]][leaving_node[1]].set_value(False)
 
 
 def draw():
@@ -31,6 +33,8 @@ def draw():
     translate(width/2, height/2)
     # Rotating around the new reference point
     rotate(PI/4)
+    if key_is_pressed and key == " ":
+        board_changed()
     for row in nodes:
         for node in row:
             # Drawing all the nodes
@@ -38,4 +42,11 @@ def draw():
 
 
 if __name__ == '__main__':
+    # List of all nodes
+    nodes = []
+    # Distance between nodes
+    SPACE = 80
+    # Size of board
+    SIZE = 4
+    board = Diamond(SIZE)
     run()
