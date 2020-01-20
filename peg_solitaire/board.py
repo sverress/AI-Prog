@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import math
 import numpy as np
+from peg_solitaire.action import Action
 
 
 class Board(ABC):
@@ -81,12 +82,14 @@ class Board(ABC):
             return True
         return False
 
-    def do_action(self, action):
-        move_from = action[:2]
-        move_to = action[:-2]
-        self.board[move_from] = 0
-        self.board[move_to] = 1
-        raise NotImplemented
+    def set_cell(self, position: tuple, value: int):
+        self.board[position[0]][position[1]] = value
+
+    def do_action(self, action: Action):
+        for leaving_position in action.get_leaving_positions():
+            self.set_cell(leaving_position, 0)
+        for entering_position in action.get_entering_positions():
+            self.set_cell(entering_position, 1)
 
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):
@@ -110,12 +113,12 @@ class Board(ABC):
                     for indices_index, children_position in enumerate(indices_1st_gen_children):
                         # 1st gen children must be filled
                         if self.get_cell(children_position) == 1:
-                            parent_position = np.array((parent_x, parent_y))
-                            direction = np.array(children_position) - parent_position
-                            moving_cell_position = parent_position + 2*direction
+                            parent_position_np = np.array((parent_x, parent_y))
+                            direction = np.array(children_position) - parent_position_np
+                            moving_cell_position = parent_position_np + 2*direction
                             # 2st gen children must be filled
-                            if self.filter_positions(moving_cell_position) and self.get_cell(moving_cell_position) == 1:
-                                actions.append([moving_cell_position[0], moving_cell_position[1], parent_x, parent_y])
+                            if self.filter_positions(tuple(moving_cell_position)) and self.get_cell(moving_cell_position) == 1:
+                                actions.append(Action(tuple(moving_cell_position), children_position, (parent_x, parent_y)))
         return actions
 
 
@@ -156,4 +159,6 @@ class Triangle(Board):
 
 board = Diamond(4)
 print(board)
-print(board.get_legal_actions())
+board.do_action(board.get_legal_actions()[0])
+print(board)
+
