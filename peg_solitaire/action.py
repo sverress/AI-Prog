@@ -12,3 +12,6 @@ class Action:
 
     def get_entering_positions(self):
         return self.z_pos,
+
+    def get_action_string(self):
+        return str(self.x_pos[0]) + str(self.x_pos[1]) + str(self.z_pos[0]) + str(self.x_pos[1])

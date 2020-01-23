@@ -44,10 +44,10 @@ class Board(ABC):
         temp = (str(w) for w in temp)
         return ''.join(temp)
 
-    def get_SAP(self, action):
+    def get_SAP(self, action: Action):
         state = [item for sublist in self.board for item in sublist]
         state = (str(w) for w in state)
-        action = (str(w) for w in action)
+        action = action.get_action_string()
         return ''.join(state) + ''.join(action)
 
     def filter_positions(self, position: tuple):
@@ -90,6 +90,12 @@ class Board(ABC):
             self.set_cell(leaving_position, 0)
         for entering_position in action.get_entering_positions():
             self.set_cell(entering_position, 1)
+
+    def get_reward(self):
+        num_stones = sum([item for sublist in self.board for item in sublist])
+        if self.is_end_state():
+            return 1/num_stones
+        return 0
 
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):
@@ -155,4 +161,5 @@ class Triangle(Board):
         indices = [(r-1, c-1), (r-1, c), (r, c-1), (r, c+1), (r+1, c), (r+1, c+1)]
         # Removing indices outside the board
         return list(filter(lambda pos: self.filter_positions(pos), indices))
+
 

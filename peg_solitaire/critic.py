@@ -1,32 +1,35 @@
+from peg_solitaire.board import Board
+import random
+
 class Critic:
 
-    def __init__(self):
-        self.valueFunc = dict()
+    def __init__(self, gamma):
+        self.value_func = dict()
         self.elig_trace = dict()
+        self.gamma = gamma
 
-    def calculate_TDerror(self, reward, gamma):
+    def calculate_TDerror(self, parent_state: str, child_state: str, reward: float):
         """
-        :param  alpha: learning rate: float [0,1]
-                gamma: discount factor: float [0,1]
-                lamb: trace-decay factor: float [0,1]
-        :return: the TD error related to the prev and current state
-        """
-        # TD error: delta
 
-        delta = reward + gamma * self.valueFunc(childState) - self.valueFunc(state)
+        :param parent_state:
+        :param child_state:
+        :param reward:
+        :return: the
+        """
+
+        delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
 
         return delta
 
     def update_value_func(self, state, value):
-        self.valueFunc[state] = value
+        self.value_func[state] = value
 
-    def update_elig_trace(self, state, action, value):
-        self.valueFunc[state] = value
+    def update_elig_trace(self, state, value):
+        self.elig_trace[state] = value
 
-# eligibility trace
-
-# elig_trace(state) = gamma * lam
-
-# Updated value function
-
-# V(state) = V(state) + alpha*delta*elig_trace(state)
+    def get_state_value(self, state):
+        try:
+            return self.value_func[state]
+        except IndexError:
+            self.update_value_func(state, random.uniform(0, 0.2))
+            return self.value_func[state]
