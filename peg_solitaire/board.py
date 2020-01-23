@@ -40,11 +40,20 @@ class Board(ABC):
             return None
 
     def get_state(self):
+        """
+        Method for getting the state key (str)
+        :return: state key: str
+        """
         temp = [item for sublist in self.board for item in sublist]
         temp = (str(w) for w in temp)
         return ''.join(temp)
 
     def get_SAP(self, action: Action):
+        """
+        Getting the state action pair key (str)
+        :param action: The action object
+        :return: State action pair key (str)
+        """
         state = [item for sublist in self.board for item in sublist]
         state = (str(w) for w in state)
         action = action.get_action_string()
@@ -77,12 +86,21 @@ class Board(ABC):
         )
 
     def is_end_state(self):
+        """
+        Check if a state is end state by finding legal actions from state. If actions list is empty -> end state
+        :return: bool
+        """
         actions = self.get_legal_actions()
         if not actions:
             return True
         return False
 
     def set_cell(self, position: tuple, value: int):
+        """
+        Set presence or absence of stone in a cell
+        :param position: (x_index: int, y_index: int)
+        :param value: 0 or 1
+        """
         self.board[position[0]][position[1]] = value
 
     def do_action(self, action: Action):
@@ -92,6 +110,10 @@ class Board(ABC):
             self.set_cell(entering_position, 1)
 
     def get_reward(self):
+        """
+        Gets reward of a state. 0 if the state is not end state, 1/(number of stones left on board) if end state
+        :return: the reward: float
+        """
         num_stones = sum([item for sublist in self.board for item in sublist])
         if self.is_end_state():
             return 1/num_stones

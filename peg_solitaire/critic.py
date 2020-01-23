@@ -10,24 +10,29 @@ class Critic:
 
     def calculate_TDerror(self, parent_state: str, child_state: str, reward: float):
         """
-
-        :param parent_state:
-        :param child_state:
-        :param reward:
-        :return: the
+        Calculates the Temporal Difference error denoted delta
+        :param parent_state: Previous state: str
+        :param child_state: Current state: str
+        :param reward: float
+        :return: the TD error; delta
         """
 
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
 
         return delta
 
-    def update_value_func(self, state, value):
+    def set_value_func(self, state, value):
         self.value_func[state] = value
 
-    def update_elig_trace(self, state, value):
+    def set_elig_trace(self, state, value):
         self.elig_trace[state] = value
 
-    def get_state_value(self, state):
+    def get_state_value(self, state: str):
+        """
+        Fetch the state value from the value function by state key.
+        :param state: state key: str
+        :return: state value: float
+        """
         try:
             return self.value_func[state]
         except IndexError:
