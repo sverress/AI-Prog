@@ -59,6 +59,13 @@ class Board(ABC):
         action = action.get_action_string()
         return ''.join(state) + ''.join(action)
 
+    def get_SAPS(self):
+        """
+        :return: List of state action pair keys for all
+         legal actions from current state
+        """
+        return [self.get_SAP(action) for action in self.get_legal_actions()]
+
     def filter_positions(self, position: tuple):
         """
         Standard filters for all position tuples in board class
