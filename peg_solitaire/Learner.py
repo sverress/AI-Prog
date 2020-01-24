@@ -3,6 +3,7 @@ from peg_solitaire.board import Board
 from peg_solitaire.board import Diamond
 from .critic import Critic
 import random
+import copy
 
 # Initialize board
 num_episodes = 100
@@ -29,7 +30,7 @@ actor = Actor()
 #actions = init_board.get_legal_actions(board_size)
 
 for i in range(num_episodes):
-    board = init_board #wrong
+    board = copy.deepcopy(init_board)
     action = actor.choose_action_epsilon_greedy(board, epsilon)
     episode_history = [(board.get_state(), board.get_SAP())]
     endstate = False
