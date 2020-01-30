@@ -40,7 +40,7 @@ class Actor:
     def choose_action(self, board: Diamond):
         """
         Chooses the action with the highest desirability
-        :param state: string representation of the state
+        :param board:
         :return:
         """
         # Getting all state action pars from given state
@@ -49,5 +49,9 @@ class Actor:
         chosen_sap = random.choice(policies_from_state)
         return Action.create_action_from_string(chosen_sap[-6:])
 
-    def init_saps_from_board_state(self, board: Diamond):
+    def init_saps_from_board(self, board: Diamond):
         current_saps = board.get_SAPS()
+        # Filter out saps already present in policy
+        new_saps = list(filter(lambda key: key not in self.policy, current_saps))
+        for sap in new_saps:
+            self.set_policy(sap, 0)

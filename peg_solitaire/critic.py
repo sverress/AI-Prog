@@ -66,5 +66,7 @@ class Critic:
         self.set_elig_trace(state, new_elig_trace_value)
 
     def init_state_from_board(self, board: Diamond):
-        self.set_value_func(board.get_state(), 0.01)  # Not sure if we should add all neighbor states here
-        self.set_elig_trace(board.get_state(), 0)
+        state_str = board.get_state()
+        if state_str not in self.value_func:
+            self.set_value_func(board.get_state(), 0.01)  # Not sure if we should add all neighbor states here
+            self.set_elig_trace(board.get_state(), 0)

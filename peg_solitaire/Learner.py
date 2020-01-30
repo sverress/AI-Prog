@@ -24,13 +24,12 @@ lambd = 0.7
 
 # Initialize critic
 critic = Critic(gamma, alpha_c, lambd)
-critic.set_value_func(init_state, random.uniform(0, 0.01))
-critic.set_elig_trace(init_state, 0)
+critic.init_state_from_board(init_board)
 
 # Initialize actor
 actor = Actor(alpha_a, gamma, epsilon)
 # Initialize all SAPs from init state
-actor.init_saps_from_board_state(init_board)
+actor.init_saps_from_board(init_board)
 
 result = []
 
@@ -46,15 +45,12 @@ for i in range(num_episodes):
         if board.is_end_state():
             break
 
-        # All SAPs of the new state needs to be initialized to value = 0 in the actor policy
-        # Temp fix for testing:
-        critic.init_new_state(board)
-        for sap in board.get_SAPS():
-            actor.set_policy(sap, 0)
-            actor.set_elig_trace(sap, 0)
+        # Initialize states and SAPs in actor and critic
+        actor.init_saps_from_board(board)
+        critic.init_state_from_board(board)
 
         reward = board.get_reward()
-        optim_action = actor.choose_action_simple(board)
+        optim_action = actor.choose_action(board)
         actor.set_elig_trace(board.get_SAP(optim_action), 1)
         delta = critic.calculate_TDerror(episode_history[-1][0], board.get_state(), reward)
         critic.set_elig_trace(board.get_SAP(optim_action), 1) # (episode_history[-1][0], 1)
