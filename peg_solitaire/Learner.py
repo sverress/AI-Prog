@@ -1,6 +1,6 @@
-from actor import Actor
-from board import *
-from critic import Critic
+from peg_solitaire.board import Diamond
+from peg_solitaire.critic import Critic
+from peg_solitaire.actor import Actor
 import random
 import copy
 
@@ -27,14 +27,15 @@ critic.set_value_func(init_state, random.uniform(0, 0.01))
 critic.set_elig_trace(init_state, 0)
 
 # Initialize actor
-actor = Actor()
+actor = Actor(alpha_a, gamma, epsilon)
 # Initialize all SAPs from init state
+actor.init_saps_from_board_state(init_board)
 
 #actions = init_board.get_legal_actions(board_size)
 
 for i in range(num_episodes):
     board = copy.deepcopy(init_board)
-    action = actor.choose_action_epsilon_greedy(board, epsilon)
+    action = actor.choose_action(board)
     episode_history = [(board.get_state(), board.get_SAP(action))]
     endstate = False
     while endstate == False:

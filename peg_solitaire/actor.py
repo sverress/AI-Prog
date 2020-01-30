@@ -36,15 +36,22 @@ class Actor:
     def update_elig_trace(self, sap: str):
         self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
 
-    def choose_action(self, state: str):
+    def choose_action(self, board: Diamond):
         """
         Chooses the action with the highest desirability
-        :param state: string representation of the state
+        :param board:
         :return:
         """
         # Getting all state action pars from given state
-        policies_from_state = list(filter(lambda key: key.starts_width(state), self.policy.keys()))
+        policies_from_state = list(filter(lambda key: key.starts_width(board), self.policy.keys()))
         filtered_policy = self.policy[policies_from_state]
         raise NotImplemented()
+
+    def init_saps_from_board_state(self, board: Diamond):
+        current_saps = board.get_SAPS()
+        # Filter out saps already present in policy
+        new_saps = list(filter(lambda key: key not in self.policy, current_saps))
+        for sap in new_saps:
+            self.set_policy(sap, 0)
 
 
