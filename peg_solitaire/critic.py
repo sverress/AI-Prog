@@ -69,4 +69,5 @@ class Critic:
         state_str = board.get_state()
         if state_str not in self.value_func:
             self.set_value_func(board.get_state(), 0.01)  # Not sure if we should add all neighbor states here
+        if state_str not in self.elig_trace:
             self.set_elig_trace(board.get_state(), 0)

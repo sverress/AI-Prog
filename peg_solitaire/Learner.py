@@ -9,10 +9,9 @@ import copy
 num_episodes = 100
 board_size = 4
 init_board = Diamond(board_size)
-init_state = init_board.get_state()
 
 # Exploration constant
-epsilon = 0.1
+epsilon = 0.2
 # Discount factor
 gamma = 0.9
 # Learning rate critic
@@ -50,7 +49,7 @@ for i in range(num_episodes):
         critic.init_state_from_board(board)
 
         reward = board.get_reward()
-        optim_action = actor.choose_action(board)
+        optim_action = actor.choose_action_epsilon(board)
         actor.set_elig_trace(board.get_SAP(optim_action), 1)
         delta = critic.calculate_TDerror(episode_history[-1][0], board.get_state(), reward)
         critic.set_elig_trace(board.get_SAP(optim_action), 1) # (episode_history[-1][0], 1)
@@ -62,3 +61,5 @@ for i in range(num_episodes):
         action = optim_action
         endstate = board.is_end_state()
     result.append(board.get_num_stones())
+
+print(result)
