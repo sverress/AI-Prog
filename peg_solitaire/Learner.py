@@ -1,7 +1,6 @@
-from .actor import Actor
-from peg_solitaire.board import Board
-from peg_solitaire.board import Diamond
-from .critic import Critic
+from actor import Actor
+from board import *
+from critic import Critic
 import random
 import copy
 
@@ -28,7 +27,7 @@ critic.set_value_func(init_state, random.uniform(0, 0.01))
 critic.set_elig_trace(init_state, 0)
 
 # Initialize actor
-actor = Actor(alpha)
+actor = Actor()
 # Initialize all SAPs from init state
 
 #actions = init_board.get_legal_actions(board_size)
@@ -39,7 +38,7 @@ for i in range(num_episodes):
     episode_history = [(board.get_state(), board.get_SAP(action))]
     endstate = False
     while endstate == False:
-        board.do_action(action)
+        board.do_action(action) # All SAPs of the new state needs to be initialized to value = 0 in the actor policy
         reward = board.get_reward()
         optim_action = actor.choose_action_epsilon_greedy(board, epsilon)
         actor.set_elig_trace(board.get_SAP(optim_action), 1)
@@ -54,3 +53,4 @@ for i in range(num_episodes):
 
         action = optim_action
         endstate = board.is_end_state()
+        episode_history.append((board.get_state(), board.get_SAP()))
