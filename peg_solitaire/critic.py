@@ -35,11 +35,7 @@ class Critic:
         :param state: state key: str
         :return: state value: float
         """
-        try:
-            return self.value_func[state]
-        except IndexError:
-            self.update_value_func(state, random.uniform(0, 0.2))
-            return self.value_func[state]
+        return self.value_func[state]
 
     def get_elig_trace_value(self, state: str):
         return self.elig_trace[state]
@@ -68,6 +64,6 @@ class Critic:
     def init_state_from_board(self, board: Diamond):
         state_str = board.get_state()
         if state_str not in self.value_func:
-            self.set_value_func(board.get_state(), 0.01)  # Not sure if we should add all neighbor states here
+            self.set_value_func(board.get_state(), random.uniform(0,0.01))  # Not sure if we should add all neighbor states here
         if state_str not in self.elig_trace:
             self.set_elig_trace(board.get_state(), 0)

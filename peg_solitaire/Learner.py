@@ -1,12 +1,12 @@
 from peg_solitaire.board import Diamond
 from peg_solitaire.critic import Critic
 from peg_solitaire.actor import Actor
-import random
 import copy
+from matplotlib import pyplot as plt
 
 
 # Initialize board
-num_episodes = 100
+num_episodes = 1000000
 board_size = 4
 init_board = Diamond(board_size)
 
@@ -15,9 +15,9 @@ epsilon = 0.2
 # Discount factor
 gamma = 0.9
 # Learning rate critic
-alpha_c = 0.8
+alpha_c = 0.5
 # Learning rate actor
-alpha_a = 0.8
+alpha_a = 0.5
 # Trace-decay factor
 lambd = 0.7
 
@@ -33,16 +33,16 @@ actor.init_saps_from_board(init_board)
 result = []
 
 for i in range(num_episodes):
+    # See progress
+    if i%50 == 0:
+        print(i)
     board = copy.deepcopy(init_board)
-    action = actor.choose_action(board)
+    action = actor.choose_action_epsilon(board)
     episode_history = []
     endstate = False
     while endstate == False:
         episode_history.append((board.get_state(), board.get_SAP(action)))
         board.do_action(action)
-
-        if board.is_end_state():
-            break
 
         # Initialize states and SAPs in actor and critic
         actor.init_saps_from_board(board)
@@ -52,7 +52,7 @@ for i in range(num_episodes):
         optim_action = actor.choose_action_epsilon(board)
         actor.set_elig_trace(board.get_SAP(optim_action), 1)
         delta = critic.calculate_TDerror(episode_history[-1][0], board.get_state(), reward)
-        critic.set_elig_trace(board.get_SAP(optim_action), 1) # (episode_history[-1][0], 1)
+        critic.set_elig_trace(board.get_state(), 1) # (episode_history[-1][0], 1)
         for state_tuple in reversed(episode_history):
             critic.update_value_func(state_tuple[0], delta)
             critic.update_elig_trace(state_tuple[0])
@@ -62,4 +62,5 @@ for i in range(num_episodes):
         endstate = board.is_end_state()
     result.append(board.get_num_stones())
 
-print(result)
+plt.plot(result)
+plt.show()

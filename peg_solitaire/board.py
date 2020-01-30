@@ -122,7 +122,7 @@ class Board(ABC):
         :return: the reward: float
         """
         if self.is_end_state():
-            return 1/self.get_num_stones()
+            return 10/self.get_num_stones()
         return 0
 
     def get_num_stones(self):

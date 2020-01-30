@@ -55,6 +55,10 @@ class Actor:
         :param board:
         :return:
         """
+        # temp fix:
+        if board.is_end_state():
+            return Action.create_action_from_string("000000")
+
         # Getting all state action pars from given state
         str_state = board.get_state()
         policies_from_state = list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
