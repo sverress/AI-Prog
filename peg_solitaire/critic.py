@@ -1,4 +1,4 @@
-from peg_solitaire.board import Board
+from peg_solitaire.board import Diamond
 import random
 
 class Critic:
@@ -64,3 +64,6 @@ class Critic:
         elig_trace_value = self.get_elig_trace_value(state)
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
         self.set_elig_trace(state, new_elig_trace_value)
+
+    def init_saps_from_board_state(self, board: Diamond):
+        self.set_value_func(board.get_state(), 0)  # Not sure if we should add all neighbor states here
