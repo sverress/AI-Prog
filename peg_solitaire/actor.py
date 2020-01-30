@@ -1,5 +1,6 @@
 import random
 from .board import Diamond
+from peg_solitaire.action import Action
 
 class Actor:
     def __init__(self, alpha, gamma, epsilon):
@@ -43,9 +44,10 @@ class Actor:
         :return:
         """
         # Getting all state action pars from given state
-        policies_from_state = list(filter(lambda key: key.starts_width(board), self.policy.keys()))
-        filtered_policy = self.policy[policies_from_state]
-        raise NotImplemented()
+        str_state = board.get_state()
+        policies_from_state = list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
+        chosen_sap = random.choice(policies_from_state)
+        return Action.create_action_from_string(chosen_sap[-6:])
 
     def init_saps_from_board_state(self, board: Diamond):
         current_saps = board.get_SAPS()

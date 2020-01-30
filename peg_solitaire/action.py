@@ -14,4 +14,13 @@ class Action:
         return self.z_pos,
 
     def get_action_string(self):
-        return str(self.x_pos[0]) + str(self.x_pos[1]) + str(self.z_pos[0]) + str(self.x_pos[1])
+        return f"{self.x_pos[0]}{self.x_pos[1]}{self.y_pos[0]}{self.y_pos[1]}{self.z_pos[0]}{self.z_pos[1]}"
+
+    @staticmethod
+    def create_action_from_string(action_string: str):
+        return Action(
+            (int(action_string[0]), int(action_string[1])),
+            (int(action_string[2]), int(action_string[3])),
+            (int(action_string[4]), int(action_string[5]))
+        )
+
