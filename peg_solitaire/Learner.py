@@ -24,7 +24,7 @@ critic.update_value_func(init_state, random.uniform(0, 0.2))
 critic.update_elig_trace(init_state, 0)
 
 # Initialize actor
-actor = Actor()
+actor = Actor(alpha)
 # Initialize all SAPs from init state
 
 #actions = init_board.get_legal_actions(board_size)
