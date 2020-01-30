@@ -64,3 +64,8 @@ class Critic:
         elig_trace_value = self.get_elig_trace_value(state)
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
         self.set_elig_trace(state, new_elig_trace_value)
+
+    def init_new_state(self, board: Board):
+        state = board.get_state()
+        self.set_elig_trace(state, 0)
+        self.set_value_func(state, 0.01)

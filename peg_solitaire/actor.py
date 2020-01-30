@@ -1,5 +1,5 @@
 import random
-from .board import Diamond
+from board import *
 
 class Actor:
     def __init__(self, alpha, gamma, epsilon):

@@ -121,10 +121,12 @@ class Board(ABC):
         Gets reward of a state. 0 if the state is not end state, 1/(number of stones left on board) if end state
         :return: the reward: float
         """
-        num_stones = sum([item for sublist in self.board for item in sublist])
         if self.is_end_state():
-            return 1/num_stones
+            return 1/self.get_num_stones()
         return 0
+
+    def get_num_stones(self):
+        return sum([item for sublist in self.board for item in sublist])
 
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):
@@ -164,11 +166,7 @@ class Diamond(Board):
             self.board.append([])
             for j in range(board_size):
                 self.board[i].append(1)
-        # temporary way of testing different states
         self.board[math.floor((board_size-1)/2)][math.floor((board_size-1)/2)] = 0
-        self.board[board_size - 1][board_size - 1] = 0
-        self.board[board_size - 3][board_size - 1] = 0
-        self.board[3][0] = 0
 
     def get_neighbors_indices(self, position):
         r, c = position
