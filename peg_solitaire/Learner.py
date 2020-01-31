@@ -6,14 +6,12 @@ from matplotlib import pyplot as plt
 
 
 # Initialize board
-num_episodes = 100
+num_episodes = 1000
 board_size = 4
 init_board = Diamond(board_size)
 
-print(init_board)
-
 # Exploration constant
-epsilon = 0.1
+epsilon = 0.3
 # Discount factor
 gamma = 0.98
 # Learning rate critic
@@ -38,7 +36,7 @@ for i in range(num_episodes):
     # See progress
     if i%50 == 0:
         print(i)
-        actor.epsilon = actor.epsilon*0.95
+        actor.epsilon = actor.epsilon*0.8
     board = copy.deepcopy(init_board)
     action = actor.choose_action_epsilon(board)
     episode_history = []
@@ -64,6 +62,12 @@ for i in range(num_episodes):
         action = optim_action
         endstate = board.is_end_state()
     result.append(board.get_num_stones())
+    if board.get_num_stones() > 1:
+        print(episode_history)
+        for i in episode_history:
+            print("SAP policy value: ",actor.policy[i[1]])
+            print("state value function: ",critic.value_func[i[0]])
+
 
 plt.plot(result)
 plt.show()

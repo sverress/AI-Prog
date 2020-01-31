@@ -123,7 +123,7 @@ class Board(ABC):
         """
         if self.is_end_state():
             if self.get_num_stones() == 1:
-                return 30
+                return 100
             else:
                 return 10/self.get_num_stones()
         return 0
@@ -169,7 +169,8 @@ class Diamond(Board):
             self.board.append([])
             for j in range(board_size):
                 self.board[i].append(1)
-        self.board[math.floor((board_size-1)/2)][math.floor((board_size-1)/2)] = 0
+        #self.board[math.floor((board_size-1)/2)][math.floor((board_size-1)/2)] = 0
+        self.board[0][1]=0
 
     def get_neighbors_indices(self, position):
         r, c = position
