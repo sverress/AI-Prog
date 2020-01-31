@@ -6,18 +6,20 @@ from matplotlib import pyplot as plt
 
 
 # Initialize board
-num_episodes = 1000000
+num_episodes = 100
 board_size = 4
 init_board = Diamond(board_size)
 
+print(init_board)
+
 # Exploration constant
-epsilon = 0.2
+epsilon = 0.1
 # Discount factor
-gamma = 0.9
+gamma = 0.98
 # Learning rate critic
-alpha_c = 0.5
+alpha_c = 0.9
 # Learning rate actor
-alpha_a = 0.5
+alpha_a = 0.9
 # Trace-decay factor
 lambd = 0.7
 
@@ -36,6 +38,7 @@ for i in range(num_episodes):
     # See progress
     if i%50 == 0:
         print(i)
+        actor.epsilon = actor.epsilon*0.95
     board = copy.deepcopy(init_board)
     action = actor.choose_action_epsilon(board)
     episode_history = []
@@ -64,3 +67,4 @@ for i in range(num_episodes):
 
 plt.plot(result)
 plt.show()
+plt.savefig('30janrun.png')
