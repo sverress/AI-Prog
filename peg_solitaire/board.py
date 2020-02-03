@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import math
 import numpy as np
 from peg_solitaire.action import Action
 
@@ -48,7 +47,7 @@ class Board(ABC):
         temp = (str(w) for w in temp)
         return ''.join(temp)
 
-    def get_SAP(self, action: Action):
+    def get_sap(self, action: Action):
         """
         Getting the state action pair key (str)
         :param action: The action object
@@ -59,12 +58,12 @@ class Board(ABC):
         action = action.get_action_string()
         return ''.join(state) + ''.join(action)
 
-    def get_SAPS(self):
+    def get_saps(self):
         """
         :return: List of state action pair keys for all
          legal actions from current state
         """
-        return [self.get_SAP(action) for action in self.get_legal_actions()]
+        return [self.get_sap(action) for action in self.get_legal_actions()]
 
     def filter_positions(self, position: tuple):
         """
@@ -169,8 +168,6 @@ class Diamond(Board):
             self.board.append([])
             for j in range(board_size):
                 self.board[i].append(1)
-        #self.board[math.floor((board_size-1)/2)][math.floor((board_size-1)/2)] = 0
-        self.board[0][1]=0
 
     def get_neighbors_indices(self, position):
         r, c = position

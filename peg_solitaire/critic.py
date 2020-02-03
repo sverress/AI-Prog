@@ -1,16 +1,22 @@
 from peg_solitaire.board import Diamond
 import random
 
-class Critic:
 
+class Critic:
     def __init__(self, gamma, alpha, lambd):
+        """
+
+        :param gamma: Discount factor
+        :param alpha: Learning rate
+        :param lambd: Trace-decay factor
+        """
         self.value_func = dict()
         self.elig_trace = dict()
-        self.gamma = gamma # Discount factor
-        self.alpha = alpha # Learning rate
-        self.lambd = lambd # Trace-decay factor
+        self.gamma = gamma
+        self.alpha = alpha
+        self.lambd = lambd
 
-    def calculate_TDerror(self, parent_state: str, child_state: str, reward: float):
+    def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
         Calculates the Temporal Difference error denoted delta
         :param parent_state: Previous state: str
@@ -55,7 +61,6 @@ class Critic:
         """
         Finds and sets the eligibility trace value to the elig_trace dict
         :param state: str representation of string
-        :param delta: TD-error
         """
         elig_trace_value = self.get_elig_trace_value(state)
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
@@ -64,6 +69,6 @@ class Critic:
     def init_state_from_board(self, board: Diamond):
         state_str = board.get_state()
         if state_str not in self.value_func:
-            self.set_value_func(board.get_state(), random.uniform(0,0.01))  # Not sure if we should add all neighbor states here
+            self.set_value_func(board.get_state(), random.uniform(0, 0.01))
         if state_str not in self.elig_trace:
             self.set_elig_trace(board.get_state(), 0)

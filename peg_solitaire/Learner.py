@@ -34,15 +34,15 @@ result = []
 
 for i in range(num_episodes):
     # See progress
-    if i%50 == 0:
+    if i % 50 == 0:
         print(i)
         actor.epsilon = actor.epsilon*0.8
     board = copy.deepcopy(init_board)
     action = actor.choose_action_epsilon(board)
     episode_history = []
-    endstate = False
-    while endstate == False:
-        episode_history.append((board.get_state(), board.get_SAP(action)))
+    end_state = False
+    while not end_state:
+        episode_history.append((board.get_state(), board.get_sap(action)))
         board.do_action(action)
 
         # Initialize states and SAPs in actor and critic
@@ -50,23 +50,23 @@ for i in range(num_episodes):
         critic.init_state_from_board(board)
 
         reward = board.get_reward()
-        optim_action = actor.choose_action_epsilon(board)
-        actor.set_elig_trace(board.get_SAP(optim_action), 1)
-        delta = critic.calculate_TDerror(episode_history[-1][0], board.get_state(), reward)
+        optimal_action = actor.choose_action_epsilon(board)
+        actor.set_elig_trace(board.get_sap(optimal_action), 1)
+        delta = critic.calculate_td_error(episode_history[-1][0], board.get_state(), reward)
         critic.set_elig_trace(board.get_state(), 1) # (episode_history[-1][0], 1)
         for state_tuple in reversed(episode_history):
             critic.update_value_func(state_tuple[0], delta)
             critic.update_elig_trace(state_tuple[0])
             actor.update_policy(state_tuple[1], delta)
             actor.update_elig_trace(state_tuple[1])
-        action = optim_action
-        endstate = board.is_end_state()
+        action = optimal_action
+        end_state = board.is_end_state()
     result.append(board.get_num_stones())
     if board.get_num_stones() > 1:
         print(episode_history)
-        for i in episode_history:
-            print("SAP policy value: ",actor.policy[i[1]])
-            print("state value function: ",critic.value_func[i[0]])
+        for episode in episode_history:
+            print("SAP policy value: ", actor.policy[episode[1]])
+            print("state value function: ", critic.value_func[episode[0]])
 
 
 plt.plot(result)
