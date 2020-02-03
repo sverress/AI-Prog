@@ -16,13 +16,13 @@ def setup():
             j_limit = i + 1
         for j in range(0, j_limit):
             # Creating nodes and adding space between them
-            row.append(Node((i, j), start + j * SPACE, start + i * SPACE, is_occupied=board.get_cell((i, j)) == 1))
+            row.append(Node((i, j), start + j * SPACE, start + i * SPACE, is_occupied=agent.init_board.get_cell((i, j)) == 1))
         nodes.append(row)
 
 
 def board_changed():
-    action = agent.actor.choose_action_epsilon(board)
-    board.do_action(action)
+    action = agent.actor.choose_action_epsilon(agent.board)
+    agent.board.do_action(action)
     for entering_node in action.get_entering_positions():
         nodes[entering_node[0]][entering_node[1]].set_value(True)
     for leaving_node in action.get_leaving_positions():
@@ -43,8 +43,18 @@ def draw():
             node.draw()
 
 
+def refresh():
+    agent.board = copy.deepcopy(agent.init_board)
+    for row in nodes:
+        for node in row:
+            node.set_value(agent.board.get_cell(node.pos))
+
+
 def key_pressed():
-    board_changed()
+    if key == " ":
+        board_changed()
+    if key == "r":
+        refresh()
 
 
 if __name__ == '__main__':

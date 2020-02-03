@@ -24,8 +24,10 @@ class Agent:
         # Init board
         if self.board_type == "diamond":
             self.init_board = Diamond(self.board_size, self.open_positions)
+            self.board = copy.deepcopy(self.init_board)
         elif self.board_type == "triangle":
             self.init_board = Triangle(self.board_size, self.open_positions)
+            self.board = copy.deepcopy(self.init_board)
         else:
             raise ValueError("board_type should be a string with either diamond or triangle")
 
