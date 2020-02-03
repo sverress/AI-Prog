@@ -7,13 +7,17 @@ class Board(ABC):
     """
     Abstract Board class for a general board
     """
-    def __init__(self, board_size: int):
+    def __init__(self, board_size: int, open_coordinates: [tuple]):
         """
         Initializes the board
         :param board_size: Size of the board
+        :param open_coordinates: list of positions to be left open in the board. Positions are given as tuples
         """
         self.board = []
         self.board_size = board_size
+        self.build_board(board_size)
+        for coordinate in open_coordinates:
+            self.board[coordinate[0]][coordinate[1]] = 0
 
     def __str__(self):
         """
@@ -139,6 +143,14 @@ class Board(ABC):
         """
         pass
 
+    @abstractmethod
+    def build_board(self, board_size):
+        """
+        Implementation specific method for different boards.
+        :param board_size: dimension of board
+        """
+        pass
+
     def get_legal_actions(self):
         """
         :return: a list of the legal actions from the current board state
@@ -162,8 +174,7 @@ class Board(ABC):
 
 
 class Diamond(Board):
-    def __init__(self, board_size):
-        super().__init__(board_size)
+    def build_board(self, board_size):
         for i in range(board_size):
             self.board.append([])
             for j in range(board_size):
@@ -177,8 +188,7 @@ class Diamond(Board):
 
 
 class Triangle(Board):
-    def __init__(self, board_size):
-        super().__init__(board_size)
+    def build_board(self, board_size):
         for i in range(board_size):
             self.board.append([])
             for j in range(i+1):
@@ -191,3 +201,5 @@ class Triangle(Board):
         return list(filter(lambda pos: self.filter_positions(pos), indices))
 
 
+board = Triangle(4, [(1, 1), (2, 2)])
+print(board)
