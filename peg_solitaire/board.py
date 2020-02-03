@@ -199,7 +199,3 @@ class Triangle(Board):
         indices = [(r-1, c-1), (r-1, c), (r, c-1), (r, c+1), (r+1, c), (r+1, c+1)]
         # Removing indices outside the board
         return list(filter(lambda pos: self.filter_positions(pos), indices))
-
-
-board = Triangle(4, [(1, 1), (2, 2)])
-print(board)

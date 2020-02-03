@@ -48,5 +48,5 @@ if __name__ == '__main__':
     SPACE = 80
     # Size of board
     SIZE = 4
-    board = Diamond(SIZE)
+    board = Diamond(SIZE, [(2, 1)])
     run()
