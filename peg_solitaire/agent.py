@@ -1,5 +1,5 @@
 import json
-from peg_solitaire.board import Diamond
+from peg_solitaire.board import Board, Triangle, Diamond
 from peg_solitaire.actor import Actor
 from peg_solitaire.critic import Critic
 import copy
@@ -7,54 +7,48 @@ from matplotlib import pyplot as plt
 
 
 class Agent:
-    def __init__(self):
-        """
-        Creating a default agent instance
-        """
-        # initializing the board
-        self.num_episodes = 1000
-        self.board_size = 4
-        self.board = Diamond(self.board_size, [(2, 2)])
+    def __init__(self, parameters, board_type: str):
+        # Init parameters from parameter dict
+        self.open_positions = []
+        self.board_size = 3
+        self.num_episodes = None
+        self.epsilon = None
+        self.alpha_a = None
+        self.lambd = None
+        self.alpha_c = None
+        self.gamma = None
+        self.__dict__ = parameters
+        self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
+        # Init board
+        if board_type == "diamond":
+            self.init_board = Diamond(self.board_size, self.open_positions)
+        elif board_type == "triangle":
+            self.init_board = Triangle(self.board_size, self.open_positions)
+        else:
+            raise ValueError("board_type should be a string with either diamond or triangle")
 
-        # Exploration constant
-        self.epsilon = 0.3
-        # Discount factor
-        self.gamma = 0.98
-        # Learning rate critic
-        self.alpha_c = 0.9
-        # Learning rate actor
-        self.alpha_a = 0.9
-        # Trace-decay factor
-        self.lambd = 0.7
-
-        self.init_actor_and_critic()
-
-    def init_actor_and_critic(self):
         # Initialize critic
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
-        self.critic.init_state_from_board(self.board)
+        self.critic.init_state_from_board(self.init_board)
 
         # Initialize actor
         self.actor = Actor(self.alpha_a, self.gamma, self.epsilon)
         # Initialize all SAPs from init state
-        self.actor.init_saps_from_board(self.board)
+        self.actor.init_saps_from_board(self.init_board)
 
     @staticmethod
-    def create_agent_from_config_file(config_file_path):
+    def create_agent_from_config_file(config_file_path, board_type: str):
         """
         Method for creating agents from config file
+        :param board_type:
         :param config_file_path: path to json config file
         :return: new Agent object
         """
-        new_agent = Agent()
         with open(config_file_path) as json_file:
             data = json.load(json_file)
-            for key, value in data.items():
-                exec(f'new_agent.{key} = {value}')
-        new_agent.init_actor_and_critic()
-        return new_agent
+            return Agent(data, board_type)
 
-    def train(self):
+    def train(self, plot_result=True, log=False):
         result = []
 
         for i in range(self.num_episodes):
@@ -62,7 +56,7 @@ class Agent:
             if i % 50 == 0:
                 print(i)
                 self.actor.epsilon = self.actor.epsilon * 0.8
-            board = copy.deepcopy(self.board)
+            board = copy.deepcopy(self.init_board)
             action = self.actor.choose_action_epsilon(board)
             episode_history = []
             end_state = False
@@ -87,15 +81,17 @@ class Agent:
                 action = optimal_action
                 end_state = board.is_end_state()
             result.append(board.get_num_stones())
-            if board.get_num_stones() > 1:
+
+            if board.get_num_stones() > 1 and log:
                 print(episode_history)
                 for episode in episode_history:
                     print("SAP policy value: ", self.actor.policy[episode[1]])
                     print("state value function: ", self.critic.value_func[episode[0]])
+        if plot_result:
+            plt.plot(result)
+            plt.show()
+            plt.savefig('30janrun.png')
 
-        plt.plot(result)
-        plt.show()
-        plt.savefig('30janrun.png')
 
-
-agent = Agent.create_agent_from_config_file("config.json")
+agent = Agent.create_agent_from_config_file("config.json", "diamond")
+agent.train()

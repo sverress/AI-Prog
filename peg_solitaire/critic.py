@@ -1,4 +1,4 @@
-from peg_solitaire.board import Diamond
+from peg_solitaire.board import Board
 import random
 
 
@@ -66,7 +66,7 @@ class Critic:
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
         self.set_elig_trace(state, new_elig_trace_value)
 
-    def init_state_from_board(self, board: Diamond):
+    def init_state_from_board(self, board: Board):
         state_str = board.get_state()
         if state_str not in self.value_func:
             self.set_value_func(board.get_state(), random.uniform(0, 0.01))
