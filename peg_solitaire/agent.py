@@ -1,14 +1,16 @@
 import json
-from peg_solitaire.board import Board, Triangle, Diamond
+from peg_solitaire.board import Triangle, Diamond
 from peg_solitaire.actor import Actor
 from peg_solitaire.critic import Critic
 import copy
 from matplotlib import pyplot as plt
+import sys
 
 
 class Agent:
-    def __init__(self, parameters, board_type: str):
+    def __init__(self, parameters):
         # Init parameters from parameter dict
+        self.board_type = None
         self.open_positions = []
         self.board_size = 3
         self.num_episodes = None
@@ -20,9 +22,9 @@ class Agent:
         self.__dict__ = parameters
         self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
         # Init board
-        if board_type == "diamond":
+        if self.board_type == "diamond":
             self.init_board = Diamond(self.board_size, self.open_positions)
-        elif board_type == "triangle":
+        elif self.board_type == "triangle":
             self.init_board = Triangle(self.board_size, self.open_positions)
         else:
             raise ValueError("board_type should be a string with either diamond or triangle")
@@ -37,7 +39,7 @@ class Agent:
         self.actor.init_saps_from_board(self.init_board)
 
     @staticmethod
-    def create_agent_from_config_file(config_file_path, board_type: str):
+    def create_agent_from_config_file(config_file_path):
         """
         Method for creating agents from config file
         :param board_type:
@@ -46,15 +48,17 @@ class Agent:
         """
         with open(config_file_path) as json_file:
             data = json.load(json_file)
-            return Agent(data, board_type)
+            return Agent(data)
 
     def train(self, plot_result=True, log=False):
         result = []
-
         for i in range(self.num_episodes):
             # See progress
-            if i % 50 == 0:
-                print(i)
+            interval = 50
+            if i % interval == 0:
+                bar = "=" * int(i/interval) + ">" + " " * (int(self.num_episodes/interval) - int(i/interval))
+                sys.stdout.write(f"\r[{bar}] {i/self.num_episodes*100}%")
+                sys.stdout.flush()
                 self.actor.epsilon = self.actor.epsilon * 0.8
             board = copy.deepcopy(self.init_board)
             action = self.actor.choose_action_epsilon(board)
@@ -90,8 +94,3 @@ class Agent:
         if plot_result:
             plt.plot(result)
             plt.show()
-            plt.savefig('30janrun.png')
-
-
-agent = Agent.create_agent_from_config_file("config.json", "diamond")
-agent.train()

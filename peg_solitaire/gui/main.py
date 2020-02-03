@@ -1,7 +1,7 @@
+import copy
 from p5 import *
 from peg_solitaire.gui.components import *
-from peg_solitaire.board import Diamond
-import random
+from peg_solitaire.agent import Agent
 
 
 def setup():
@@ -18,7 +18,7 @@ def setup():
 
 
 def board_changed():
-    action = random.choice(board.get_legal_actions())
+    action = agent.actor.choose_action_epsilon(board)
     board.do_action(action)
     for entering_node in action.get_entering_positions():
         nodes[entering_node[0]][entering_node[1]].set_value(True)
@@ -33,20 +33,25 @@ def draw():
     translate(width/2, height/2)
     # Rotating around the new reference point
     rotate(PI/4)
-    if key_is_pressed and key == " ":
-        board_changed()
     for row in nodes:
         for node in row:
             # Drawing all the nodes
             node.draw()
 
 
+def key_pressed():
+    board_changed()
+
+
 if __name__ == '__main__':
+    agent = Agent.create_agent_from_config_file("../config.json")
+    agent.train(plot_result=False)
+    board = copy.deepcopy(agent.init_board)
     # List of all nodes
     nodes = []
     # Distance between nodes
     SPACE = 80
     # Size of board
-    SIZE = 4
-    board = Diamond(SIZE, [(2, 1)])
+    SIZE = agent.board_size
+
     run()
