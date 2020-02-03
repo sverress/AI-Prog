@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 # Initialize board
 num_episodes = 1000
 board_size = 4
-init_board = Diamond(board_size)
+init_board = Diamond(board_size, [(2, 2)])
 
 # Exploration constant
 epsilon = 0.3

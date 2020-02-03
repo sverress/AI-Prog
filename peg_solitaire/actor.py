@@ -1,5 +1,5 @@
 import random
-from .board import Diamond
+from .board import Board
 from peg_solitaire.action import Action
 
 
@@ -38,11 +38,11 @@ class Actor:
     def update_elig_trace(self, sap: str):
         self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
 
-    def choose_action(self, board: Diamond):
+    def choose_random_action(self, board: Board):
         """
         Chooses the action with the highest desirability
         :param board:
-        :return:
+        :return: chosen action object
         """
         # Getting all state action pars from given state
         str_state = board.get_state()
@@ -50,11 +50,11 @@ class Actor:
         chosen_sap = random.choice(policies_from_state)
         return Action.create_action_from_string(chosen_sap[-6:])
 
-    def choose_action_epsilon(self, board: Diamond):
+    def choose_action_epsilon(self, board: Board):
         """
         Chooses the action with the highest desirability
         :param board:
-        :return:
+        :return: chosen action object
         """
         # temp fix:
         if board.is_end_state():
@@ -70,7 +70,7 @@ class Actor:
             sorted_saps = sorted(policies_from_state, key=self.policy.get, reverse=True)
             return Action.create_action_from_string(sorted_saps[0][-6:])
 
-    def init_saps_from_board(self, board: Diamond):
+    def init_saps_from_board(self, board: Board):
         current_saps = board.get_saps()
         # Filter out saps already present in policy
         new_saps = list(filter(lambda key: key not in self.policy, current_saps))
