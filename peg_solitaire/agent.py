@@ -52,12 +52,12 @@ class Agent:
 
     def train(self, plot_result=True, log=False):
         result = []
-        for i in range(self.num_episodes):
+        for i in range(1, self.num_episodes+1):
             # See progress
             interval = 50
             if i % interval == 0:
                 bar = "=" * int(i/interval) + ">" + " " * (int(self.num_episodes/interval) - int(i/interval))
-                sys.stdout.write(f"\r[{bar}] {i/self.num_episodes*100}%")
+                sys.stdout.write(f"\r[{bar}] {int(i/self.num_episodes*100)}%")
                 sys.stdout.flush()
                 self.actor.epsilon = self.actor.epsilon * 0.8
             board = copy.deepcopy(self.init_board)
@@ -86,7 +86,7 @@ class Agent:
                 end_state = board.is_end_state()
             result.append(board.get_num_stones())
 
-            if board.get_num_stones() > 1 and log:
+            if log and board.get_num_stones() > 1:
                 print(episode_history)
                 for episode in episode_history:
                     print("SAP policy value: ", self.actor.policy[episode[1]])
