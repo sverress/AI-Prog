@@ -4,7 +4,7 @@ from peg_solitaire.actor import Actor
 from peg_solitaire.critic import Critic
 import copy
 from matplotlib import pyplot as plt
-import sys
+from peg_solitaire.helpers import *
 
 
 class Agent:
@@ -59,13 +59,12 @@ class Agent:
 
     def train(self, plot_result=True, log=False):
         result = []
+        interval = 50
+        print_loader(0, self.num_episodes, interval)
         for i in range(1, self.num_episodes+1):
             # See progress
-            interval = 50
             if i % interval == 0:
-                bar = "=" * int(i/interval) + ">" + " " * (int(self.num_episodes/interval) - int(i/interval))
-                sys.stdout.write(f"\r[{bar}] {int(i/self.num_episodes*100)}%")
-                sys.stdout.flush()
+                print_loader(i, self.num_episodes, interval)
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
             board = copy.deepcopy(self.init_board)
             action = self.actor.choose_epsilon_greedy_action(board)
