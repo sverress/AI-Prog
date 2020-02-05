@@ -99,4 +99,6 @@ class Agent:
                     print("state value function: ", self.critic.value_func[episode[0]])
         if plot_result:
             plt.plot(result)
+            plt.xlabel('Episodes')
+            plt.ylabel('Remaining pegs')
             plt.show()
