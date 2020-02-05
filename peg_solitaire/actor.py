@@ -5,6 +5,13 @@ from peg_solitaire.action import Action
 
 class Actor:
     def __init__(self, alpha, gamma, epsilon):
+        """
+        Class representing the actor in the actor-critic model
+
+        :param alpha: Learning rate
+        :param gamma: Discount factor
+        :param epsilon: Exploration rate (prob of taking random action)
+        """
         self.policy = dict()
         self.elig_trace = dict()
         self.alpha = alpha
@@ -38,39 +45,44 @@ class Actor:
     def update_elig_trace(self, sap: str):
         self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
 
-    def choose_random_action(self, board: Board):
+    def choose_greedy_action(self, board: Board):
         """
-        Chooses the action with the highest desirability
-        :param board:
-        :return: chosen action object
+        Choosing the action in the state action pair with the highest policy value
+        :param board: board representing the state
+        :return: the action object corresponding to the highest policy value from current state
         """
-        # Getting all state action pars from given state
-        str_state = board.get_state()
-        policies_from_state = list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
-        chosen_sap = random.choice(policies_from_state)
-        return Action.create_action_from_string(chosen_sap[-6:])
+        return Action.create_action_from_string(max(self.get_policies_from_state(board), key=self.policy.get)[-6:])
 
-    def choose_action_epsilon(self, board: Board):
+    def choose_epsilon_greedy_action(self, board: Board):
         """
-        Chooses the action with the highest desirability
-        :param board:
+        Chooses the action with the highest desirability with some exploration (epsilon)
+        :param board: board representing the state
         :return: chosen action object
         """
         # temp fix:
         if board.is_end_state():
             return Action.create_action_from_string("000000")
 
-        # Getting all state action pairs from given state
-        str_state = board.get_state()
-        policies_from_state = list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
         if random.random() < self.epsilon:
-            chosen_sap = random.choice(policies_from_state)
+            chosen_sap = random.choice(self.get_policies_from_state(board))
             return Action.create_action_from_string(chosen_sap[-6:])
         else:
-            sorted_saps = sorted(policies_from_state, key=self.policy.get, reverse=True)
-            return Action.create_action_from_string(sorted_saps[0][-6:])
+            return self.choose_greedy_action(board)
+
+    def get_policies_from_state(self, board: Board):
+        """
+        :param board: board representing the state
+        :return: list of SAPs from current state in policy
+        """
+        # Getting all state action pairs from given state
+        str_state = board.get_state()
+        return list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
 
     def init_saps_from_board(self, board: Board):
+        """
+        Method for adding values to unseen state action pairs in policy and eligibility trace
+        :param board: board representing the state
+        """
         current_saps = board.get_saps()
         # Filter out saps already present in policy
         new_saps = list(filter(lambda key: key not in self.policy, current_saps))

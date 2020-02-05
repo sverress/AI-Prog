@@ -68,7 +68,7 @@ class Agent:
                 sys.stdout.flush()
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
             board = copy.deepcopy(self.init_board)
-            action = self.actor.choose_action_epsilon(board)
+            action = self.actor.choose_epsilon_greedy_action(board)
             episode_history = []
             end_state = False
             while not end_state:
@@ -80,7 +80,7 @@ class Agent:
                 self.critic.init_state_from_board(board)
 
                 reward = board.get_reward()
-                optimal_action = self.actor.choose_action_epsilon(board)
+                optimal_action = self.actor.choose_epsilon_greedy_action(board)
                 self.actor.set_elig_trace(board.get_sap(optimal_action), 1)
                 delta = self.critic.calculate_td_error(episode_history[-1][0], board.get_state(), reward)
                 self.critic.set_elig_trace(board.get_state(), 1)  # (episode_history[-1][0], 1)

@@ -21,7 +21,7 @@ def setup():
 
 
 def board_changed():
-    action = agent.actor.choose_action_epsilon(agent.board)
+    action = agent.actor.choose_epsilon_greedy_action(agent.board)
     agent.board.do_action(action)
     for entering_node in action.get_entering_positions():
         nodes[entering_node[0]][entering_node[1]].set_value(True)
