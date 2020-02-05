@@ -17,6 +17,13 @@ def setup():
         for j in range(0, j_limit):
             # Creating nodes and adding space between them
             row.append(Node((i, j), start + j * SPACE, start + i * SPACE, is_occupied=agent.init_board.get_cell((i, j)) == 1))
+
+        if agent.board_type == "triangle":
+            # Shift triangle
+            for row in nodes:
+                for node in row:
+                    node.x = node.x + 1
+
         nodes.append(row)
 
 
@@ -60,7 +67,7 @@ def key_pressed():
 
 if __name__ == '__main__':
     agent = Agent.create_agent_from_config_file("../config.json")
-    agent.train(plot_result=True)
+    #agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes

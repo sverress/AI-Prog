@@ -1,5 +1,6 @@
 from p5 import *
 
+
 class Node:
     """
     Class for representing a node/cell in the interface
