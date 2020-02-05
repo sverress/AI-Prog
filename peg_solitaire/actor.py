@@ -43,6 +43,10 @@ class Actor:
         self.elig_trace[sap] = value
 
     def update_elig_trace(self, sap: str):
+        """
+        :param sap: state action pair: str
+        :return: the updated eligibility trace for the sap
+        """
         self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
 
     def choose_greedy_action(self, board: Board):

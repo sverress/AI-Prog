@@ -21,12 +21,13 @@ def setup():
 
 
 def board_changed():
-    action = agent.actor.choose_epsilon_greedy_action(agent.board)
-    agent.board.do_action(action)
-    for entering_node in action.get_entering_positions():
-        nodes[entering_node[0]][entering_node[1]].set_value(True)
-    for leaving_node in action.get_leaving_positions():
-        nodes[leaving_node[0]][leaving_node[1]].set_value(False)
+    if not agent.board.is_end_state():
+        action = agent.actor.choose_greedy_action(agent.board)
+        agent.board.do_action(action)
+        for entering_node in action.get_entering_positions():
+            nodes[entering_node[0]][entering_node[1]].set_value(True)
+        for leaving_node in action.get_leaving_positions():
+            nodes[leaving_node[0]][leaving_node[1]].set_value(False)
 
 
 def draw():
