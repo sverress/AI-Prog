@@ -59,7 +59,7 @@ def key_pressed():
 
 if __name__ == '__main__':
     agent = Agent.create_agent_from_config_file("../config.json")
-    agent.train(plot_result=False)
+    agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes

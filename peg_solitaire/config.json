@@ -1,11 +1,14 @@
 {
   "num_episodes": 1000,
-  "board_type": "diamond",
-  "board_size": 4,
-  "open_positions": ["32"],
-  "epsilon": 0.3,
+  "board_type": "triangle",
+  "board_size": 5,
+  "open_positions": ["31"],
+  "epsilon": 0.5,
   "gamma": 0.98,
   "alpha_c": 0.9,
   "alpha_a": 0.9,
-  "lambd": 0.7
+  "lambd": 0.7,
+  "epsilon_decay_rate": 0.7,
+  "use_nn": false,
+  "layers": ["","",""]
 }

@@ -14,11 +14,16 @@ class Agent:
         self.open_positions = []
         self.board_size = 3
         self.num_episodes = None
+        # Exploration rate (prob of taking random action)
         self.epsilon = None
+        # Learning rate
         self.alpha_a = None
-        self.lambd = None
         self.alpha_c = None
+        # Trace decay factor
+        self.lambd = None
+        # Discount factor
         self.gamma = None
+        self.epsilon_decay_rate = None
         self.__dict__ = parameters
         self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
         # Init board
@@ -61,7 +66,7 @@ class Agent:
                 bar = "=" * int(i/interval) + ">" + " " * (int(self.num_episodes/interval) - int(i/interval))
                 sys.stdout.write(f"\r[{bar}] {int(i/self.num_episodes*100)}%")
                 sys.stdout.flush()
-                self.actor.epsilon = self.actor.epsilon * 0.8
+                self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
             board = copy.deepcopy(self.init_board)
             action = self.actor.choose_action_epsilon(board)
             episode_history = []
