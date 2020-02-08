@@ -88,10 +88,10 @@ class Agent:
                 optimal_action = self.actor.choose_epsilon_greedy_action(board)
                 self.actor.set_elig_trace(board.get_sap(optimal_action), 1)
                 delta = self.critic.calculate_td_error(episode_history[-1][0], board.get_state(), reward)
-                self.critic.set_elig_trace(board.get_state(), 1)  # (episode_history[-1][0], 1)
+                self.critic.set_eligibility_trace(board.get_state(), 1)  # (episode_history[-1][0], 1)
                 for state_tuple in reversed(episode_history):
                     self.critic.update_value_func(state_tuple[0], delta)
-                    self.critic.update_elig_trace(state_tuple[0])
+                    self.critic.update_eligibility_trace(state_tuple[0])
                     self.actor.update_policy(state_tuple[1], delta)
                     self.actor.update_elig_trace(state_tuple[1])
                 action = optimal_action

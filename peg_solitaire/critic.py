@@ -1,4 +1,5 @@
 from peg_solitaire.board import Board
+import numpy as np
 import random
 
 
@@ -37,15 +38,13 @@ class Critic:
         :param reward: Reward from going to "child state": float
         :return: the TD error; delta
         """
-
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
-
         return delta
 
     def set_value_func(self, state, value):
         self.value_func[state] = value
 
-    def set_elig_trace(self, state, value):
+    def set_eligibility_trace(self, state, value):
         self.elig_trace[state] = value
 
     def get_state_value(self, state: str):
@@ -54,9 +53,12 @@ class Critic:
         :param state: state key: str
         :return: state value: float
         """
-        return self.value_func[state]
+        if self.model:
+            return self.model.predict(np.array([int(string_num) for string_num in state]))
+        else:
+            return self.value_func[state]
 
-    def get_elig_trace_value(self, state: str):
+    def get_eligibility_trace(self, state: str):
         return self.elig_trace[state]
 
     def update_value_func(self, state: str, delta: float):
@@ -66,22 +68,22 @@ class Critic:
         :param delta: TD-error
         """
         state_value = self.get_state_value(state)
-        elig_trace_value = self.get_elig_trace_value(state)
+        elig_trace_value = self.get_eligibility_trace(state)
         new_state_value = state_value + self.alpha*delta*elig_trace_value
         self.set_value_func(state, new_state_value)
 
-    def update_elig_trace(self, state: str):
+    def update_eligibility_trace(self, state: str):
         """
         Finds and sets the eligibility trace value to the elig_trace dict
         :param state: str representation of string
         """
-        elig_trace_value = self.get_elig_trace_value(state)
+        elig_trace_value = self.get_eligibility_trace(state)
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
-        self.set_elig_trace(state, new_elig_trace_value)
+        self.set_eligibility_trace(state, new_elig_trace_value)
 
     def init_state_from_board(self, board: Board):
         state_str = board.get_state()
         if state_str not in self.value_func:
             self.set_value_func(board.get_state(), random.uniform(0, 0.01))
         if state_str not in self.elig_trace:
-            self.set_elig_trace(board.get_state(), 0)
+            self.set_eligibility_trace(board.get_state(), 0)
