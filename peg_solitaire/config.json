@@ -9,6 +9,6 @@
   "alpha_a": 0.8,
   "lambd": 0.85,
   "epsilon_decay_rate": 0.7,
-  "use_nn": false,
-  "layers": ["","",""]
+  "use_nn": true,
+  "layers": [5, 5]
 }

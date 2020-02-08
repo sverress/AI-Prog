@@ -24,8 +24,12 @@ class Agent:
         # Discount factor
         self.gamma = None
         self.epsilon_decay_rate = None
+        # Neural net parameters
+        self.use_nn = False
+        self.layers = None
         self.__dict__ = parameters
-        self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
+        # Converting string lists to tuple lists
+        self.open_positions = convert_string_list_to_tuple_list(self.open_positions)
         # Init board
         if self.board_type == "diamond":
             self.init_board = Diamond(self.board_size, self.open_positions)
@@ -38,6 +42,8 @@ class Agent:
 
         # Initialize critic
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
+        if self.use_nn:
+            self.critic.init_nn(self.layers, self.init_board.board_size)
         self.critic.init_state_from_board(self.init_board)
 
         # Initialize actor

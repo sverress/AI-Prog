@@ -15,6 +15,19 @@ class Critic:
         self.gamma = gamma
         self.alpha = alpha
         self.lambd = lambd
+        self.model = None  # Variable for nn
+
+    def init_nn(self, layers, board_size):
+        from keras.models import Sequential
+        from keras.layers import Dense
+
+        self.model = Sequential()
+        # Adding first layer with input size depending on board size
+        self.model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2))
+        for i in range(1, len(layers)):
+            self.model.add(Dense(units=layers[i], activation='relu'))
+        self.model.add(Dense(units=1, activation='softmax'))
+        self.model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
 
     def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
