@@ -18,13 +18,11 @@ def setup():
             # Creating nodes and adding space between them
             row.append(Node((i, j), start + j * SPACE, start + i * SPACE, is_occupied=agent.init_board.get_cell((i, j)) == 1))
 
-        if agent.board_type == "triangle":
-            # Shift triangle
-            for row in nodes:
-                for node in row:
-                    node.x = node.x + 1
-
         nodes.append(row)
+
+    for i in range(0, len(nodes)):
+        for j in range(0, len(nodes[i])):
+            nodes[i][j].x = nodes[i][j].x + (len(nodes) - i) * (SPACE / 2)
 
 
 def board_changed():
