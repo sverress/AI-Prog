@@ -57,6 +57,10 @@ class Actor:
         """
         return Action.create_action_from_string(max(self.get_policies_from_state(board), key=self.policy.get)[-6:])
 
+    def choose_random_action(self, board: Board):
+        chosen_sap = random.choice(self.get_policies_from_state(board))
+        return Action.create_action_from_string(chosen_sap[-6:])
+
     def choose_epsilon_greedy_action(self, board: Board):
         """
         Chooses the action with the highest desirability with some exploration (epsilon)
@@ -68,8 +72,7 @@ class Actor:
             return Action.create_action_from_string("000000")
 
         if random.random() < self.epsilon:
-            chosen_sap = random.choice(self.get_policies_from_state(board))
-            return Action.create_action_from_string(chosen_sap[-6:])
+            return self.choose_random_action(board)
         else:
             return self.choose_greedy_action(board)
 

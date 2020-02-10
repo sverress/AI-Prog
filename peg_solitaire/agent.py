@@ -24,6 +24,7 @@ class Agent:
         # Discount factor
         self.gamma = None
         self.epsilon_decay_rate = None
+        self.frame_rate = None
         # Neural net parameters
         self.use_nn = False
         self.layers = None
@@ -51,11 +52,12 @@ class Agent:
         # Initialize all SAPs from init state
         self.actor.init_saps_from_board(self.init_board)
 
+        self.is_trained = False
+
     @staticmethod
     def create_agent_from_config_file(config_file_path):
         """
         Method for creating agents from config file
-        :param board_type:
         :param config_file_path: path to json config file
         :return: new Agent object
         """
@@ -108,3 +110,4 @@ class Agent:
             plt.xlabel('Episodes')
             plt.ylabel('Remaining pegs')
             plt.show()
+        self.is_trained = True

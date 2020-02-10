@@ -20,15 +20,17 @@ def setup():
 
         nodes.append(row)
 
-    for i in range(0, len(nodes)):
-        for j in range(0, len(nodes[i])):
-            nodes[i][j].x = nodes[i][j].x + (len(nodes) - i) * (SPACE / 2)
+    if agent.board_type == "triangle":
+        for i in range(0, len(nodes)):
+            for j in range(0, len(nodes[i])):
+                nodes[i][j].x = nodes[i][j].x + (len(nodes) - i) * (SPACE / 2)
 
 
 def board_changed():
     if not agent.board.is_end_state():
         action = agent.actor.choose_greedy_action(agent.board)
         agent.board.do_action(action)
+        agent.actor.init_saps_from_board(agent.board)
         for entering_node in action.get_entering_positions():
             nodes[entering_node[0]][entering_node[1]].set_value(True)
         for leaving_node in action.get_leaving_positions():
@@ -47,6 +49,7 @@ def draw():
         for node in row:
             # Drawing all the nodes
             node.draw()
+    board_changed()
 
 
 def refresh():
@@ -65,7 +68,7 @@ def key_pressed():
 
 if __name__ == '__main__':
     agent = Agent.create_agent_from_config_file("../config.json")
-    #agent.train(plot_result=True)
+    agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes
@@ -73,4 +76,4 @@ if __name__ == '__main__':
     # Size of board
     SIZE = agent.board_size
     board = copy.deepcopy(agent.init_board)
-    run()
+    run(frame_rate=agent.frame_rate)
