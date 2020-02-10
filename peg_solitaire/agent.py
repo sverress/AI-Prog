@@ -24,6 +24,7 @@ class Agent:
         # Discount factor
         self.gamma = None
         self.epsilon_decay_rate = None
+        self.frame_rate = None
         self.__dict__ = parameters
         self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
         # Init board
@@ -45,11 +46,12 @@ class Agent:
         # Initialize all SAPs from init state
         self.actor.init_saps_from_board(self.init_board)
 
+        self.is_trained = False
+
     @staticmethod
     def create_agent_from_config_file(config_file_path):
         """
         Method for creating agents from config file
-        :param board_type:
         :param config_file_path: path to json config file
         :return: new Agent object
         """
@@ -102,3 +104,4 @@ class Agent:
             plt.xlabel('Episodes')
             plt.ylabel('Remaining pegs')
             plt.show()
+        self.is_trained = True
