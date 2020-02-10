@@ -10,6 +10,7 @@
   "lambd": 0.85,
   "epsilon_decay_rate": 0.9,
   "frame_rate": 5,
+  "autoplay": true,
   "use_nn": false,
   "layers": ["","",""]
 }

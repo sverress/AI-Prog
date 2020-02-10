@@ -25,6 +25,7 @@ class Agent:
         self.gamma = None
         self.epsilon_decay_rate = None
         self.frame_rate = None
+        self.autoplay = None
         self.__dict__ = parameters
         self.open_positions = [(int(string_pos[0]), int(string_pos[1])) for string_pos in self.open_positions]
         # Init board
