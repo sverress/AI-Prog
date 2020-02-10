@@ -1,15 +1,16 @@
 {
   "num_episodes": 500,
   "board_type": "diamond",
-  "board_size": 5,
-  "open_positions": ["31"],
+  "board_size": 4,
+  "open_positions": ["12"],
   "epsilon": 0.3,
   "gamma": 0.98,
   "alpha_c": 0.8,
   "alpha_a": 0.8,
   "lambd": 0.85,
   "epsilon_decay_rate": 0.7,
+  "frame_rate": 5,
+  "autoplay": true,
   "use_nn": true,
-  "layers": [5, 5],
-  "frame_rate": 5
+  "layers": [5, 5]
 }

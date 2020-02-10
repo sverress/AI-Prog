@@ -48,7 +48,8 @@ def draw():
         for node in row:
             # Drawing all the nodes
             node.draw()
-    board_changed()
+    if agent.autoplay:
+        board_changed()
 
 
 def refresh():
@@ -60,14 +61,14 @@ def refresh():
 
 def key_pressed():
     if key == " ":
-        board_changed()
+        agent.autoplay = not agent.autoplay
     if key == "r":
         refresh()
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../config.json")
-    agent.train(plot_result=True)
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_32.json")
+    #agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes

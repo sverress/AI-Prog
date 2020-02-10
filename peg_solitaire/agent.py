@@ -29,6 +29,7 @@ class Agent:
         # Neural net parameters
         self.use_nn = False
         self.layers = None
+        self.autoplay = None
         self.__dict__ = parameters
         # Converting string lists to tuple lists
         self.open_positions = convert_string_list_to_tuple_list(self.open_positions)
@@ -52,8 +53,6 @@ class Agent:
         self.actor = Actor(self.alpha_a, self.gamma, self.epsilon)
         # Initialize all SAPs from init state
         self.actor.init_saps_from_board(self.init_board)
-
-        self.is_trained = False
 
     @staticmethod
     def create_agent_from_config_file(config_file_path):
@@ -81,28 +80,43 @@ class Agent:
             if i % interval == 0:
                 print_loader(i, self.num_episodes, interval)
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
-            self.board = copy.deepcopy(self.init_board)
-            action = self.actor.choose_epsilon_greedy_action(self.board)
+            current_state = copy.deepcopy(self.init_board)
+            action = self.actor.choose_epsilon_greedy_action(current_state)
             episode_history = []
             end_state = False
             while not end_state:
-                episode_history.append((self.board.get_state(), self.board.get_sap(action)))
-                self.do_action(action)
-                reward = self.board.get_reward()
-                optimal_action = self.actor.choose_epsilon_greedy_action(self.board)
-                self.actor.set_elig_trace(self.board.get_sap(optimal_action), 1)
-                delta = self.critic.calculate_td_error(episode_history[-1][0], self.board.get_state(), reward)
-                self.critic.set_eligibility_trace(self.board.get_state(), 1)  # (episode_history[-1][0], 1)
-                for state_tuple in reversed(episode_history):
-                    self.critic.update_value_func(state_tuple[0], delta)
-                    self.critic.update_eligibility_trace(state_tuple[0])
-                    self.actor.update_policy(state_tuple[1], delta)
-                    self.actor.update_elig_trace(state_tuple[1])
-                action = optimal_action
-                end_state = self.board.is_end_state()
-            result.append(self.board.get_num_stones())
+                episode_history.append((current_state.get_state(), current_state.get_sap(action)))
+                # Do action a from state s, moving the system to state s’ and receiving reinforcement r
+                next_state = copy.deepcopy(current_state)  # s' in sudocode
+                next_state.do_action(action)
+                self.actor.init_saps_from_board(next_state)
+                self.critic.init_state_from_board(next_state)
+                reward = next_state.get_reward()
 
-            if log and self.board.get_num_stones() > 1:
+                # the action dictated by the current policy for state s’
+                optimal_action = self.actor.choose_epsilon_greedy_action(next_state)
+
+                # (the actor keeps SAP-based eligibilities)
+                self.actor.set_elig_trace(current_state.get_sap(action), 1)
+
+                # Calculate TD-error
+                delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
+
+                # (the critic needs state-based eligibilities)
+                self.critic.set_elig_trace(current_state.get_state(), 1)
+
+                # Update policy and value function
+                for state, sap in reversed(episode_history):
+                    self.critic.update_value_func(state, delta)
+                    self.critic.update_elig_trace(state)
+                    self.actor.update_policy(sap, delta)
+                    self.actor.update_elig_trace(sap)
+                action = optimal_action
+                end_state = next_state.is_end_state()
+                current_state = next_state
+            result.append(current_state.get_num_stones())
+
+            if log and current_state.get_num_stones() > 1:
                 print(episode_history)
                 for episode in episode_history:
                     print("SAP policy value: ", self.actor.policy[episode[1]])
@@ -112,4 +126,3 @@ class Agent:
             plt.xlabel('Episodes')
             plt.ylabel('Remaining pegs')
             plt.show()
-        self.is_trained = True

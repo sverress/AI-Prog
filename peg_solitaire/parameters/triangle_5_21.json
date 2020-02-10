@@ -1,0 +1,16 @@
+{
+  "num_episodes": 2000,
+  "board_type": "triangle",
+  "board_size": 5,
+  "open_positions": ["21"],
+  "epsilon": 0.5,
+  "gamma": 0.98,
+  "alpha_c": 0.95,
+  "alpha_a": 0.95,
+  "lambd": 0.85,
+  "epsilon_decay_rate": 0.9,
+  "frame_rate": 5,
+  "autoplay": true,
+  "use_nn": false,
+  "layers": ["","",""]
+}
