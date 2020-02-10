@@ -49,7 +49,7 @@ def draw():
         for node in row:
             # Drawing all the nodes
             node.draw()
-    board_changed()
+    #board_changed()
 
 
 def refresh():
@@ -67,7 +67,7 @@ def key_pressed():
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../config.json")
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_21.json")
     agent.train(plot_result=True)
     # List of all nodes
     nodes = []
