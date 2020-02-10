@@ -1,8 +1,6 @@
 import sys
 import math
 from abc import ABC, abstractmethod
-import tensorflow as tf
-from keras.models import Model
 import numpy as np
 
 
@@ -14,6 +12,10 @@ def print_loader(progress, total, interval):
 
 def convert_string_list_to_tuple_list(string_list):
     return [(int(string_pos[0]), int(string_pos[1])) for string_pos in string_list]
+
+
+def string_to_np_array(string):
+    return np.array([int(string_num) for string_num in string])
 
 
 class SplitGD(ABC):
@@ -37,13 +39,15 @@ class SplitGD(ABC):
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor.
     def gen_loss(self, features, targets, avg=False):
+        import tensorflow as tf
         predictions = self.model(features)  # Feed-forward pass to produce outputs/predictions
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
     def fit(self, features, targets, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+        import tensorflow as tf
         params = self.model.trainable_weights
-        train_ins, train_targs, val_ins, val_targs = split_training_data(features,targets,vfrac=vfrac)
+        train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
             for _ in range(math.floor(epochs / mbs)):
                 with tf.GradientTape() as tape:  # Read up on tf.GradientTape !!
@@ -63,6 +67,7 @@ class SplitGD(ABC):
     # that you have access to.
 
     def gen_evaluation(self, features, targets, avg=False, index=0):
+        import tensorflow as tf
         predictions = self.model(features)
         evaluation = self.model.metrics[index](targets, predictions)
         #  Note that this returns both a tensor (or value) and the NAME of the metric
@@ -102,12 +107,15 @@ def split_training_data(inputs, targets, vfrac=0.1, mix=True):
 
 
 class KerasModelWrapper(SplitGD):
-    def __init__(self, agent, keras_model: Model):
+    def __init__(self, keras_model, critic):
         super().__init__(keras_model)
-        self.agent = agent  # This is not a good solution
+        self.critic = critic
 
     def modify_gradients(self, gradients):
-        new_eligibility = self.agent.critic.get_eligibility_trace(self.agent.board) + gradients
-        self.agent.critic.set_eligibility_trace(self.agent.board.get_state(), new_eligibility)
-        self.agent.critic.calculate_td_error() * new_eligibility
-        raise NotImplemented('Need to figure out have to get a hold of parent_state: str, child_state: str, reward: float from here')
+        new_eligibility = self.critic.get_eligibility_trace(self.critic.last_current_state) + gradients
+        self.critic.set_eligibility_trace(self.critic.last_current_state.get_state(), new_eligibility)
+        return self.critic.calculate_td_error(
+            self.critic.last_current_state,
+            self.critic.last_next_state,
+            self.critic.last_reward) * new_eligibility
+

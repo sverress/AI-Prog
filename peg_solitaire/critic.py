@@ -18,6 +18,9 @@ class Critic:
         self.alpha = alpha
         self.lambd = lambd
         self.model = None  # Variable for nn
+        self.last_current_state = None
+        self.last_next_state = None
+        self.last_reward = None
 
     def init_nn(self, layers: [int], board_size: int):
         from keras.models import Sequential
@@ -31,7 +34,7 @@ class Critic:
         model.add(Dense(units=1, activation='softmax'))  # Should experiment with something else that softmax here
         model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
 
-        self.model = KerasModelWrapper(model)
+        self.model = KerasModelWrapper(model, self)
 
     def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
@@ -41,8 +44,20 @@ class Critic:
         :param reward: Reward from going to "child state": float
         :return: the TD error; delta
         """
+        self.save_next_and_current_state(parent_state, child_state, reward)
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
         return delta
+
+    def save_next_and_current_state(self, parent_state: str, child_state: str, reward: float):
+        """
+        Method for saving the last call to calculate td error to use in modify gradients later
+        :param parent_state: Previous state: str
+        :param child_state: Current state: str
+        :param reward: Reward from going to "child state": float
+        """
+        self.last_current_state = parent_state
+        self.last_next_state = child_state
+        self.last_reward = reward
 
     def set_value_func(self, state, value):
         self.value_func[state] = value
@@ -57,7 +72,8 @@ class Critic:
         :return: state value: float
         """
         if self.model:
-            return self.model.predict(np.array([int(string_num) for string_num in state]))
+            input_np = string_to_np_array(state).reshape((1, 16))
+            return self.model.model.predict(input_np)[0][0]
         else:
             return self.value_func[state]
 
@@ -71,9 +87,13 @@ class Critic:
         :param delta: TD-error
         """
         state_value = self.get_state_value(state)
-        elig_trace_value = self.get_eligibility_trace(state)
-        new_state_value = state_value + self.alpha*delta*elig_trace_value
-        self.set_value_func(state, new_state_value)
+        if self.model:
+            data_plus_target = np.append(np.array(string_to_np_array(state)), np.array([state_value + delta]))
+            self.model.fit(data_plus_target, data_plus_target)
+        else:
+            elig_trace_value = self.get_eligibility_trace(state)
+            new_state_value = state_value + self.alpha*delta*elig_trace_value
+            self.set_value_func(state, new_state_value)
 
     def update_eligibility_trace(self, state: str):
         """
