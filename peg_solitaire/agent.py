@@ -103,12 +103,12 @@ class Agent:
                 delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
 
                 # (the critic needs state-based eligibilities)
-                self.critic.set_elig_trace(current_state.get_state(), 1)
+                self.critic.set_eligibility_trace(current_state.get_state(), 1)
 
                 # Update policy and value function
                 for state, sap in reversed(episode_history):
                     self.critic.update_value_func(state, delta)
-                    self.critic.update_elig_trace(state)
+                    self.critic.update_eligibility_trace(state)
                     self.actor.update_policy(sap, delta)
                     self.actor.update_elig_trace(sap)
                 action = optimal_action
