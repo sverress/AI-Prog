@@ -47,8 +47,6 @@ class Agent:
         # Initialize all SAPs from init state
         self.actor.init_saps_from_board(self.init_board)
 
-        self.is_trained = False
-
     @staticmethod
     def create_agent_from_config_file(config_file_path):
         """
@@ -94,6 +92,7 @@ class Agent:
                 # (the critic needs state-based eligibilities)
                 self.critic.set_elig_trace(current_state.get_state(), 1)
 
+                # Update policy and value function
                 for state, sap in reversed(episode_history):
                     self.critic.update_value_func(state, delta)
                     self.critic.update_elig_trace(state)
@@ -114,4 +113,3 @@ class Agent:
             plt.xlabel('Episodes')
             plt.ylabel('Remaining pegs')
             plt.show()
-        self.is_trained = True
