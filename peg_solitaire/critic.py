@@ -1,4 +1,5 @@
 from peg_solitaire.board import Board
+from peg_solitaire.helpers import *
 import numpy as np
 import random
 
@@ -18,17 +19,19 @@ class Critic:
         self.lambd = lambd
         self.model = None  # Variable for nn
 
-    def init_nn(self, layers, board_size):
+    def init_nn(self, layers: [int], board_size: int):
         from keras.models import Sequential
         from keras.layers import Dense
 
-        self.model = Sequential()
+        model = Sequential()
         # Adding first layer with input size depending on board size
-        self.model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2))
+        model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2))
         for i in range(1, len(layers)):
-            self.model.add(Dense(units=layers[i], activation='relu'))
-        self.model.add(Dense(units=1, activation='softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+            model.add(Dense(units=layers[i], activation='relu'))
+        model.add(Dense(units=1, activation='softmax'))  # Should experiment with something else that softmax here
+        model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+
+        self.model = KerasModelWrapper(model)
 
     def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
@@ -44,7 +47,7 @@ class Critic:
     def set_value_func(self, state, value):
         self.value_func[state] = value
 
-    def set_eligibility_trace(self, state, value):
+    def set_eligibility_trace(self, state: str, value: float):
         self.elig_trace[state] = value
 
     def get_state_value(self, state: str):
