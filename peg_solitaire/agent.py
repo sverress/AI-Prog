@@ -80,7 +80,9 @@ class Agent:
             episode_history = []
             end_state = False
             while not end_state:
+
                 episode_history.append((current_state.get_state(), current_state.get_sap(current_state_action)))
+
                 # Do action a from state s, moving the system to state s’ and receiving reinforcement r
                 next_state = copy.deepcopy(current_state)  # s' in pseudocode
                 next_state.do_action(current_state_action)
@@ -119,9 +121,12 @@ class Agent:
 
             result.append(current_state.get_num_stones())
 
-            if log and current_state.get_num_stones() > 1:
-                print(episode_history)
+            if log and current_state.get_num_stones() == 1:
+                print('---------------------')
                 for episode in episode_history:
+                    saps = list(filter(lambda key: key.startswith(episode[0]), self.actor.policy.keys()))
+                    for sap in saps:
+                        print('action: ', self.actor.policy.get(sap))
                     print("SAP policy value: ", self.actor.policy[episode[1]])
                     print("state value function: ", self.critic.value_func[episode[0]])
         if plot_result:

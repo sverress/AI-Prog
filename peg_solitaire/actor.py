@@ -55,7 +55,18 @@ class Actor:
         :param board: board representing the state
         :return: the action object corresponding to the highest policy value from current state
         """
-        return Action.create_action_from_string(max(self.get_policies_from_state(board), key=self.policy.get)[-6:])
+
+        # Get all sap strings from state
+        policies = self.get_policies_from_state(board)
+        # Filter policy to only contain the saps in policies
+        filtered_policy_dict = { your_key: self.policy[your_key] for your_key in policies }
+        # Get max value
+        max_val = max(filtered_policy_dict.values())
+        # If tie in max value; choose random among the tied
+        keys = [key for key, value in filtered_policy_dict.items() if value == max_val]
+        chosen_sap = random.choice(keys)
+        #action_string = max(self.get_policies_from_state(board), key=self.policy.get)
+        return Action.create_action_from_string(chosen_sap[-6:])
 
     def choose_random_action(self, board: Board):
         chosen_sap = random.choice(self.get_policies_from_state(board))
@@ -94,4 +105,4 @@ class Actor:
         # Filter out saps already present in policy
         new_saps = list(filter(lambda key: key not in self.policy, current_saps))
         for sap in new_saps:
-            self.set_policy(sap, 0)
+            self.set_policy(sap, 0.0)
