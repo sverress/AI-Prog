@@ -107,8 +107,6 @@ class Agent:
 
                 # Update policy and value function for previous states in episode
                 for state, sap in reversed(episode_history):
-                    print(state)
-                    print(sap)
                     self.critic.update_value_func(state, delta)
                     self.critic.update_elig_trace(state)
                     self.actor.update_policy(sap, delta)

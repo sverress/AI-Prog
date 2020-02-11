@@ -68,8 +68,8 @@ def key_pressed():
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_32.json")
-    #agent.train(plot_result=True)
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_21.json")
+    agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes
@@ -77,4 +77,4 @@ if __name__ == '__main__':
     # Size of board
     SIZE = agent.board_size
     board = copy.deepcopy(agent.init_board)
-    run(frame_rate=agent.frame_rate)
+    #run(frame_rate=agent.frame_rate)
