@@ -125,7 +125,7 @@ class Board(ABC):
         :return: the reward: float
         """
         if self.get_num_stones() == 1:
-            return 10
+            return 1
         elif self.is_end_state():
             return 1 / (self.get_num_stones() ** 2)
         else:

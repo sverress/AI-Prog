@@ -103,7 +103,6 @@ class Agent:
 
                 # Calculate TD-error
                 delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
-
                 # (the critic needs state-based eligibilities)
                 self.critic.set_elig_trace(current_state.get_state(), 1)
 
