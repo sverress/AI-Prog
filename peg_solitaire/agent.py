@@ -118,8 +118,7 @@ class Agent:
                 current_state_action = next_state_action
                 end_state = next_state.is_end_state()
                 current_state = next_state
-            self.critic.update_value_func(state, delta)
-            self.actor.update_policy(sap, delta)
+
             result.append(current_state.get_num_stones())
 
             if log and current_state.get_num_stones() == 1:

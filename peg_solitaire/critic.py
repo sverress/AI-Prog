@@ -69,4 +69,4 @@ class Critic:
     def init_state_from_board(self, board: Board):
         state_str = board.get_state()
         if state_str not in self.value_func:
-            self.set_value_func(board.get_state(), 0.0)#random.uniform(0, 0.001))
+            self.set_value_func(board.get_state(), random.uniform(0, 0.001))

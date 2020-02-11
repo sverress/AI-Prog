@@ -34,6 +34,7 @@ class Actor:
         :param delta: TD-Error
         """
         self.policy[sap] = self.policy.get(sap) + self.alpha * delta * self.elig_trace.get(sap)
+        a = 1
 
     def set_elig_trace(self, sap: str, value: float):
         """
