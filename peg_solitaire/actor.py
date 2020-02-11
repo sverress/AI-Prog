@@ -32,7 +32,7 @@ class Actor:
         :param sap: State action pair
         :param delta: TD-Error
         """
-        self.policy[sap] += self.alpha * delta * self.elig_trace[sap]
+        self.policy[sap] = self.policy.get(sap) + self.alpha * delta * self.elig_trace.get(sap)
 
     def set_elig_trace(self, sap: str, value: float):
         """
@@ -47,7 +47,7 @@ class Actor:
         :param sap: state action pair: str
         :return: the updated eligibility trace for the sap
         """
-        self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
+        self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace.get(sap)
 
     def choose_greedy_action(self, board: Board):
         """
@@ -95,4 +95,3 @@ class Actor:
         new_saps = list(filter(lambda key: key not in self.policy, current_saps))
         for sap in new_saps:
             self.set_policy(sap, 0)
-            self.set_elig_trace(sap, 0)  # Should have separate "already present"-check for this?

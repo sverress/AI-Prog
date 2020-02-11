@@ -40,11 +40,12 @@ class Agent:
 
         # Initialize critic
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
+        # Initialize state in value function
         self.critic.init_state_from_board(self.init_board)
 
         # Initialize actor
         self.actor = Actor(self.alpha_a, self.gamma, self.epsilon)
-        # Initialize all SAPs from init state
+        # Initialize all SAPs from init state in policy
         self.actor.init_saps_from_board(self.init_board)
 
     @staticmethod
@@ -67,24 +68,36 @@ class Agent:
             if i % interval == 0:
                 print_loader(i, self.num_episodes, interval)
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
+
+            # Return to init board
             current_state = copy.deepcopy(self.init_board)
-            action = self.actor.choose_epsilon_greedy_action(current_state)
+            # Choose action
+            current_state_action = self.actor.choose_epsilon_greedy_action(current_state)
+            # Reset eligibilities
+            self.actor.elig_trace.clear()
+            self.critic.elig_trace.clear()
+
             episode_history = []
             end_state = False
             while not end_state:
-                episode_history.append((current_state.get_state(), current_state.get_sap(action)))
+                episode_history.append((current_state.get_state(), current_state.get_sap(current_state_action)))
                 # Do action a from state s, moving the system to state s’ and receiving reinforcement r
-                next_state = copy.deepcopy(current_state)  # s' in sudocode
-                next_state.do_action(action)
+                next_state = copy.deepcopy(current_state)  # s' in pseudocode
+                next_state.do_action(current_state_action)
+
+                # Initialize new SAPs in policy
                 self.actor.init_saps_from_board(next_state)
+                # Initialize new state in value function
                 self.critic.init_state_from_board(next_state)
+
+                # Get reward from state s'
                 reward = next_state.get_reward()
 
-                # the action dictated by the current policy for state s’
-                optimal_action = self.actor.choose_epsilon_greedy_action(next_state)
+                # The action dictated by the current policy for state s’
+                next_state_action = self.actor.choose_epsilon_greedy_action(next_state)
 
                 # (the actor keeps SAP-based eligibilities)
-                self.actor.set_elig_trace(current_state.get_sap(action), 1)
+                self.actor.set_elig_trace(current_state.get_sap(current_state_action), 1)
 
                 # Calculate TD-error
                 delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
@@ -92,15 +105,20 @@ class Agent:
                 # (the critic needs state-based eligibilities)
                 self.critic.set_elig_trace(current_state.get_state(), 1)
 
-                # Update policy and value function
+                # Update policy and value function for previous states in episode
                 for state, sap in reversed(episode_history):
+                    print(state)
+                    print(sap)
                     self.critic.update_value_func(state, delta)
                     self.critic.update_elig_trace(state)
                     self.actor.update_policy(sap, delta)
                     self.actor.update_elig_trace(sap)
-                action = optimal_action
+
+                # Move to next state s'
+                current_state_action = next_state_action
                 end_state = next_state.is_end_state()
                 current_state = next_state
+
             result.append(current_state.get_num_stones())
 
             if log and current_state.get_num_stones() > 1:

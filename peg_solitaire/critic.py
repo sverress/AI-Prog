@@ -41,10 +41,10 @@ class Critic:
         :param state: state key: str
         :return: state value: float
         """
-        return self.value_func[state]
+        return self.value_func.get(state)
 
     def get_elig_trace_value(self, state: str):
-        return self.elig_trace[state]
+        return self.elig_trace.get(state)
 
     def update_value_func(self, state: str, delta: float):
         """
@@ -69,6 +69,4 @@ class Critic:
     def init_state_from_board(self, board: Board):
         state_str = board.get_state()
         if state_str not in self.value_func:
-            self.set_value_func(board.get_state(), random.uniform(0, 0.01))
-        if state_str not in self.elig_trace:
-            self.set_elig_trace(board.get_state(), 0)
+            self.set_value_func(board.get_state(), random.uniform(0, 0.001))
