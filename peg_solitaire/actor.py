@@ -4,7 +4,7 @@ from peg_solitaire.action import Action
 
 
 class Actor:
-    def __init__(self, alpha, gamma, epsilon):
+    def __init__(self, alpha, gamma, epsilon, lambd):
         """
         Class representing the actor in the actor-critic model
 
@@ -17,6 +17,7 @@ class Actor:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.lambd = lambd
 
     def set_policy(self, sap: str, value: float):
         """
@@ -47,7 +48,7 @@ class Actor:
         :param sap: state action pair: str
         :return: the updated eligibility trace for the sap
         """
-        self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace.get(sap)
+        self.elig_trace[sap] = self.gamma * self.lambd * self.elig_trace.get(sap)
 
     def choose_greedy_action(self, board: Board):
         """
@@ -65,7 +66,7 @@ class Actor:
         # If tie in max value; choose random among the tied
         keys = [key for key, value in filtered_policy_dict.items() if value == max_val]
         chosen_sap = random.choice(keys)
-        #action_string = max(self.get_policies_from_state(board), key=self.policy.get)
+        #chosen_sap = max(self.get_policies_from_state(board), key=self.policy.get)
         return Action.create_action_from_string(chosen_sap[-6:])
 
     def choose_random_action(self, board: Board):
