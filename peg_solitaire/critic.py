@@ -2,6 +2,7 @@ from peg_solitaire.board import Board
 from peg_solitaire.helpers import *
 import numpy as np
 import random
+import tensorflow as tf
 
 
 class Critic:
@@ -26,6 +27,7 @@ class Critic:
         from keras.models import Sequential
         from keras.layers import Dense
 
+        tf.executing_eagerly()
         model = Sequential()
         # Adding first layer with input size depending on board size
         model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2, kernel_initializer='random_uniform'))

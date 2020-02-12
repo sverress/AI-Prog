@@ -3,6 +3,7 @@ import math
 from abc import ABC, abstractmethod
 import numpy as np
 import tensorflow as tf
+import keras
 
 
 def print_loader(progress, total, interval):
@@ -40,8 +41,8 @@ class SplitGD(ABC):
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor.
     def gen_loss(self, features, targets, avg=False):
-        predictions = self.model.predict(features)  # Feed-forward pass to produce outputs/predictions
-        loss = self.model.loss_functions[0](targets, predictions)
+        predictions = self.model(tf.convert_to_tensor(features, dtype='float32'))  # Feed-forward pass to produce outputs/predictions
+        loss = tf.reduce_sum(targets - predictions)**2
         return tf.reduce_mean(loss).numpy() if avg else loss
 
     def fit(self, features, targets, epochs=1, mbs=1, vfrac=0.1, verbose=True):
@@ -51,9 +52,7 @@ class SplitGD(ABC):
             for _ in range(math.floor(epochs / mbs)):
                 with tf.GradientTape() as tape:  # Read up on tf.GradientTape !!
                     feaset, tarset = gen_random_minibatch(train_ins, train_targs, mbs=mbs)
-                    # loss = self.gen_loss(feaset, tarset, avg=False)
-                    predictions = self.model.predict(features)
-                    loss = [param**2 for param in params]
+                    loss = self.gen_loss(feaset, tarset)
                     gradients = tape.gradient(loss, params)
                     gradients = self.modify_gradients(gradients)
                     self.model.optimizer.apply_gradients(zip(gradients, params))
