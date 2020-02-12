@@ -75,10 +75,10 @@ class Critic:
             input_np = string_to_np_array(state).reshape((1, 16))
             return self.model.model.predict(input_np)[0][0]
         else:
-            return self.value_func[state]
+            return self.value_func.get(state)
 
     def get_eligibility_trace(self, state: str):
-        return self.elig_trace[state]
+        return self.elig_trace.get(state)
 
     def update_value_func(self, state: str, delta: float):
         """
@@ -107,6 +107,4 @@ class Critic:
     def init_state_from_board(self, board: Board):
         state_str = board.get_state()
         if state_str not in self.value_func:
-            self.set_value_func(board.get_state(), random.uniform(0, 0.01))
-        if state_str not in self.elig_trace:
-            self.set_eligibility_trace(board.get_state(), 0)
+            self.set_value_func(board.get_state(), random.uniform(0, 0.001))

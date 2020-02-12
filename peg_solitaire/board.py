@@ -124,12 +124,12 @@ class Board(ABC):
         Gets reward of a state. 0 if the state is not end state, 1/(number of stones left on board) if end state
         :return: the reward: float
         """
-        if self.is_end_state():
-            if self.get_num_stones() == 1:
-                return 100
-            else:
-                return 10/self.get_num_stones()
-        return 0
+        if self.get_num_stones() == 1:
+            return 1
+        elif self.is_end_state():
+            return 1 / (self.get_num_stones() ** 2)
+        else:
+            return 0.0
 
     def get_num_stones(self):
         return sum([item for sublist in self.board for item in sublist])

@@ -4,7 +4,7 @@ from peg_solitaire.action import Action
 
 
 class Actor:
-    def __init__(self, alpha, gamma, epsilon):
+    def __init__(self, alpha, gamma, epsilon, lambd):
         """
         Class representing the actor in the actor-critic model
 
@@ -17,6 +17,7 @@ class Actor:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
+        self.lambd = lambd
 
     def set_policy(self, sap: str, value: float):
         """
@@ -32,7 +33,7 @@ class Actor:
         :param sap: State action pair
         :param delta: TD-Error
         """
-        self.policy[sap] += self.alpha * delta * self.elig_trace[sap]
+        self.policy[sap] = self.policy.get(sap) + self.alpha * delta * self.elig_trace.get(sap)
 
     def set_elig_trace(self, sap: str, value: float):
         """
@@ -47,7 +48,7 @@ class Actor:
         :param sap: state action pair: str
         :return: the updated eligibility trace for the sap
         """
-        self.elig_trace[sap] = self.gamma * self.epsilon * self.elig_trace[sap]
+        self.elig_trace[sap] = self.gamma * self.lambd * self.elig_trace.get(sap)
 
     def choose_greedy_action(self, board: Board):
         """
@@ -55,7 +56,18 @@ class Actor:
         :param board: board representing the state
         :return: the action object corresponding to the highest policy value from current state
         """
-        return Action.create_action_from_string(max(self.get_policies_from_state(board), key=self.policy.get)[-6:])
+
+        # Get all sap strings from state
+        policies = self.get_policies_from_state(board)
+        # Filter policy to only contain the saps in policies
+        filtered_policy_dict = { your_key: self.policy[your_key] for your_key in policies }
+        # Get max value
+        max_val = max(filtered_policy_dict.values())
+        # If tie in max value; choose random among the tied
+        keys = [key for key, value in filtered_policy_dict.items() if value == max_val]
+        chosen_sap = random.choice(keys)
+        #chosen_sap = max(self.get_policies_from_state(board), key=self.policy.get)
+        return Action.create_action_from_string(chosen_sap[-6:])
 
     def choose_random_action(self, board: Board):
         chosen_sap = random.choice(self.get_policies_from_state(board))
@@ -94,5 +106,4 @@ class Actor:
         # Filter out saps already present in policy
         new_saps = list(filter(lambda key: key not in self.policy, current_saps))
         for sap in new_saps:
-            self.set_policy(sap, 0)
-            self.set_elig_trace(sap, 0)  # Should have separate "already present"-check for this?
+            self.set_policy(sap, 0.0)
