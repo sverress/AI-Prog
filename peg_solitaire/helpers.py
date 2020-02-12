@@ -49,15 +49,12 @@ class SplitGD(ABC):
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
             for _ in range(math.floor(epochs / mbs)):
-                x = tf.ones((2, 2))
-
-                with tf.GradientTape() as t:
-                    t.watch(params)
-                    y = tf.reduce_sum(params)
-                    z = tf.multiply(y, y)
-
-                # Derivative of z with respect to the original input tensor x
-                dz_dx = t.gradient(z, x)
+                with tf.GradientTape() as tape:  # Read up on tf.GradientTape !!
+                    feaset, tarset = gen_random_minibatch(train_ins, train_targs, mbs=mbs)
+                    loss = self.gen_loss(feaset, tarset, avg=False)
+                    gradients = tape.gradient(loss, params)
+                    gradients = self.modify_gradients(gradients)
+                    self.model.optimizer.apply_gradients(zip(gradients, params))
             if verbose:
                 self.end_of_epoch_display(train_ins, train_targs, val_ins, val_targs)
 
