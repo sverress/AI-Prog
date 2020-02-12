@@ -32,7 +32,7 @@ class Critic:
         for i in range(1, len(layers)):
             model.add(Dense(units=layers[i], activation='relu', kernel_initializer='random_uniform'))
         model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
-        model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+        model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
 
         self.model = KerasModelWrapper(model, self)
 
