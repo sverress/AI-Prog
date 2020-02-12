@@ -28,10 +28,10 @@ class Critic:
 
         model = Sequential()
         # Adding first layer with input size depending on board size
-        model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2))
+        model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2, kernel_initializer='random_uniform'))
         for i in range(1, len(layers)):
-            model.add(Dense(units=layers[i], activation='relu'))
-        model.add(Dense(units=1, activation='softmax'))  # Should experiment with something else that softmax here
+            model.add(Dense(units=layers[i], activation='relu', kernel_initializer='random_uniform'))
+        model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
         model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
 
         self.model = KerasModelWrapper(model, self)
@@ -44,11 +44,11 @@ class Critic:
         :param reward: Reward from going to "child state": float
         :return: the TD error; delta
         """
-        self.save_next_and_current_state(parent_state, child_state, reward)
+        self.save_td_params(parent_state, child_state, reward)
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
         return delta
 
-    def save_next_and_current_state(self, parent_state: str, child_state: str, reward: float):
+    def save_td_params(self, parent_state: str, child_state: str, reward: float):
         """
         Method for saving the last call to calculate td error to use in modify gradients later
         :param parent_state: Previous state: str
@@ -73,7 +73,8 @@ class Critic:
         """
         if self.model:
             input_np = string_to_np_array(state).reshape((1, 16))
-            return self.model.model.predict(input_np)[0][0]
+            output = self.model.model.predict(input_np)
+            return output[0][0]
         else:
             return self.value_func.get(state)
 
@@ -88,8 +89,7 @@ class Critic:
         """
         state_value = self.get_state_value(state)
         if self.model:
-            data_plus_target = np.append(np.array(string_to_np_array(state)), np.array([state_value + delta]))
-            self.model.fit(data_plus_target, data_plus_target)
+            self.model.fit(np.array(string_to_np_array(state)).reshape((1, 16)), np.array([state_value + delta]).reshape((1, 1)), verbose=False)
         else:
             elig_trace_value = self.get_eligibility_trace(state)
             new_state_value = state_value + self.alpha*delta*elig_trace_value

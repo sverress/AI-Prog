@@ -40,7 +40,7 @@ class SplitGD(ABC):
     # value of a tensor.
     def gen_loss(self, features, targets, avg=False):
         import tensorflow as tf
-        predictions = self.model(features)  # Feed-forward pass to produce outputs/predictions
+        predictions = self.model.predict(features)  # Feed-forward pass to produce outputs/predictions
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
