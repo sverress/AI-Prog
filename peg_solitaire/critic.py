@@ -24,10 +24,9 @@ class Critic:
         self.last_reward = None
 
     def init_nn(self, layers: [int], board_size: int):
-        from keras.models import Sequential
-        from keras.layers import Dense
+        from tensorflow.keras.models import Sequential
+        from tensorflow.keras.layers import Dense
 
-        tf.executing_eagerly()
         model = Sequential()
         # Adding first layer with input size depending on board size
         model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2, kernel_initializer='random_uniform'))

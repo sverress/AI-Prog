@@ -1,9 +1,7 @@
 import sys
 import math
-from abc import ABC, abstractmethod
 import numpy as np
 import tensorflow as tf
-import keras
 
 
 def print_loader(progress, total, interval):
@@ -20,7 +18,7 @@ def string_to_np_array(string):
     return np.array([int(string_num) for string_num in string])
 
 
-class SplitGD(ABC):
+class SplitGD:
     """
     !!CODE TAKEN FROM CLASS WEBSITE!!
     This "exposes" the gradients during gradient descent by breaking the call to "fit" into two calls: tape.gradient
@@ -34,8 +32,7 @@ class SplitGD(ABC):
     def __init__(self, keras_model):
         self.model = keras_model
 
-    @abstractmethod
-    def modify_gradients(self, gradients):
+    def modify_gradients(self, gradients, delta):
         return gradients
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
@@ -109,8 +106,11 @@ def split_training_data(inputs, targets, vfrac=0.1, mix=True):
 class KerasModelWrapper(SplitGD):
     def __init__(self, keras_model):
         super().__init__(keras_model)
+        self.eligibilities = []
+        for tensor in self.model.trainable_weights:
+            self.eligibilities.append(np.array(np.zeros(tensor.shape)))
 
     def modify_gradients(self, gradients, delta):
-        self.elig -= gradients / delta
-        return delta * self.elig
+        self.eligibilities -= gradients / delta
+        return delta * self.eligibilities
 

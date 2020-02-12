@@ -12,5 +12,5 @@
   "frame_rate": 5,
   "autoplay": true,
   "use_nn": true,
-  "layers": [3]
+  "layers": [3, 5]
 }
