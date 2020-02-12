@@ -51,7 +51,9 @@ class SplitGD(ABC):
             for _ in range(math.floor(epochs / mbs)):
                 with tf.GradientTape() as tape:  # Read up on tf.GradientTape !!
                     feaset, tarset = gen_random_minibatch(train_ins, train_targs, mbs=mbs)
-                    loss = self.gen_loss(feaset, tarset, avg=False)
+                    # loss = self.gen_loss(feaset, tarset, avg=False)
+                    predictions = self.model.predict(features)
+                    loss = [param**2 for param in params]
                     gradients = tape.gradient(loss, params)
                     gradients = self.modify_gradients(gradients)
                     self.model.optimizer.apply_gradients(zip(gradients, params))
