@@ -68,7 +68,7 @@ def key_pressed():
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../parameters/diamond_4_right_middle.json")
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_21.json")
     agent.train(plot_result=True, log=False)
     # List of all nodes
     nodes = []
