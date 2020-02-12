@@ -127,7 +127,7 @@ class Board(ABC):
         if self.get_num_stones() == 1:
             return 1
         elif self.is_end_state():
-            return 1 / (self.get_num_stones() ** 2)
+            return -(self.get_num_stones()/16)
         else:
             return 0.0
 

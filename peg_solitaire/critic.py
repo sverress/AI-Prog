@@ -34,7 +34,7 @@ class Critic:
         model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
         model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
 
-        self.model = KerasModelWrapper(model, self)
+        self.model = KerasModelWrapper(model)
 
     def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
@@ -89,7 +89,7 @@ class Critic:
         """
         state_value = self.get_state_value(state)
         if self.model:
-            self.model.fit(np.array(string_to_np_array(state)).reshape((1, 16)), np.array([state_value + delta]).reshape((1, 1)), verbose=False)
+            self.model.fit(np.array(string_to_np_array(state)).reshape((1, 16)), np.array([state_value + delta]).reshape((1, 1)), delta, verbose=False)
         else:
             elig_trace_value = self.get_eligibility_trace(state)
             new_state_value = state_value + self.alpha*delta*elig_trace_value

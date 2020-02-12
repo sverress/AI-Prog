@@ -44,7 +44,7 @@ class SplitGD(ABC):
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
-    def fit(self, features, targets, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+    def fit(self, features, targets, delta, epochs=1, mbs=1, vfrac=0.1, verbose=True):
         params = self.model.trainable_weights
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
@@ -55,7 +55,7 @@ class SplitGD(ABC):
                     predictions = self.model.predict(features)
                     loss = [param**2 for param in params]
                     gradients = tape.gradient(loss, params)
-                    gradients = self.modify_gradients(gradients)
+                    gradients = self.modify_gradients(gradients, delta)
                     self.model.optimizer.apply_gradients(zip(gradients, params))
             if verbose:
                 self.end_of_epoch_display(train_ins, train_targs, val_ins, val_targs)
@@ -108,15 +108,10 @@ def split_training_data(inputs, targets, vfrac=0.1, mix=True):
 
 
 class KerasModelWrapper(SplitGD):
-    def __init__(self, keras_model, critic):
+    def __init__(self, keras_model):
         super().__init__(keras_model)
-        self.critic = critic
 
-    def modify_gradients(self, gradients):
-        new_eligibility = self.critic.get_eligibility_trace(self.critic.last_current_state) + gradients
-        self.critic.set_eligibility_trace(self.critic.last_current_state.get_state(), new_eligibility)
-        return self.critic.calculate_td_error(
-            self.critic.last_current_state,
-            self.critic.last_next_state,
-            self.critic.last_reward) * new_eligibility
+    def modify_gradients(self, gradients, delta):
+        self.elig -= gradients / delta
+        return delta * self.elig
 
