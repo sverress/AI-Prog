@@ -73,9 +73,9 @@ class Agent:
         self.actor.init_saps_from_board(self.board)
         self.critic.init_state_from_board(self.board)
 
-    def train(self, plot_result=True, log=True):
+    def train(self, plot_result=True, log=False):
         result = []
-        interval = 50
+        interval = 10
         print_loader(0, self.num_episodes, interval)
         for i in range(1, self.num_episodes+1):
             # See progress
