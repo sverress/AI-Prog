@@ -47,8 +47,9 @@ class Agent:
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
         if self.use_nn:
             self.critic.init_nn(self.layers, self.init_board.board_size)
-        # Initialize state in value function
-        self.critic.init_state_from_board(self.init_board)
+        else:
+            # Initialize state in value function
+            self.critic.init_state_from_board(self.init_board)
 
         # Initialize actor
         self.actor = Actor(self.alpha_a, self.gamma, self.epsilon, self.lambd)
@@ -72,7 +73,7 @@ class Agent:
         self.actor.init_saps_from_board(self.board)
         self.critic.init_state_from_board(self.board)
 
-    def train(self, plot_result=True, log=False):
+    def train(self, plot_result=True, log=True):
         result = []
         interval = 50
         print_loader(0, self.num_episodes, interval)
@@ -102,8 +103,12 @@ class Agent:
 
                 # Initialize new SAPs in policy
                 self.actor.init_saps_from_board(next_state)
-                # Initialize new state in value function
-                self.critic.init_state_from_board(next_state)
+                if not self.use_nn:
+                    # Initialize new state in value function
+                    self.critic.init_state_from_board(next_state)
+
+                    # (the critic needs state-based eligibilities)
+                    self.critic.set_eligibility_trace(current_state.get_state(), 1)
 
                 # Get reward from state s'
                 reward = next_state.get_reward()
@@ -116,13 +121,12 @@ class Agent:
 
                 # Calculate TD-error
                 delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
-                # (the critic needs state-based eligibilities)
-                self.critic.set_eligibility_trace(current_state.get_state(), 1)
 
                 # Update policy and value function for previous states in episode
                 for state, sap in reversed(episode_history):
                     self.critic.update_value_func(state, delta)
-                    self.critic.update_eligibility_trace(state)
+                    if not self.use_nn:
+                        self.critic.update_eligibility_trace(state)
                     self.actor.update_policy(sap, delta)
                     self.actor.update_elig_trace(sap)
 
@@ -140,7 +144,7 @@ class Agent:
                     for sap in saps:
                         print('action: ', self.actor.policy.get(sap))
                     print("SAP policy value: ", self.actor.policy[episode[1]])
-                    print("state value function: ", self.critic.value_func[episode[0]])
+                    print("state value function: ", self.critic.get_state_value(episode[0]))
         if plot_result:
             plt.plot(result)
             plt.xlabel('Episodes')
