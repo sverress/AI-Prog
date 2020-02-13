@@ -1,5 +1,5 @@
 {
-  "num_episodes": 100,
+  "num_episodes": 150,
   "board_type": "diamond",
   "board_size": 4,
   "open_positions": ["21"],
@@ -12,5 +12,5 @@
   "frame_rate": 5,
   "autoplay": true,
   "use_nn": true,
-  "layers": [3, 5]
+  "layers": [20,30,5]
 }

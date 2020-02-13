@@ -1,11 +1,12 @@
-import json
 from peg_solitaire.board import Triangle, Diamond
 from peg_solitaire.actor import Actor
 from peg_solitaire.critic import Critic
 from peg_solitaire.action import Action
+from peg_solitaire.helpers import *
 import copy
 from matplotlib import pyplot as plt
-from peg_solitaire.helpers import *
+import json
+import time
 
 
 class Agent:
@@ -77,8 +78,11 @@ class Agent:
         result = []
         interval = 10
         print_loader(0, self.num_episodes, interval)
+        train_start_time = time.time()
         for i in range(1, self.num_episodes+1):
             # See progress
+            episode_start_time = time.time()
+            runtimes = []
             if i % interval == 0:
                 print_loader(i, self.num_episodes, interval)
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
@@ -122,9 +126,10 @@ class Agent:
                 # Calculate TD-error
                 delta = self.critic.calculate_td_error(current_state.get_state(), next_state.get_state(), reward)
 
+
                 # Update policy and value function for previous states in episode
                 for state, sap in reversed(episode_history):
-                    self.critic.update_value_func(state, delta)
+                    self.critic.update_value_func(state, delta, runtimes)
                     if not self.use_nn:
                         self.critic.update_eligibility_trace(state)
                     self.actor.update_policy(sap, delta)
@@ -136,6 +141,8 @@ class Agent:
                 current_state = next_state
 
             result.append(current_state.get_num_stones())
+            episode_end_time = time.time()
+            #print(f'total_{i}: {episode_end_time-episode_start_time}, sum: {sum(runtimes)} percent: {sum(runtimes)/(episode_end_time-episode_start_time)}')
 
             if log and current_state.get_num_stones() == 1:
                 print('---------------------')
@@ -150,3 +157,5 @@ class Agent:
             plt.xlabel('Episodes')
             plt.ylabel('Remaining pegs')
             plt.show()
+        train_end_time = time.time()
+        print(f"training finished. Time elapsed: {train_end_time-train_start_time}")

@@ -11,6 +11,6 @@
   "epsilon_decay_rate": 0.97,
   "frame_rate": 5,
   "autoplay": true,
-  "use_nn": false,
-  "layers": ["","",""]
+  "use_nn": true,
+  "layers": [20,30,5]
 }

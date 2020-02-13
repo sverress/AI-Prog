@@ -2,7 +2,7 @@ import sys
 import math
 import numpy as np
 import tensorflow as tf
-
+import time
 
 def print_loader(progress, total, interval):
     bar = "=" * int(progress / interval) + ">" + " " * (int(total / interval) - int(progress / interval))
@@ -37,12 +37,12 @@ class SplitGD:
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor.
-    def gen_loss(self, features, targets, avg=False):
+    def gen_loss(self, features, targets,  avg=False):
         predictions = self.model(tf.convert_to_tensor(features, dtype='float32'))  # Feed-forward pass to produce outputs/predictions
         loss = tf.reduce_sum(targets - predictions)**2
         return tf.reduce_mean(loss).numpy() if avg else loss
 
-    def fit(self, features, targets, delta, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+    def fit(self, features, targets, delta, runtimes, epochs=1, mbs=1, vfrac=0.1, verbose=True):
         params = self.model.trainable_weights
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
