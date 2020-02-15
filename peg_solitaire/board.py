@@ -134,6 +134,12 @@ class Board(ABC):
     def get_num_stones(self):
         return sum([item for sublist in self.board for item in sublist])
 
+    def get_num_tiles(self):
+        count = 0
+        for listElem in self.board:
+            count += len(listElem)
+        return count
+
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):
         """

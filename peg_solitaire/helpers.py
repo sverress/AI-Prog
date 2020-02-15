@@ -115,6 +115,5 @@ class KerasModelWrapper(SplitGD):
             if index % 2 == 0:
                 tensor -= gradients[index]#/(delta+0.0001)
                 tensor = tf.math.scalar_mul(delta, tensor)
-                a = 2
         return self.eligibilities
 

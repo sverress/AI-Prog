@@ -47,7 +47,7 @@ class Agent:
         # Initialize critic
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
         if self.use_nn:
-            self.critic.init_nn(self.layers, self.init_board.board_size)
+            self.critic.init_nn(self.layers, self.init_board.get_num_tiles())
         else:
             # Initialize state in value function
             self.critic.init_state_from_board(self.init_board)
@@ -76,7 +76,7 @@ class Agent:
 
     def train(self, plot_result=True, log=False):
         result = []
-        interval = 10
+        interval = 20
         print_loader(0, self.num_episodes, interval)
         train_start_time = time.time()
         for i in range(1, self.num_episodes+1):

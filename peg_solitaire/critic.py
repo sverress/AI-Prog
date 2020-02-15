@@ -23,13 +23,13 @@ class Critic:
         self.last_next_state = None
         self.last_reward = None
 
-    def init_nn(self, layers: [int], board_size: int):
+    def init_nn(self, layers: [int], dimension: int):
         from tensorflow.keras.models import Sequential
         from tensorflow.keras.layers import Dense
 
         model = Sequential()
         # Adding first layer with input size depending on board size
-        model.add(Dense(units=layers[0], activation='relu', input_dim=board_size**2, kernel_initializer='random_uniform'))
+        model.add(Dense(units=layers[0], activation='relu', input_dim=dimension, kernel_initializer='random_uniform'))
         for i in range(1, len(layers)):
             model.add(Dense(units=layers[i], activation='relu', kernel_initializer='random_uniform'))
         model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
@@ -73,7 +73,7 @@ class Critic:
         :return: state value: float
         """
         if self.model:
-            input_np = string_to_np_array(state).reshape((1, 16))
+            input_np = string_to_np_array(state).reshape((1, len(state))) #.flatten()
             update_value_func_start = time.time()
             output = self.model.model(input_np)
             update_value_func_end = time.time()
@@ -93,7 +93,7 @@ class Critic:
         """
         state_value = self.get_state_value(state, runtimes)
         if self.model:
-            self.model.fit(np.array(string_to_np_array(state)).reshape((1, 16)), np.array([state_value + delta]).reshape((1, 1)), delta, runtimes, verbose=False)
+            self.model.fit(np.array(string_to_np_array(state)).reshape((1, len(state))), np.array([state_value + delta]).reshape((1, 1)), delta, runtimes, verbose=False)
         else:
             elig_trace_value = self.get_eligibility_trace(state)
             new_state_value = state_value + self.alpha*delta*elig_trace_value
