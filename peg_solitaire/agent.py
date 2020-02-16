@@ -69,12 +69,21 @@ class Agent:
             return Agent(data)
 
     def do_action(self, action: Action):
+        """
+        Does action s -> s' on board making the board object represent the new state s'
+        :param action: action object
+        """
         self.board.do_action(action)
         # Initialize states and SAPs in self.actor and self.critic
         self.actor.init_saps_from_board(self.board)
         self.critic.init_state_from_board(self.board)
 
     def train(self, plot_result=True, log=False):
+        """
+        Train agent to find optimal solution from given init state
+        :param plot_result: true for plot remaining pegs against episode number: bool
+        :param log: bool
+        """
         result = []
         interval = 20
         print_loader(0, self.num_episodes, interval)

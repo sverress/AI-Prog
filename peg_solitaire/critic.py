@@ -24,6 +24,11 @@ class Critic:
         self.last_reward = None
 
     def init_nn(self, layers: [int], dimension: int):
+        """
+        Initialize the deep neural network that will be
+        :param layers: number of hidden layers to be initialized
+        :param dimension: number of nodes in first layer
+        """
         from tensorflow.keras.models import Sequential
         from tensorflow.keras.layers import Dense
 

@@ -70,6 +70,11 @@ class Actor:
         return Action.create_action_from_string(chosen_sap[-6:])
 
     def choose_random_action(self, board: Board):
+        """
+        Choosing a random action from the pool of possible actions from input board
+        :param board: board object representing the current state
+        :return: Action object
+        """
         chosen_sap = random.choice(self.get_policies_from_state(board))
         return Action.create_action_from_string(chosen_sap[-6:])
 
