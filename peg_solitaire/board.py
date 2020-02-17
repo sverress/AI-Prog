@@ -131,7 +131,7 @@ class Board(ABC):
         if self.get_num_stones() == 1:
             return 1
         elif self.is_end_state():
-            return -(self.get_num_stones()/len(self.get_num_tiles()))
+            return -(self.get_num_stones()/self.get_num_tiles())
         else:
             return 0.0
 

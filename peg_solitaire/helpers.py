@@ -104,16 +104,18 @@ def split_training_data(inputs, targets, vfrac=0.1, mix=True):
 
 
 class KerasModelWrapper(SplitGD):
-    def __init__(self, keras_model):
+    def __init__(self, keras_model, lambd, gamma):
         super().__init__(keras_model)
         self.eligibilities = []
+        self.lambd = lambd
+        self.gamma = gamma
         for tensor in self.model.trainable_weights:
             self.eligibilities.append(np.array(np.zeros(tensor.shape)))
 
     def modify_gradients(self, gradients, delta):
         for index, tensor in enumerate(self.eligibilities):
             if index % 2 == 0:
-                tensor -= gradients[index]#/(delta+0.0001)
-                tensor = tf.math.scalar_mul(delta, tensor)
-        return self.eligibilities
+                tensor = tensor*self.lambd*self.gamma + gradients[index]
+                gradients[index] = tf.math.scalar_mul(delta, tensor)
+        return gradients #self.eligibilities
 

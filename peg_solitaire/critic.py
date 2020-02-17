@@ -40,7 +40,7 @@ class Critic:
         model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
         model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
 
-        self.model = KerasModelWrapper(model)
+        self.model = KerasModelWrapper(model, self.lambd, self.gamma)
 
     def calculate_td_error(self, parent_state: str, child_state: str, reward: float):
         """
