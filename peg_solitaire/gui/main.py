@@ -67,9 +67,8 @@ def key_pressed():
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_32_nn.json")
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_32.json")
     agent.train(plot_result=True)
-    #print('diamond_4_right_middle.json')
     # List of all nodes
     nodes = []
     # Distance between nodes

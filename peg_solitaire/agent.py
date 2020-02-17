@@ -44,6 +44,14 @@ class Agent:
         else:
             raise ValueError("board_type should be a string with either diamond or triangle")
 
+        self.create_critic()
+
+        # Initialize actor
+        self.actor = Actor(self.alpha_a, self.gamma, self.epsilon, self.lambd)
+        # Initialize all SAPs from init state in policy
+        self.actor.init_saps_from_board(self.init_board)
+
+    def create_critic(self):
         # Initialize critic
         self.critic = Critic(self.gamma, self.alpha_c, self.lambd)
         if self.use_nn:
@@ -51,11 +59,6 @@ class Agent:
         else:
             # Initialize state in value function
             self.critic.init_state_from_board(self.init_board)
-
-        # Initialize actor
-        self.actor = Actor(self.alpha_a, self.gamma, self.epsilon, self.lambd)
-        # Initialize all SAPs from init state in policy
-        self.actor.init_saps_from_board(self.init_board)
 
     @staticmethod
     def create_agent_from_config_file(config_file_path):

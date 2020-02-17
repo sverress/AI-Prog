@@ -2,7 +2,6 @@ from peg_solitaire.board import Board
 from peg_solitaire.helpers import *
 import numpy as np
 import random
-import tensorflow as tf
 
 
 class Critic:
@@ -51,7 +50,6 @@ class Critic:
         """
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
         return delta
-
 
     def set_value_func(self, state, value):
         self.value_func[state] = value

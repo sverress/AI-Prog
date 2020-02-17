@@ -1,8 +1,7 @@
 import sys
 import math
 import numpy as np
-import tensorflow as tf
-import time
+
 
 def print_loader(progress, total, interval):
     bar = "=" * int(progress / interval) + ">" + " " * (int(total / interval) - int(progress / interval))
@@ -38,11 +37,13 @@ class SplitGD:
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor.
     def gen_loss(self, features, targets,  avg=False):
+        import tensorflow as tf
         predictions = self.model(tf.convert_to_tensor(features, dtype='float32'))  # Feed-forward pass to produce outputs/predictions
         loss = tf.reduce_sum(targets - predictions)**2
         return tf.reduce_mean(loss).numpy() if avg else loss
 
-    def fit(self, features, targets, delta, runtimes, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+    def fit(self, features, targets, delta, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+        import tensorflow as tf
         params = self.model.trainable_weights
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
@@ -113,6 +114,7 @@ class KerasModelWrapper(SplitGD):
             self.eligibilities.append(np.array(np.zeros(tensor.shape)))
 
     def modify_gradients(self, gradients, delta):
+        import tensorflow as tf
         for index, tensor in enumerate(self.eligibilities):
             if index % 2 == 0:
                 a = self.lambd*self.gamma
