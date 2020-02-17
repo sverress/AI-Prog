@@ -8,7 +8,7 @@
   "alpha_c": 0.95,
   "alpha_a": 0.95,
   "lambd": 0.85,
-  "epsilon_decay_rate": 0.95,
+  "epsilon_decay_rate": 0.90,
   "frame_rate": 5,
   "autoplay": true,
   "use_nn": true,
