@@ -19,9 +19,6 @@ class Critic:
         self.alpha = alpha
         self.lambd = lambd
         self.model = None  # Variable for nn
-        self.last_current_state = None
-        self.last_next_state = None
-        self.last_reward = None
 
     def init_nn(self, layers: [int], dimension: int):
         """
@@ -31,14 +28,16 @@ class Critic:
         """
         from tensorflow.keras.models import Sequential
         from tensorflow.keras.layers import Dense
+        from tensorflow.keras import optimizers
 
         model = Sequential()
+        optim = optimizers.SGD(lr=self.alpha)
         # Adding first layer with input size depending on board size
         model.add(Dense(units=layers[0], activation='relu', input_dim=dimension, kernel_initializer='random_uniform'))
         for i in range(1, len(layers)):
             model.add(Dense(units=layers[i], activation='relu', kernel_initializer='random_uniform'))
         model.add(Dense(units=1, activation='relu', kernel_initializer='random_uniform'))
-        model.compile(loss='mean_squared_error', optimizer='sgd', metrics=['accuracy'])
+        model.compile(loss='mean_squared_error', optimizer=optim, metrics=['accuracy'])
 
         self.model = KerasModelWrapper(model, self.lambd, self.gamma)
 
@@ -50,20 +49,9 @@ class Critic:
         :param reward: Reward from going to "child state": float
         :return: the TD error; delta
         """
-        self.save_td_params(parent_state, child_state, reward)
         delta = reward + self.gamma * self.get_state_value(child_state) - self.get_state_value(parent_state)
         return delta
 
-    def save_td_params(self, parent_state: str, child_state: str, reward: float):
-        """
-        Method for saving the last call to calculate td error to use in modify gradients later
-        :param parent_state: Previous state: str
-        :param child_state: Current state: str
-        :param reward: Reward from going to "child state": float
-        """
-        self.last_current_state = parent_state
-        self.last_next_state = child_state
-        self.last_reward = reward
 
     def set_value_func(self, state, value):
         self.value_func[state] = value

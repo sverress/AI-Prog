@@ -115,6 +115,7 @@ class KerasModelWrapper(SplitGD):
     def modify_gradients(self, gradients, delta):
         for index, tensor in enumerate(self.eligibilities):
             if index % 2 == 0:
+                a = self.lambd*self.gamma
                 tensor = tensor*self.lambd*self.gamma + gradients[index]
                 gradients[index] = tf.math.scalar_mul(delta, tensor)
         return gradients #self.eligibilities

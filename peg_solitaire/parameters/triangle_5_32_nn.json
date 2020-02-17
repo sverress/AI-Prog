@@ -5,7 +5,7 @@
   "open_positions": ["32"],
   "epsilon": 0.4,
   "gamma": 0.98,
-  "alpha_c": 0.95,
+  "alpha_c": 0.01,
   "alpha_a": 0.95,
   "lambd": 0.85,
   "epsilon_decay_rate": 0.90,
