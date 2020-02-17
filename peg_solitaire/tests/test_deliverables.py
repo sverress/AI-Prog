@@ -58,7 +58,3 @@ class TestTriangle32(unittest.TestCase, TestConvergence):
     def setUp(self):
         self.agent = Agent.create_agent_from_config_file("peg_solitaire/parameters/triangle_5_32.json")
         self.redefine_params_if_nn()
-
-
-if __name__ == '__main__':
-    unittest.main()

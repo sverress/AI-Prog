@@ -93,8 +93,6 @@ class Agent:
         train_start_time = time.time()
         for i in range(1, self.num_episodes+1):
             # See progress
-            episode_start_time = time.time()
-            runtimes = []
             if i % interval == 0:
                 print_loader(i, self.num_episodes, interval)
                 self.actor.epsilon = self.actor.epsilon * self.epsilon_decay_rate
@@ -141,7 +139,7 @@ class Agent:
 
                 # Update policy and value function for previous states in episode
                 for state, sap in reversed(episode_history):
-                    self.critic.update_value_func(state, delta, runtimes)
+                    self.critic.update_value_func(state, delta)
                     if not self.use_nn:
                         self.critic.update_eligibility_trace(state)
                     self.actor.update_policy(sap, delta)
@@ -153,9 +151,6 @@ class Agent:
                 current_state = next_state
 
             result.append(current_state.get_num_stones())
-            episode_end_time = time.time()
-            #print(f'total_{i}: {episode_end_time-episode_start_time}, sum: {sum(runtimes)} percent: {sum(runtimes)/(episode_end_time-episode_start_time)}')
-
             if log and current_state.get_num_stones() == 1:
                 print('---------------------')
                 for episode in episode_history:

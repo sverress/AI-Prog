@@ -57,18 +57,15 @@ class Critic:
     def set_eligibility_trace(self, state: str, value: float):
         self.elig_trace[state] = value
 
-    def get_state_value(self, state: str, runtimes=[]):
+    def get_state_value(self, state: str):
         """
         Fetch the state value from the value function by state key.
         :param state: state key: str
         :return: state value: float
         """
         if self.model:
-            input_np = string_to_np_array(state).reshape((1, len(state))) #.flatten()
-            update_value_func_start = time.time()
+            input_np = string_to_np_array(state).reshape((1, len(state)))
             output = self.model.model(input_np)
-            update_value_func_end = time.time()
-            runtimes.append(update_value_func_end - update_value_func_start)
             return output[0][0]
         else:
             return self.value_func.get(state)
@@ -76,15 +73,15 @@ class Critic:
     def get_eligibility_trace(self, state: str):
         return self.elig_trace.get(state)
 
-    def update_value_func(self, state: str, delta: float, runtimes):
+    def update_value_func(self, state: str, delta: float):
         """
         Finds and sets the new state value to the value func dict
         :param state: str representation of string
         :param delta: TD-error
         """
-        state_value = self.get_state_value(state, runtimes)
+        state_value = self.get_state_value(state)
         if self.model:
-            self.model.fit(np.array(string_to_np_array(state)).reshape((1, len(state))), np.array([state_value + delta]).reshape((1, 1)), delta, runtimes, verbose=False)
+            self.model.fit(np.array(string_to_np_array(state)).reshape((1, len(state))), np.array([state_value + delta]).reshape((1, 1)), delta, verbose=False)
         else:
             elig_trace_value = self.get_eligibility_trace(state)
             new_state_value = state_value + self.alpha*delta*elig_trace_value
