@@ -52,9 +52,19 @@ class Critic:
         return delta
 
     def set_value_func(self, state, value):
+        """
+        Maps state to value in the critic table value function
+        :param state: state key: str
+        :param value: float
+        """
         self.value_func[state] = value
 
     def set_eligibility_trace(self, state: str, value: float):
+        """
+        Maps state to value in the critic eligibility trace table
+        :param state: state key: str
+        :param value: float
+        """
         self.elig_trace[state] = value
 
     def get_state_value(self, state: str):
@@ -71,6 +81,10 @@ class Critic:
             return self.value_func.get(state)
 
     def get_eligibility_trace(self, state: str):
+        """
+        Fetch elig trace for key
+        :param state: state key: str
+        """
         return self.elig_trace.get(state)
 
     def update_value_func(self, state: str, delta: float):
@@ -97,6 +111,10 @@ class Critic:
         self.set_eligibility_trace(state, new_elig_trace_value)
 
     def init_state_from_board(self, board: Board):
+        """
+        Initialize state to random small value if the state has not been encountered before
+        :param board: board object representing current board state
+        """
         state_str = board.get_state()
         if state_str not in self.value_func:
             self.set_value_func(board.get_state(), random.uniform(0, 0.001))

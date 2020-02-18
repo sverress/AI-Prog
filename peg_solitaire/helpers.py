@@ -114,11 +114,17 @@ class KerasModelWrapper(SplitGD):
             self.eligibilities.append(np.array(np.zeros(tensor.shape)))
 
     def modify_gradients(self, gradients, delta):
+        """
+        Updates eligibility trace based on the gradients, and further updates the gradients
+        based on the new eligibilities and td-error
+        :param gradients: loss function gradients for each weight: list of tensors
+        :param delta: TD-error: float
+        :return: the updated gradients: list of tensors
+        """
         import tensorflow as tf
         for index, tensor in enumerate(self.eligibilities):
             if index % 2 == 0:
-                a = self.lambd*self.gamma
-                tensor = tensor*self.lambd*self.gamma + gradients[index]
+                tensor = tensor*self.lambd*self.gamma - gradients[index]
                 gradients[index] = tf.math.scalar_mul(delta, tensor)
-        return gradients #self.eligibilities
+        return gradients
 
