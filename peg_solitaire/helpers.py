@@ -39,7 +39,7 @@ class SplitGD:
     def gen_loss(self, features, targets,  avg=False):
         import tensorflow as tf
         predictions = self.model(tf.convert_to_tensor(features, dtype='float32'))  # Feed-forward pass to produce outputs/predictions
-        loss = tf.reduce_sum(targets - predictions)**2
+        loss = tf.reduce_sum((targets - predictions)**2)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
     def fit(self, features, targets, delta, epochs=1, mbs=1, vfrac=0.1, verbose=True):
