@@ -107,13 +107,18 @@ class Board(ABC):
 
     def set_cell(self, position: tuple, value: int):
         """
-        Set presence or absence of stone in a cell
+        Set presence or absence of peg in a cell
         :param position: (x_index: int, y_index: int)
         :param value: 0 or 1
         """
         self.board[position[0]][position[1]] = value
 
     def do_action(self, action: Action):
+        """
+        Set absence of peg at the leaving positions and presence of peg at entering position of the action
+        :param action:
+        :return:
+        """
         for leaving_position in action.get_leaving_positions():
             self.set_cell(leaving_position, 0)
         for entering_position in action.get_entering_positions():
@@ -121,18 +126,29 @@ class Board(ABC):
 
     def get_reward(self):
         """
-        Gets reward of a state. 0 if the state is not end state, 1/(number of stones left on board) if end state
-        :return: the reward: float
+        Returns the reward of the present state of the board
         """
         if self.get_num_stones() == 1:
-            return 1
+            return 10
         elif self.is_end_state():
-            return -(self.get_num_stones()/16)
+            return -(self.get_num_stones())#self.get_num_tiles())
         else:
             return 0.0
 
     def get_num_stones(self):
+        """
+        :return: number of pegs left on the board: int
+        """
         return sum([item for sublist in self.board for item in sublist])
+
+    def get_num_tiles(self):
+        """
+        :return: number of tiles of the board: int
+        """
+        count = 0
+        for listElem in self.board:
+            count += len(listElem)
+        return count
 
     @abstractmethod
     def get_neighbors_indices(self, position: tuple):

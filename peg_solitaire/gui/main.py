@@ -29,8 +29,7 @@ def setup():
 def board_changed():
     if not agent.board.is_end_state():
         action = agent.actor.choose_greedy_action(agent.board)
-        agent.board.do_action(action)
-        agent.actor.init_saps_from_board(agent.board)
+        agent.do_action(action)
         for entering_node in action.get_entering_positions():
             nodes[entering_node[0]][entering_node[1]].set_value(True)
         for leaving_node in action.get_leaving_positions():
@@ -68,8 +67,8 @@ def key_pressed():
 
 
 if __name__ == '__main__':
-    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_21.json")
-    agent.train(plot_result=True, log=False)
+    agent = Agent.create_agent_from_config_file("../parameters/triangle_5_32.json")
+    agent.train(plot_result=True)
     # List of all nodes
     nodes = []
     # Distance between nodes
@@ -77,4 +76,4 @@ if __name__ == '__main__':
     # Size of board
     SIZE = agent.board_size
     board = copy.deepcopy(agent.init_board)
-    #run(frame_rate=agent.frame_rate)
+    run(frame_rate=agent.frame_rate)
