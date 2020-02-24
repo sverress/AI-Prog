@@ -39,8 +39,17 @@ class MCTS:
             self.add_node(child_state)
             self.add_edge(self.root_state, child_state)
 
-    def simulate(self):
-        pass
+    def explore(self):
+        for child_state in self.state_manager.generate_child_states(self.root_state):
+            self.add_node(child_state)
+            self.add_edge(self.root_state, child_state)
+
+    def simulate(self, state: [int]):
+        path = self.sim_tree(state)
+
+    def sim_tree(self, state: [int]):
+        while not self.state_manager.is_end_state(state):
+            if
 
     def backpropegate(self):
         pass
