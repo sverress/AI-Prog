@@ -1,4 +1,4 @@
-from peg_solitaire.board import Board
+from peg_solitaire.board import SolitaireBoard
 from peg_solitaire.helpers import *
 import numpy as np
 import random
@@ -110,7 +110,7 @@ class Critic:
         new_elig_trace_value = self.gamma*self.lambd*elig_trace_value
         self.set_eligibility_trace(state, new_elig_trace_value)
 
-    def init_state_from_board(self, board: Board):
+    def init_state_from_board(self, board: SolitaireBoard):
         """
         Initialize state to random small value if the state has not been encountered before
         :param board: board object representing current board state

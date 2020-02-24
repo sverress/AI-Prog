@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
 import numpy as np
 from peg_solitaire.action import Action
+from abc import ABC, abstractmethod
+from libs.board import Board
 
 
-class Board(ABC):
+class SolitaireBoard(ABC, Board):
     """
     Abstract Board class for a general board
     """
@@ -13,9 +14,7 @@ class Board(ABC):
         :param board_size: Size of the board
         :param open_coordinates: list of positions to be left open in the board. Positions are given as tuples
         """
-        self.board = []
-        self.board_size = board_size
-        self.build_board(board_size)
+        super().__init__(board_size)
         for coordinate in open_coordinates:
             self.board[coordinate[0]][coordinate[1]] = 0
 
@@ -189,7 +188,7 @@ class Board(ABC):
         return actions
 
 
-class Diamond(Board):
+class Diamond(SolitaireBoard):
     def build_board(self, board_size):
         for i in range(board_size):
             self.board.append([])
@@ -203,7 +202,7 @@ class Diamond(Board):
         return list(filter(lambda pos: self.filter_positions(pos), indices))
 
 
-class Triangle(Board):
+class Triangle(SolitaireBoard):
     def build_board(self, board_size):
         for i in range(board_size):
             self.board.append([])

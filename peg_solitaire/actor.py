@@ -1,5 +1,5 @@
 import random
-from .board import Board
+from .board import SolitaireBoard
 from peg_solitaire.action import Action
 
 
@@ -50,7 +50,7 @@ class Actor:
         """
         self.elig_trace[sap] = self.gamma * self.lambd * self.elig_trace.get(sap)
 
-    def choose_greedy_action(self, board: Board):
+    def choose_greedy_action(self, board: SolitaireBoard):
         """
         Choosing the action in the state action pair with the highest policy value
         :param board: board representing the state
@@ -69,7 +69,7 @@ class Actor:
         #chosen_sap = max(self.get_policies_from_state(board), key=self.policy.get)
         return Action.create_action_from_string(chosen_sap[-6:])
 
-    def choose_random_action(self, board: Board):
+    def choose_random_action(self, board: SolitaireBoard):
         """
         Choosing a random action from the pool of possible actions from input board
         :param board: board object representing the current state
@@ -78,7 +78,7 @@ class Actor:
         chosen_sap = random.choice(self.get_policies_from_state(board))
         return Action.create_action_from_string(chosen_sap[-6:])
 
-    def choose_epsilon_greedy_action(self, board: Board):
+    def choose_epsilon_greedy_action(self, board: SolitaireBoard):
         """
         Chooses the action with the highest desirability with some exploration (epsilon)
         :param board: board representing the state
@@ -93,7 +93,7 @@ class Actor:
         else:
             return self.choose_greedy_action(board)
 
-    def get_policies_from_state(self, board: Board):
+    def get_policies_from_state(self, board: SolitaireBoard):
         """
         :param board: board representing the state
         :return: list of SAPs from current state in policy
@@ -102,7 +102,7 @@ class Actor:
         str_state = board.get_state()
         return list(filter(lambda key: key.startswith(str_state), self.policy.keys()))
 
-    def init_saps_from_board(self, board: Board):
+    def init_saps_from_board(self, board: SolitaireBoard):
         """
         Method for adding values to unseen state action pairs in policy and eligibility trace
         :param board: board representing the state
