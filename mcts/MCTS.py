@@ -1,10 +1,11 @@
 import networkx as nx
 from mcts.StateManager import StateManager
 import matplotlib.pyplot as plt
+from typing import Type
 
 
 class MCTS:
-    def __init__(self, state: [int], state_manager: StateManager):
+    def __init__(self, state: [int], state_manager: Type[StateManager]):
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
@@ -17,9 +18,13 @@ class MCTS:
     def add_edge(self, parent_state, child_state):
         self.G.add_edge(str(parent_state), str(child_state))
 
+    def print_graph(self):
+        nx.draw(self.G)
+        plt.show()
+
     def run(self):
         self.select()
-        self.explore()
+        self.expand()
         self.simulate()
         self.backpropegate()
 
