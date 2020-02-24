@@ -4,17 +4,17 @@ import matplotlib.pyplot as plt
 
 class MCTS:
     def __init__(self, state: [int]):
-        self.G = nx.Graph()
-        self.parent_node = Node(state)
-        self.nodes = [self.parent_node]
-        self.G.add_node(self.parent_node)
+        self.G = nx.DiGraph()
+        self.G.add_node(str(state), state=state, times_encountered=0)
 
     def run(self):
-        selected_node = self.select()
-        self.explore(selected_node)
+        self.select()
+        self.explore()
         self.simulate()
         self.backpropegate()
-        return Node(self.parent_node).state
+
+    def get_node(self, state: [int]):
+        return dict(self.G.nodes()).get(str(state))
 
     def select(self):
         pass
@@ -28,8 +28,4 @@ class MCTS:
     def backpropegate(self):
         pass
 
-
-class Node:
-    def __init__(self, state: [int]):
-        self.state = state
 
