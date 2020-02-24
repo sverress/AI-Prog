@@ -15,10 +15,13 @@ class GameSimulator:
         else:  # Is ledge
             self.state_manager = Lodge
 
-    def run(self):
+    def run(self, verbose=True):
         for i in range(1, self.G+1):
             state = self.state_manager.init_game_state(B_init=self.B_init)
             mcts = MCTS(state)
+            while not self.state_manager.is_end_state(state):
+                state = mcts.run(state)
+
 
 game = GameSimulator(1, 1, 10, 10, 4, [0,2,1,0])
 game.run()
