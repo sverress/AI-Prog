@@ -13,13 +13,13 @@ class MCTS:
         self.state_manager = state_manager
 
     def add_node(self, state: [int]):
-        self.G.add_node(str(state), state=state, times_encountered=0)
+        self.G.add_node(self.state_manager.state_to_string(state), state=state, times_encountered=0)
 
     def add_edge(self, parent_state, child_state):
-        self.G.add_edge(str(parent_state), str(child_state), sap_value=0, times_encountered=0)
+        self.G.add_edge(self.state_manager.state_to_string(parent_state), self.state_manager.state_to_string(child_state), sap_value=0, times_encountered=0)
 
     def get_node(self, state: [int]):
-        return dict(self.G.nodes()).get(str(state))
+        return dict(self.G.nodes()).get(self.state_manager.state_to_string(state))
 
     def print_graph(self):
         nx.draw(self.G, with_labels=True)
@@ -48,12 +48,12 @@ class MCTS:
         hello = [predecessor for predecessor in self.G.predecessors(str(state))]
         return state
 
-    def expand(self, state):
+    def expand(self, state: ([int], bool)):
         for child_state in self.state_manager.generate_child_states(state):
             self.add_node(child_state)
             self.add_edge(state, child_state)
 
-    def simulate(self, state: [int]):
+    def simulate(self, state: ([int], bool)):
         while non_terminal(node):
             node = rollout_policy(node)
         return result(node)
