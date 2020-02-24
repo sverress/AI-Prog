@@ -18,7 +18,7 @@ class GameSimulator:
     def run(self, verbose=True):
         for i in range(1, self.G+1):
             state = self.state_manager.init_game_state(B_init=self.B_init)
-            mcts = MCTS(state)
+            mcts = MCTS(state, self.state_manager)
             while not self.state_manager.is_end_state(state):
                 state = mcts.run()
 
