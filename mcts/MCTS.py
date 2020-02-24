@@ -16,41 +16,49 @@ class MCTS:
         self.G.add_node(str(state), state=state, times_encountered=0)
 
     def add_edge(self, parent_state, child_state):
-        self.G.add_edge(str(parent_state), str(child_state), sap_value = 0, times_encountered = 0)
-
-    def print_graph(self):
-        nx.draw(self.G)
-        plt.show()
-
-    def run(self):
-        self.select()
-        self.expand()
-        self.simulate()
-        self.backpropegate()
+        self.G.add_edge(str(parent_state), str(child_state), sap_value=0, times_encountered=0)
 
     def get_node(self, state: [int]):
         return dict(self.G.nodes()).get(str(state))
 
-    def select(self):
-        pass
+    def print_graph(self):
+        nx.draw(self.G, with_labels=True)
+        plt.show()
 
-    def expand(self):
-        for child_state in self.state_manager.generate_child_states(self.root_state):
+    def run(self):
+        for i in range(1000):  # 1000 iterations
+            state = self.select(self.root_state)
+            simualtion_result = self.simulate(state)
+            self.backpropegate(state, simualtion_result)
+        return best_child(self.root_state)
+
+
+    def select(self, state: [int]):
+        while fully_expanded(node):
+            node = best_uct(node)
+
+            # in case no children are present / node is terminal
+        return pick_univisted(node.children) or node
+
+    def expand(self, state):
+        for child_state in self.state_manager.generate_child_states(state):
             self.add_node(child_state)
-            self.add_edge(self.root_state, child_state)
+            self.add_edge(state, child_state)
 
     def simulate(self, state: [int]):
-        path = self.sim_tree(state)
+        while non_terminal(node):
+            node = rollout_policy(node)
+        return result(node)
+
+
+    def backpropegate(self):
+        if is_root(node) return
+        node.stats = update_stats(node, result)
+        backpropagate(node.parent)
 
     def sim_tree(self, state: [int]):
         path = [state]
         while not self.state_manager.is_end_state(state):
-            if not bool(self.get_node(state)): # If state not in tree
+            if not bool(self.get_node(state)):  # If state not in tree
                 self.add_node(state)
                 self.add_edge()
-
-
-    def backpropegate(self):
-        pass
-
-

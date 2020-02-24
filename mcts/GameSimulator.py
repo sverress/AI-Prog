@@ -19,8 +19,11 @@ class GameSimulator:
         for i in range(1, self.G+1):
             state = self.state_manager.init_game_state(B_init=self.B_init)
             mcts = MCTS(state, self.state_manager)
+            state = mcts.run()
 
 
 game = GameSimulator(1, 1, 10, 10, 4, [0, 2, 1, 0])
 state = game.state_manager.init_game_state(B_init=game.B_init)
 mcts = MCTS(state, game.state_manager)
+mcts.expand()
+mcts.print_graph()
