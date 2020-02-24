@@ -20,7 +20,7 @@ class GameSimulator:
             state = self.state_manager.init_game_state(B_init=self.B_init)
             mcts = MCTS(state)
             while not self.state_manager.is_end_state(state):
-                state = mcts.run(state)
+                state = mcts.run()
 
 
 game = GameSimulator(1, 1, 10, 10, 4, [0,2,1,0])
