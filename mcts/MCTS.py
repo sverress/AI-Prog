@@ -15,8 +15,8 @@ class MCTS:
     def add_node(self, state: [int]):
         self.G.add_node(str(state), state=state, times_encountered=0)
 
-    def add_edge(self, parent_state, child_state):
-        self.G.add_edge(str(parent_state), str(child_state))
+    def add_edge(self, parent_state, child_state, sap_value, times_encountered):
+        self.G.add_edge(str(parent_state), str(child_state), sap_value = sap_value, times_encountered = times_encountered)
 
     def print_graph(self):
         nx.draw(self.G)
