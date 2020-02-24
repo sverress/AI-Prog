@@ -31,11 +31,11 @@ class StateManager(ABC):
 class Nim(StateManager):
     @staticmethod
     def generate_child_states(state: [int]):
-        return [[i, state[1]] for i in range(state[0] - 1, state[0]-state[1], -1)]
+        return [[i, state[1]] for i in range(state[0] - 1, state[0] - state[1], -1)]
 
     @staticmethod
     def init_game_state(**kwargs):
-        return [kwargs['N'], kwargs['K']]
+        return [kwargs.get('N'), kwargs.get('K')]
 
     @staticmethod
     def is_end_state(state: [int]):
