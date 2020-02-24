@@ -5,20 +5,20 @@ from typing import Type
 
 
 class MCTS:
-    def __init__(self, state: [int], state_manager: Type[StateManager]):
+    def __init__(self, state: ([int], bool), state_manager: Type[StateManager]):
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
         self.c = 1
         self.state_manager = state_manager
 
-    def add_node(self, state: [int]):
+    def add_node(self, state: ([int], bool)):
         self.G.add_node(self.state_manager.state_to_string(state), state=state, times_encountered=0)
 
     def add_edge(self, parent_state, child_state):
         self.G.add_edge(self.state_manager.state_to_string(parent_state), self.state_manager.state_to_string(child_state), sap_value=0, times_encountered=0)
 
-    def get_node(self, state: [int]):
+    def get_node(self, state: ([int], bool)):
         return dict(self.G.nodes()).get(self.state_manager.state_to_string(state))
 
     def print_graph(self):
@@ -51,10 +51,12 @@ class MCTS:
         return result(node)
 
 
-    def backpropagate(self, state: ([int], bool)):
-        if is_root(node) return
-        node.stats = update_stats(node, result)
-        backpropagate(node.parent)
+    def backpropagate(self, state: ([int], bool), win_player1):
+        if state == self.root_state:
+            return
+        self.get_node(state)['times_encountered'] += 1
+        # Update edges
+        self.backpropagate(self.G.predecessors(self.state_manager.state_to_string(state)))
 
     def sim_tree(self, state: [int]):
         path = [state]
