@@ -2,7 +2,7 @@ import networkx as nx
 from mcts.StateManager import StateManager
 import matplotlib.pyplot as plt
 from typing import Type
-
+import random
 
 class MCTS:
     def __init__(self, state: [int], state_manager: Type[StateManager]):
@@ -26,19 +26,27 @@ class MCTS:
         plt.show()
 
     def run(self):
-        for i in range(1000):  # 1000 iterations
+        for i in range(1):  # 1 iteration
             state = self.select(self.root_state)
             simualtion_result = self.simulate(state)
-            self.backpropegate(state, simualtion_result)
-        return best_child(self.root_state)
-
+            self.backpropagate(state, simualtion_result)
+        return self.best_child_node(self.root_state)
 
     def select(self, state: [int]):
-        while fully_expanded(node):
-            node = best_uct(node)
+        # while fully_expanded
+        possible_child_states = self.state_manager.generate_child_states(state)
+        visited_child_states = list(self.G.predecessors(str(state)))
+        while len(possible_child_states) == len(visited_child_states):
+            # Get the best child node from the current node
+            state = self.best_child_node(state)
+            possible_child_states = self.state_manager.generate_child_states(state)
+            visited_child_states = list(self.G.predecessors(str(state)))
+        unvisited =
+        return
 
-            # in case no children are present / node is terminal
-        return pick_univisted(node.children) or node
+    def best_child_node(self, state):
+        hello = [predecessor for predecessor in self.G.predecessors(str(state))]
+        return state
 
     def expand(self, state):
         for child_state in self.state_manager.generate_child_states(state):
@@ -51,8 +59,9 @@ class MCTS:
         return result(node)
 
 
-    def backpropegate(self):
-        if is_root(node) return
+    def backpropagate(self):
+        if is_root(node):
+            return
         node.stats = update_stats(node, result)
         backpropagate(node.parent)
 
