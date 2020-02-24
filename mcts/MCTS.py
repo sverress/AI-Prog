@@ -15,8 +15,8 @@ class MCTS:
     def add_node(self, state: [int]):
         self.G.add_node(str(state), state=state, times_encountered=0)
 
-    def add_edge(self, parent_state, child_state, sap_value, times_encountered):
-        self.G.add_edge(str(parent_state), str(child_state), sap_value = sap_value, times_encountered = times_encountered)
+    def add_edge(self, parent_state, child_state):
+        self.G.add_edge(str(parent_state), str(child_state), sap_value = 0, times_encountered = 0)
 
     def print_graph(self):
         nx.draw(self.G)
@@ -39,17 +39,16 @@ class MCTS:
             self.add_node(child_state)
             self.add_edge(self.root_state, child_state)
 
-    def explore(self):
-        for child_state in self.state_manager.generate_child_states(self.root_state):
-            self.add_node(child_state)
-            self.add_edge(self.root_state, child_state)
-
     def simulate(self, state: [int]):
         path = self.sim_tree(state)
 
     def sim_tree(self, state: [int]):
+        path = [state]
         while not self.state_manager.is_end_state(state):
-            if
+            if not bool(self.get_node(state)): # If state not in tree
+                self.add_node(state)
+                self.add_edge()
+
 
     def backpropegate(self):
         pass
