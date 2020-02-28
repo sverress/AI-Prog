@@ -40,19 +40,23 @@ class MCTS:
         # while fully_expanded
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
+        # Only move to next tree depth if all the children is visited
         while len(possible_child_states) == len(visited_child_states):
             # Get the best child node from the current node
             state = self.best_child_node(state)
-            possible_child_states = self.state_manager.generate_child_states(state)
-            visited_child_states = self.get_visited_child_states(state)
-        return MCTS.pick_unvisited(possible_child_states, visited_child_states) or state
+        # If there still are unvisited nodes we pick them
+        return self.pick_unvisited(state) or state
 
-    @staticmethod
-    def pick_unvisited(possible_states, visited_states):
-        unvisited_states = list(filter(lambda state: state not in visited_states, possible_states))
+    def pick_unvisited(self, state):
+        possible_child_states = self.state_manager.generate_child_states(state)
+        visited_child_states = self.get_visited_child_states(state)
+        unvisited_states = list(filter(lambda state: state not in visited_child_states, possible_child_states))
         if len(unvisited_states) == 0:
             return None
-        return random.choice(unvisited_states)
+        chosen_state = random.choice(unvisited_states)
+        self.add_node(chosen_state)
+        self.add_edge(state, chosen_state)
+        return chosen_state
 
     def best_child_node(self, state):
         hello = [predecessor for predecessor in self.G.predecessors(str(state))]
@@ -76,15 +80,4 @@ class MCTS:
         return 1 if random.random() > 0.1 else -1
 
     def backpropagate(self, state: ([int], bool), win_player1):
-        if state == self.root_state:
-            return
-        self.get_node(state)['times_encountered'] += 1
-        # Update edges
-        self.backpropagate(self.G.predecessors(self.state_manager.state_to_string(state)))
-
-    def sim_tree(self, state: [int]):
-        path = [state]
-        while not self.state_manager.is_end_state(state):
-            if not bool(self.get_node(state)):  # If state not in tree
-                self.add_node(state)
-                self.add_edge()
+        pass
