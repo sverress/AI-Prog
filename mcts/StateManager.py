@@ -42,7 +42,7 @@ class Nim(StateManager):
 
     @staticmethod
     def init_game_state(**kwargs):
-        return [kwargs.get('N'), kwargs.get('K')]
+        return [kwargs.get('N'), kwargs.get('K')], kwargs.get('P')
 
     @staticmethod
     def is_end_state(state: ([int], bool)):
