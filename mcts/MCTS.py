@@ -93,7 +93,6 @@ class MCTS:
             state = self.select(self.root_state)
             simulation_result = self.simulate(state)
             self.backpropagate(state, simulation_result)
-            self.print_graph()
         return self.best_child_node(self.root_state)
 
     def select(self, state: [int]):
@@ -152,7 +151,7 @@ class MCTS:
         :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
         """
         while not self.state_manager.is_end_state(state):
-            state = random.choice(self.state_manager.state_to_string(state))
+            state = random.choice(self.state_manager.generate_child_states(state))
         return 1 if state[1] else -1
 
     def backpropagate(self, state: ([int], bool), win_player1):
@@ -160,10 +159,10 @@ class MCTS:
             return
         parent_state = self.get_predecessor(state)
 
-        node_times_enc = self.get_node_attributes(state)['times_encountered']
+        node_times_enc = self.get_node_attributes(state)['n']
         node_times_enc += 1
-        edge_times_enc = self.G.get_edge_attributes(parent_state, state)['times_encountered']
+        edge_times_enc = self.get_edge_attributes(parent_state, state)['n']
         edge_times_enc += 1
-        edge_sap_value = self.G.get_edge_attributes(parent_state, state)['sap_value']
+        edge_sap_value = self.get_edge_attributes(parent_state, state)['sap_value']
         edge_sap_value += (win_player1 - edge_sap_value)/node_times_enc
         self.backpropagate(parent_state, win_player1)
