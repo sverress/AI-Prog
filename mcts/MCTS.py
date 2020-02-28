@@ -159,10 +159,10 @@ class MCTS:
             return
         parent_state = self.get_predecessor(state)
 
-        node_times_enc = self.get_node_attributes(state)['n']
-        node_times_enc += 1
+        self.get_node_attributes(state)['n'] += 1
+        self.get_edge_attributes(parent_state, state)['n'] += 1
         edge_times_enc = self.get_edge_attributes(parent_state, state)['n']
-        edge_times_enc += 1
         edge_sap_value = self.get_edge_attributes(parent_state, state)['sap_value']
-        edge_sap_value += (win_player1 - edge_sap_value)/node_times_enc
+        self.get_edge_attributes(parent_state, state)['sap_value'] += (win_player1 - edge_sap_value) / edge_times_enc
+
         self.backpropagate(parent_state, win_player1)

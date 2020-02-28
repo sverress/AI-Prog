@@ -71,7 +71,7 @@ class Lodge(StateManager):
 
     @staticmethod
     def init_game_state(**kwargs):
-        return kwargs.get('B_init')
+        return kwargs.get('B_init'), kwargs.get('p')
 
     @staticmethod
     def is_end_state(state: ([int], bool)):
