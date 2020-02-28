@@ -58,10 +58,11 @@ class MCTS:
         plt.show()
 
     def run(self):
-        for i in range(10):  # 1 iteration
+        for i in range(10):
             state = self.select(self.root_state)
             simulation_result = self.simulate(state)
             self.backpropagate(state, simulation_result)
+            self.print_graph()
         return self.best_child_node(self.root_state)
 
     def select(self, state: [int]):
@@ -69,8 +70,7 @@ class MCTS:
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
         # Only move to next tree depth if all the children is visited
-        depth = 1
-        while len(possible_child_states) == len(visited_child_states):
+        while len(possible_child_states) == len(visited_child_states) and len(possible_child_states) > 0:
             # Get the best child node from the current node
             state = self.best_child_node(state)
             possible_child_states = self.state_manager.generate_child_states(state)
@@ -113,7 +113,7 @@ class MCTS:
         return best_child
 
     def u(self, number_of_visits_node, number_of_visits_edge):
-        return self.c * math.sqrt(math.log(number_of_visits_node/(1+number_of_visits_edge)))
+        return self.c * math.sqrt(abs(math.log(number_of_visits_node/(1+number_of_visits_edge))))
 
     def simulate(self, state: ([int], bool)):
         """
