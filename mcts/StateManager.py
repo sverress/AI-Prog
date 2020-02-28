@@ -53,6 +53,8 @@ class Lodge(StateManager):
     @staticmethod
     def generate_child_states(state: ([int], bool)):
         states = []
+        if Lodge.is_end_state(state):
+            return []
         if state[0][0] > 0:
             states.append(([0]+state[0][1:], not state[1]))
         for j in range(len(state[0])-1, 0, -1):
