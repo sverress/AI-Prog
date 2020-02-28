@@ -143,7 +143,7 @@ class MCTS:
         return best_child
 
     def u(self, number_of_visits_node, number_of_visits_edge):
-        return self.c * math.sqrt(abs(math.log(number_of_visits_node/(1+number_of_visits_edge))))
+        return self.c * math.sqrt(math.log(number_of_visits_node)/(1+number_of_visits_edge))
 
     def simulate(self, state: ([int], bool)):
         """
@@ -156,6 +156,7 @@ class MCTS:
 
     def backpropagate(self, state: ([int], bool), win_player1):
         if state == self.root_state:
+            self.get_node_attributes(state)['n'] += 1
             return
         parent_state = self.get_predecessor(state)
 
