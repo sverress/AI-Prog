@@ -111,7 +111,10 @@ class MCTS:
     def best_child(self, state: ([int], bool)):
         state_key = self.state_manager.state_to_string(state)
         sorted_list = sorted(self.G.out_edges(state_key, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
-        best_state_key = sorted_list[0][1]
+        if state[1]:
+            best_state_key = sorted_list[0][1]
+        else:
+            best_state_key = sorted_list[-1][1]
         return self.get_state_from_state_key(best_state_key)
 
 
@@ -154,6 +157,7 @@ class MCTS:
         if state == self.root_state:
             self.get_node_attributes(state)['n'] += 1
             return
+        print(state)
         parent_state = self.get_predecessor(state)
 
         self.get_node_attributes(state)['n'] += 1

@@ -23,9 +23,10 @@ class GameSimulator:
             print(f"game {i}")
             print(f"init board:       {self.init_state}")
             state = (self.init_state[0].copy(), self.init_state[1])  # copy state
+            mcts = MCTS(state, self.state_manager)  # should we add option to keep relevant part of three?
             while not self.state_manager.is_end_state(state):
-                mcts = MCTS(state, self.state_manager) # should we add option to keep relevant part of three?
                 state = mcts.run(self.m)
+                mcts.root_state = state
                 print(f"chosen new state: {state}")
 
             if state[1]:

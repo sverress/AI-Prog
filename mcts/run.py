@@ -4,7 +4,7 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH CHOSEN PARAMETERS
 """
 G = 10  # number of games in a batch
 P = True  # starting-player option (True for we start, false for other start)
-M = 500  # number of simulations (and hence rollouts) per actual game move.
+M = 100  # number of simulations (and hence rollouts) per actual game move.
 
 # Choosing witch game to play
 GAME = GameSimulator.LEDGE
