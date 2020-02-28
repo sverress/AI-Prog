@@ -29,11 +29,8 @@ class StateManager(ABC):
 
     @staticmethod
     def state_to_string(state: ([int], bool)):
-        key = ""
-        for i in state[0]:
-            key += str(i)
-        key += str(state[1])
-        return key
+        return f"{str(state[0])}{str(state[1])}"
+
 
 class Nim(StateManager):
     @staticmethod
@@ -60,11 +57,10 @@ class Lodge(StateManager):
                 continue
             i = j - 1
             while state[0][i] == 0 and i >= 0:
-                copy_state = state.copy()
-                copy_state[0][i] = copy_state[0][j]
-                copy_state[0][j] = 0
-                copy_state[1] = not copy_state[1]
-                states.append(copy_state)
+                copy_list_state = state[0].copy()
+                copy_list_state[i] = copy_list_state[j]
+                copy_list_state[j] = 0
+                states.append((copy_list_state, not state[1]))
                 i -= 1
         return states
 

@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 from typing import Type
 import random
 
+
 class MCTS:
     def __init__(self, state: ([int], bool), state_manager: Type[StateManager]):
+        self.state_manager = state_manager
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
         self.c = 1
-        self.state_manager = state_manager
 
     def add_node(self, state: ([int], bool)):
         self.G.add_node(self.state_manager.state_to_string(state), state=state, times_encountered=0)
@@ -21,12 +22,15 @@ class MCTS:
     def get_node(self, state: ([int], bool)):
         return dict(self.G.nodes()).get(self.state_manager.state_to_string(state))
 
+    def get_visited_child_states(self, state):
+        return list(self.G.predecessors(self.state_manager.state_to_string(state)))
+
     def print_graph(self):
         nx.draw(self.G, with_labels=True)
         plt.show()
 
     def run(self):
-        for i in range(1):  # 1 iteration
+        for i in range(10):  # 1 iteration
             state = self.select(self.root_state)
             simualtion_result = self.simulate(state)
             self.backpropagate(state, simualtion_result)
@@ -35,14 +39,20 @@ class MCTS:
     def select(self, state: [int]):
         # while fully_expanded
         possible_child_states = self.state_manager.generate_child_states(state)
-        visited_child_states = list(self.G.predecessors(str(state)))
+        visited_child_states = self.get_visited_child_states(state)
         while len(possible_child_states) == len(visited_child_states):
             # Get the best child node from the current node
             state = self.best_child_node(state)
             possible_child_states = self.state_manager.generate_child_states(state)
-            visited_child_states = list(self.G.predecessors(str(state)))
-        unvisited =
-        return
+            visited_child_states = self.get_visited_child_states(state)
+        return MCTS.pick_unvisited(possible_child_states, visited_child_states) or state
+
+    @staticmethod
+    def pick_unvisited(possible_states, visited_states):
+        unvisited_states = list(filter(lambda state: state not in visited_states, possible_states))
+        if len(unvisited_states) == 0:
+            return None
+        return random.choice(unvisited_states)
 
     def best_child_node(self, state):
         hello = [predecessor for predecessor in self.G.predecessors(str(state))]
