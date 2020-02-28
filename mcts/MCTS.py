@@ -32,8 +32,8 @@ class MCTS:
     def run(self):
         for i in range(10):  # 1 iteration
             state = self.select(self.root_state)
-            simualtion_result = self.simulate(state)
-            self.backpropagate(state, simualtion_result)
+            simulation_result = self.simulate(state)
+            self.backpropagate(state, simulation_result)
         return self.best_child_node(self.root_state)
 
     def select(self, state: [int]):
@@ -64,9 +64,16 @@ class MCTS:
             self.add_edge(state, child_state)
 
     def simulate(self, state: ([int], bool)):
+        """
+        #sudocode:
         while non_terminal(node):
             node = rollout_policy(node)
         return result(node)
+
+        :param state:
+        :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
+        """
+        return random.randint(0, 1)
 
 
     def backpropagate(self, state: ([int], bool), win_player1):
