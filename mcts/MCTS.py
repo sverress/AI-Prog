@@ -3,6 +3,7 @@ from mcts.StateManager import StateManager
 import matplotlib.pyplot as plt
 from typing import Type
 import random
+import math
 
 
 class MCTS:
@@ -14,19 +15,46 @@ class MCTS:
         self.c = 1
 
     def add_node(self, state: ([int], bool)):
-        self.G.add_node(self.state_manager.state_to_string(state), state=state, times_encountered=0)
+        self.G.add_node(self.state_manager.state_to_string(state), state=state, n=1)
 
     def add_edge(self, parent_state, child_state):
-        self.G.add_edge(self.state_manager.state_to_string(parent_state), self.state_manager.state_to_string(child_state), sap_value=0, times_encountered=0)
+        self.G.add_edge(
+            self.state_manager.state_to_string(parent_state),
+            self.state_manager.state_to_string(child_state),
+            sap_value=0, n=1)
 
-    def get_node(self, state: ([int], bool)):
-        return dict(self.G.nodes()).get(self.state_manager.state_to_string(state))
+    def get_node_data(self, state: ([int], bool)):
+        return self.G.nodes._nodes.get(self.state_manager.state_to_string(state))  # Need another way of doing this
+
+    def get_edge_data(self, parent_state, child_state):
+        return self.G.get_edge_data(
+            self.state_manager.state_to_string(parent_state),
+            self.state_manager.state_to_string(child_state)
+        )
+
+    def get_node_from_key(self, state: str):
+        return self.G.nodes._nodes.get(state)
 
     def get_visited_child_states(self, state):
-        return list(self.G.predecessors(self.state_manager.state_to_string(state)))
+        return [self.get_node_from_key(child).get('state')
+                for child in list(self.G.successors(self.state_manager.state_to_string(state)))]
 
     def print_graph(self):
-        nx.draw(self.G, with_labels=True)
+        pos = nx.shell_layout(self.G)
+        blue_player_nodes = []
+        red_player_nodes = []
+        labels = {}
+        for key in self.G.nodes._nodes:
+            labels[key] = key
+            node = self.G.nodes._nodes.get(key)
+            if node.get('state')[1]:
+                blue_player_nodes.append(key)
+            else:
+                red_player_nodes.append(key)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=blue_player_nodes, node_color='b', alpha=0.5)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=red_player_nodes, node_color='r', alpha=0.5)
+        nx.draw_networkx_edges(self.G, pos)
+        nx.draw_networkx_labels(self.G, pos, labels, font_size=10)
         plt.show()
 
     def run(self):
@@ -41,9 +69,12 @@ class MCTS:
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
         # Only move to next tree depth if all the children is visited
+        depth = 1
         while len(possible_child_states) == len(visited_child_states):
             # Get the best child node from the current node
             state = self.best_child_node(state)
+            possible_child_states = self.state_manager.generate_child_states(state)
+            visited_child_states = self.get_visited_child_states(state)
         # If there still are unvisited nodes we pick them
         return self.pick_unvisited(state) or state
 
@@ -59,13 +90,30 @@ class MCTS:
         return chosen_state
 
     def best_child_node(self, state):
-        hello = [predecessor for predecessor in self.G.predecessors(str(state))]
-        return state
+        visited_child_states = self.get_visited_child_states(state)
+        best_child = None
+        best_child_q = -float('Inf') if state[1] else float('Inf')
+        for i in range(0, len(visited_child_states)):
+            child = visited_child_states[i]
+            edge_data = self.get_edge_data(state, child)
+            u = self.u(self.get_node_data(state).get('n'), edge_data.get('n'))
+            # Different functions for red and blue
+            if child[1]:
+                q = edge_data.get('sap_value') + u
+            else:
+                q = edge_data.get('sap_value') - u
+            # Argmax for blue
+            if state[1] and q > best_child_q:
+                best_child = child
+                best_child_q = q
+            # Argmin for red
+            if not state[1] and q < best_child_q:
+                best_child = child
+                best_child_q = q
+        return best_child
 
-    def expand(self, state: ([int], bool)):
-        for child_state in self.state_manager.generate_child_states(state):
-            self.add_node(child_state)
-            self.add_edge(state, child_state)
+    def u(self, number_of_visits_node, number_of_visits_edge):
+        return self.c * math.sqrt(math.log(number_of_visits_node/(1+number_of_visits_edge)))
 
     def simulate(self, state: ([int], bool)):
         """

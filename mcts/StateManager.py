@@ -29,7 +29,10 @@ class StateManager(ABC):
 
     @staticmethod
     def state_to_string(state: ([int], bool)):
-        return f"{str(state[0])}{str(state[1])}"
+        list_string = ""
+        for char in state[0]:
+            list_string += str(char)
+        return f"{list_string}{str(state[1])}"
 
 
 class Nim(StateManager):
