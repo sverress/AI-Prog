@@ -20,7 +20,15 @@ class GameSimulator:
 
     def run(self):
         for i in range(1, self.g + 1):
+            print(f"game {i}")
+            print(f"init board:       {self.init_state}")
             state = (self.init_state[0].copy(), self.init_state[1])  # copy state
-            mcts = MCTS(state, self.state_manager)
-            state = mcts.run()
-            print(f"iteration {i}: {state}")
+            while not self.state_manager.is_end_state(state):
+                mcts = MCTS(state, self.state_manager) # should we add option to keep relevant part of three?
+                state = mcts.run(self.m)
+                print(f"chosen new state: {state}")
+
+            if state[1]:
+                print('winner: player 1')
+            else:
+                print('winner: player 2')

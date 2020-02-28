@@ -23,18 +23,9 @@ class MCTS:
             self.state_manager.state_to_string(child_state),
             sap_value=0, n=0)
 
-    def get_node_data(self, state: ([int], bool)):
-        return self.G.nodes._nodes.get(self.state_manager.state_to_string(state))  # Need another way of doing this
-
-    def get_edge_data(self, parent_state, child_state):
-        return self.G.get_edge_data(
-            self.state_manager.state_to_string(parent_state),
-            self.state_manager.state_to_string(child_state)
-        )
-
     def get_node_attributes(self, state: ([int], bool)):
         """
-        returns the desired state as dict. Ex; {'state': ([0, 1, 1, 3], 0), 'times_encountered': 0}
+        returns the desired state as dict. Ex; {'state': ([0, 1, 1, 3], 0), 'n': 0}
         :param state:
         :return: the node attributes: dict
         """
@@ -42,7 +33,7 @@ class MCTS:
 
     def get_edge_attributes(self, parent_state: ([int], bool), child_state: ([int], bool)):
         """
-        Returns ex; {'sap_value': 0, 'times_encountered': 0}
+        Returns ex; {'sap_value': 0, 'n': 0}
         :param parent_state:
         :param child_state:
         :return: The desired edge attributes: dict
@@ -88,30 +79,28 @@ class MCTS:
         nx.draw_networkx_labels(self.G, pos, labels, font_size=10)
         plt.show()
 
-    def run(self):
-        for i in range(10):
+    def run(self, m):
+        for i in range(m):
             state = self.select(self.root_state)
             simulation_result = self.simulate(state)
             self.backpropagate(state, simulation_result)
-        return self.best_child_node(self.root_state)
+        return self.best_child(self.root_state)
 
-    def select(self, state: [int]):
+    def select(self, state: ([int], bool)):
         # while fully_expanded
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
         # Only move to next tree depth if all the children is visited
         while len(possible_child_states) == len(visited_child_states) and len(possible_child_states) > 0:
             # Get the best child node from the current node
-            state = self.best_child_node(state)
+            state = self.best_uct(state)
             possible_child_states = self.state_manager.generate_child_states(state)
             visited_child_states = self.get_visited_child_states(state)
         # If there still are unvisited nodes we pick them
-        return self.pick_unvisited(state) or state
+        return self.pick_unvisited(state, possible_child_states, visited_child_states) or state
 
-    def pick_unvisited(self, state):
-        possible_child_states = self.state_manager.generate_child_states(state)
-        visited_child_states = self.get_visited_child_states(state)
-        unvisited_states = list(filter(lambda state: state not in visited_child_states, possible_child_states))
+    def pick_unvisited(self, state: ([int], bool), possible_child_states, visited_child_states):
+        unvisited_states = list(filter(lambda s: s not in visited_child_states, possible_child_states))
         if len(unvisited_states) == 0:
             return None
         chosen_state = random.choice(unvisited_states)
@@ -119,14 +108,21 @@ class MCTS:
         self.add_edge(state, chosen_state)
         return chosen_state
 
-    def best_child_node(self, state):
+    def best_child(self, state: ([int], bool)):
+        state_key = self.state_manager.state_to_string(state)
+        sorted_list = sorted(self.G.out_edges(state_key, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
+        best_state_key = sorted_list[0][1]
+        return self.get_state_from_state_key(best_state_key)
+
+
+    def best_uct(self, state: ([int], bool)):
         visited_child_states = self.get_visited_child_states(state)
         best_child = None
         best_child_q = -float('Inf') if state[1] else float('Inf')
         for i in range(0, len(visited_child_states)):
             child = visited_child_states[i]
-            edge_data = self.get_edge_data(state, child)
-            u = self.u(self.get_node_data(state).get('n'), edge_data.get('n'))
+            edge_data = self.get_edge_attributes(state, child)
+            u = self.u(self.get_node_attributes(state).get('n'), edge_data.get('n'))
             # Different functions for red and blue
             if child[1]:
                 q = edge_data.get('sap_value') + u
