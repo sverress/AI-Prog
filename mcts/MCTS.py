@@ -3,6 +3,7 @@ from mcts.StateManager import StateManager
 import matplotlib.pyplot as plt
 from typing import Type
 import random
+import math
 
 
 class MCTS:
@@ -70,48 +71,89 @@ class MCTS:
         return self.get_state_from_state_key(predecessor_key)
 
     def print_graph(self):
-        nx.draw(self.G, with_labels=True)
+        pos = nx.shell_layout(self.G)
+        blue_player_nodes = []
+        red_player_nodes = []
+        labels = {}
+        for key in self.G.nodes._nodes:
+            labels[key] = key
+            node = self.G.nodes._nodes.get(key)
+            if node.get('state')[1]:
+                blue_player_nodes.append(key)
+            else:
+                red_player_nodes.append(key)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=blue_player_nodes, node_color='b', alpha=0.5)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=red_player_nodes, node_color='r', alpha=0.5)
+        nx.draw_networkx_edges(self.G, pos)
+        nx.draw_networkx_labels(self.G, pos, labels, font_size=10)
         plt.show()
 
     def run(self):
-        for i in range(10):  # 1 iteration
+        for i in range(10):
             state = self.select(self.root_state)
             simulation_result = self.simulate(state)
             self.backpropagate(state, simulation_result)
+            self.print_graph()
         return self.best_child_node(self.root_state)
 
     def select(self, state: [int]):
         # while fully_expanded
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
-        while len(possible_child_states) == len(visited_child_states):
+        # Only move to next tree depth if all the children is visited
+        while len(possible_child_states) == len(visited_child_states) and len(possible_child_states) > 0:
             # Get the best child node from the current node
             state = self.best_child_node(state)
             possible_child_states = self.state_manager.generate_child_states(state)
             visited_child_states = self.get_visited_child_states(state)
-        return MCTS.pick_unvisited(possible_child_states, visited_child_states) or state
+        # If there still are unvisited nodes we pick them
+        return self.pick_unvisited(state) or state
 
-    def pick_unvisited(possible_states, visited_states):
-        unvisited_states = list(filter(lambda state: state not in visited_states, possible_states))
+    def pick_unvisited(self, state):
+        possible_child_states = self.state_manager.generate_child_states(state)
+        visited_child_states = self.get_visited_child_states(state)
+        unvisited_states = list(filter(lambda state: state not in visited_child_states, possible_child_states))
         if len(unvisited_states) == 0:
             return None
-        return random.choice(unvisited_states)
+        chosen_state = random.choice(unvisited_states)
+        self.add_node(chosen_state)
+        self.add_edge(state, chosen_state)
+        return chosen_state
 
     def best_child_node(self, state):
-        hello = [predecessor for predecessor in self.G.predecessors(str(state))]
-        return state
+        visited_child_states = self.get_visited_child_states(state)
+        best_child = None
+        best_child_q = -float('Inf') if state[1] else float('Inf')
+        for i in range(0, len(visited_child_states)):
+            child = visited_child_states[i]
+            edge_data = self.get_edge_data(state, child)
+            u = self.u(self.get_node_data(state).get('n'), edge_data.get('n'))
+            # Different functions for red and blue
+            if child[1]:
+                q = edge_data.get('sap_value') + u
+            else:
+                q = edge_data.get('sap_value') - u
+            # Argmax for blue
+            if state[1] and q > best_child_q:
+                best_child = child
+                best_child_q = q
+            # Argmin for red
+            if not state[1] and q < best_child_q:
+                best_child = child
+                best_child_q = q
+        return best_child
+
+    def u(self, number_of_visits_node, number_of_visits_edge):
+        return self.c * math.sqrt(abs(math.log(number_of_visits_node/(1+number_of_visits_edge))))
 
     def simulate(self, state: ([int], bool)):
         """
-        #sudocode:
-        while non_terminal(node):
-            node = rollout_policy(node)
-        return result(node)
-
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
         """
-        return 1 if random.random() > 0.1 else -1
+        while not self.state_manager.is_end_state(state):
+            state = random.choice(self.state_manager.state_to_string(state))
+        return 1 if state[1] else -1
 
     def backpropagate(self, state: ([int], bool), win_player1):
         if state == self.root_state:
