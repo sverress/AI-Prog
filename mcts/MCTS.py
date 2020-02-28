@@ -117,15 +117,12 @@ class MCTS:
 
     def simulate(self, state: ([int], bool)):
         """
-        #sudocode:
-        while non_terminal(node):
-            node = rollout_policy(node)
-        return result(node)
-
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
         """
-        return 1 if random.random() > 0.1 else -1
+        while not self.state_manager.is_end_state(state):
+            state = random.choice(self.state_manager.state_to_string(state))
+        return 1 if state[1] else -1
 
     def backpropagate(self, state: ([int], bool), win_player1):
         pass
