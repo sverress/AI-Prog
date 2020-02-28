@@ -16,10 +16,7 @@ class GameSimulator:
             self.state_manager = Lodge
 
     def run(self):
-        optimal_play = [(self.b_init, self.p)]
         for i in range(1, self.g + 1):
             state = self.state_manager.init_game_state(B_init=self.b_init, p=self.p)
             mcts = MCTS(state, self.state_manager)
-            optimal_play.append(mcts.run())
-        for s in optimal_play:
-            print(s)
+            state = mcts.run()
