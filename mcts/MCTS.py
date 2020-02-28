@@ -73,8 +73,7 @@ class MCTS:
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
         """
-        return random.randint(0, 1)
-
+        return 1 if random.random() > 0.1 else -1
 
     def backpropagate(self, state: ([int], bool), win_player1):
         if state == self.root_state:
