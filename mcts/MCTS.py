@@ -46,7 +46,7 @@ class MCTS:
         return self.G.nodes._nodes.get(state)
 
     def get_state_from_state_key(self, state_key: str):
-        return self.G.nodes[state_key]['state']
+        return self.G.nodes[state_key].get('state')
 
     def get_visited_child_states(self, state):
         return [self.get_node_from_key(child).get('state')
@@ -68,7 +68,7 @@ class MCTS:
         labels = {}
         for key in self.G.nodes._nodes:
             labels[key] = key
-            node = self.G.nodes._nodes.get(key)
+            node = self.get_node_attributes(self.get_state_from_state_key(key))
             if node.get('state')[1]:
                 blue_player_nodes.append(key)
             else:
@@ -157,7 +157,6 @@ class MCTS:
         if state == self.root_state:
             self.get_node_attributes(state)['n'] += 1
             return
-        print(state)
         parent_state = self.get_predecessor(state)
 
         self.get_node_attributes(state)['n'] += 1
@@ -167,3 +166,8 @@ class MCTS:
         self.get_edge_attributes(parent_state, state)['sap_value'] += (win_player1 - edge_sap_value) / edge_times_enc
 
         self.backpropagate(parent_state, win_player1)
+
+    def keep_only_sub_tree(self, state: ([int], bool)):
+        from networkx.algorithms.traversal.depth_first_search import dfs_tree
+
+        self.G = dfs_tree(self.G, self.state_manager.state_to_string(state))

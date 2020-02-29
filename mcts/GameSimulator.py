@@ -27,7 +27,10 @@ class GameSimulator:
             while not self.state_manager.is_end_state(state):
                 state = mcts.run(self.m)
                 mcts.root_state = state
+                mcts.print_graph()
+                mcts.keep_only_sub_tree(state)
                 print(f"chosen new state: {state}")
+                mcts.print_graph()
 
             if state[1]:
                 print('winner: player 1')
