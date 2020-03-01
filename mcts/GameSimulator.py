@@ -19,6 +19,7 @@ class GameSimulator:
             self.init_state = self.state_manager.init_game_state(B_init=self.b_init, p=self.p)
 
     def run(self):
+        number_of_wins = 0
         for i in range(1, self.g + 1):
             print(f"game {i}")
             print(f"init board:       {self.init_state}")
@@ -31,5 +32,8 @@ class GameSimulator:
                 print(f"chosen new state: {state}")
             if state[1]:
                 print('winner: player 1')
+                number_of_wins += 1
             else:
                 print('winner: player 2')
+        print('------------- SUMMARY -------------')
+        print(f'Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins/self.g)*100)}%)')
