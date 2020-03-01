@@ -38,7 +38,12 @@ class StateManager(ABC):
 class Nim(StateManager):
     @staticmethod
     def generate_child_states(state: ([int], bool)):
-        return [[i, state[0][1]] for i in range(state[0][0] - 1, state[0][0] - state[0][1], -1)]
+        if Nim.is_end_state(state):
+            return []
+        min_remaining_pieces = state[0][0] - state[0][1]
+        min_remaining_pieces = min_remaining_pieces if min_remaining_pieces > 0 else 0
+        return_statement = [([i, state[0][1]], not state[1]) for i in range(state[0][0] - 1, min_remaining_pieces - 1, -1)]
+        return return_statement
 
     @staticmethod
     def init_game_state(**kwargs):
