@@ -167,7 +167,6 @@ class MCTS:
 
         self.backpropagate(parent_state, win_player1)
 
-    def keep_only_sub_tree(self, state: ([int], bool)):
-        from networkx.algorithms.traversal.depth_first_search import dfs_tree
-
-        self.G = dfs_tree(self.G, self.state_manager.state_to_string(state))
+    def cut_tree_at_state(self, state: ([int], bool)):
+        sub_tree_nodes = nx.bfs_tree(self.G, self.state_manager.state_to_string(state))
+        self.G = self.G.subgraph(sub_tree_nodes)

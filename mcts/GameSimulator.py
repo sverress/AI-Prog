@@ -28,7 +28,7 @@ class GameSimulator:
                 state = mcts.run(self.m)
                 mcts.root_state = state
                 mcts.print_graph()
-                mcts.keep_only_sub_tree(state)
+                mcts.cut_tree_at_state(state)
                 print(f"chosen new state: {state}")
                 mcts.print_graph()
 
