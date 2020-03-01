@@ -117,7 +117,6 @@ class MCTS:
             best_state_key = sorted_list[-1][1]
         return self.get_state_from_state_key(best_state_key)
 
-
     def best_uct(self, state: ([int], bool)):
         visited_child_states = self.get_visited_child_states(state)
         best_child = None
@@ -169,4 +168,5 @@ class MCTS:
 
     def cut_tree_at_state(self, state: ([int], bool)):
         sub_tree_nodes = nx.bfs_tree(self.G, self.state_manager.state_to_string(state))
-        self.G = self.G.subgraph(sub_tree_nodes)
+        self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
+
