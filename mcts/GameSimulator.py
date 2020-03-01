@@ -6,11 +6,12 @@ class GameSimulator:
     NIM = "NIM"
     LEDGE = "LEDGE"
 
-    def __init__(self, g, p, m, game, n, k, b_init: ([int], bool), verbose=True):
+    def __init__(self, g, p, m, game, n, k, b_init: ([int], bool), verbose, max_tree_height):
         self.g = g
         self.p = p
         self.m = m
         self.verbose = verbose
+        self.max_tree_height = max_tree_height
         if game == GameSimulator.NIM:
             self.state_manager = Nim
             self.init_state = self.state_manager.init_game_state(N=n, K=k, P=p)
@@ -26,7 +27,7 @@ class GameSimulator:
                 print(f"game {i}")
                 print(f"init board:       {self.init_state}")
             state = (self.init_state[0].copy(), self.init_state[1])  # copy state
-            mcts = MCTS(state, self.state_manager)  # should we add option to keep relevant part of three?
+            mcts = MCTS(state, self.state_manager, self.max_tree_height)  # should we add option to keep relevant part of three?
             while not self.state_manager.is_end_state(state):
                 state = mcts.run(self.m)
                 mcts.root_state = state

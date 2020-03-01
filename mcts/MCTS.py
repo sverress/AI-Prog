@@ -7,12 +7,13 @@ import math
 
 
 class MCTS:
-    def __init__(self, state: ([int], bool), state_manager: Type[StateManager]):
+    def __init__(self, state: ([int], bool), state_manager: Type[StateManager], max_tree_height=5):
         self.state_manager = state_manager
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
         self.c = 1
+        self.max_tree_height = max_tree_height
 
     def add_node(self, state: ([int], bool)):
         self.G.add_node(self.state_manager.state_to_string(state), state=state, n=0)
@@ -91,11 +92,15 @@ class MCTS:
         possible_child_states = self.state_manager.generate_child_states(state)
         visited_child_states = self.get_visited_child_states(state)
         # Only move to next tree depth if all the children is visited
-        while len(possible_child_states) == len(visited_child_states) and len(possible_child_states) > 0:
+        tree_height = 1
+        while len(possible_child_states) == len(visited_child_states) and \
+                len(possible_child_states) > 0 and \
+                tree_height <= self.max_tree_height:
             # Get the best child node from the current node
             state = self.best_uct(state)
             possible_child_states = self.state_manager.generate_child_states(state)
             visited_child_states = self.get_visited_child_states(state)
+            tree_height += 1
         # If there still are unvisited nodes we pick them
         return self.pick_unvisited(state, possible_child_states, visited_child_states) or state
 
@@ -141,7 +146,7 @@ class MCTS:
         return best_child
 
     def u(self, number_of_visits_node, number_of_visits_edge):
-        return self.c * math.sqrt(math.log(number_of_visits_node)/(1+number_of_visits_edge))
+        return self.c * math.sqrt(math.log(number_of_visits_node) / (1 + number_of_visits_edge))
 
     def simulate(self, state: ([int], bool)):
         """
@@ -169,4 +174,3 @@ class MCTS:
     def cut_tree_at_state(self, state: ([int], bool)):
         sub_tree_nodes = nx.bfs_tree(self.G, self.state_manager.state_to_string(state))
         self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
-
