@@ -121,10 +121,12 @@ class MCTS:
     def best_child(self, state: ([int], bool)):
         state_key = self.state_manager.state_to_string(state)
         sorted_list = sorted(self.G.out_edges(state_key, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
+        #print(sorted_list)
         if state[1]:
             best_state_key = sorted_list[0][1]
         else:
             best_state_key = sorted_list[-1][1]
+        #print(best_state_key)
         return self.get_state_from_state_key(best_state_key)
 
     def best_uct(self, state: ([int], bool)):
@@ -136,7 +138,7 @@ class MCTS:
             edge_data = self.get_edge_attributes(state, child)
             u = self.u(self.get_node_attributes(state).get('n'), edge_data.get('n'))
             # Different functions for red and blue
-            if child[1]:
+            if state[1]: #child[1]
                 q = edge_data.get('sap_value') + u
             else:
                 q = edge_data.get('sap_value') - u
