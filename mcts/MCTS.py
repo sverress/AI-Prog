@@ -12,7 +12,7 @@ class MCTS:
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
-        self.c = 1
+        self.c = 0
 
     def add_node(self, state: ([int], bool)):
         self.G.add_node(self.state_manager.state_to_string(state), state=state, n=0)
@@ -21,7 +21,7 @@ class MCTS:
         self.G.add_edge(
             self.state_manager.state_to_string(parent_state),
             self.state_manager.state_to_string(child_state),
-            sap_value=0, n=0)
+            sap_value=0, n=0, flag=1)
 
     def get_node_attributes(self, state: ([int], bool)):
         """
@@ -42,8 +42,8 @@ class MCTS:
         child_state_key = self.state_manager.state_to_string(child_state)
         return self.G.get_edge_data(parent_state_key, child_state_key)
 
-    def get_node_from_key(self, state: str):
-        return self.G.nodes._nodes.get(state)
+    def get_node_from_key(self, state_key: str):
+        return self.G.nodes._nodes.get(state_key)
 
     def get_state_from_state_key(self, state_key: str):
         return self.G.nodes[state_key].get('state')
@@ -58,8 +58,10 @@ class MCTS:
         :param state: ([int], bool)
         :return: parent state: ([int], bool)
         """
-        predecessor_key = [pred for pred in self.G.predecessors(self.state_manager.state_to_string(state))][0]
+        state_key = self.state_manager.state_to_string(state)
+        predecessor_key = sorted(self.G.in_edges(state_key, data=True), key= lambda x: x[2]['flag'], reverse=True)[0][0]
         return self.get_state_from_state_key(predecessor_key)
+
 
     def print_graph(self):
         pos = nx.shell_layout(self.G)
@@ -104,8 +106,12 @@ class MCTS:
         if len(unvisited_states) == 0:
             return None
         chosen_state = random.choice(unvisited_states)
-        self.add_node(chosen_state)
-        self.add_edge(state, chosen_state)
+        chosen_state_key = self.state_manager.state_to_string(chosen_state)
+        if chosen_state_key in self.G.nodes:
+            self.add_edge(state, chosen_state)
+        else:
+            self.add_node(chosen_state)
+            self.add_edge(state, chosen_state)
         return chosen_state
 
     def best_child(self, state: ([int], bool)):
@@ -138,6 +144,7 @@ class MCTS:
             if not state[1] and q < best_child_q:
                 best_child = child
                 best_child_q = q
+        self.get_edge_attributes(state, best_child)['flag'] = 1
         return best_child
 
     def u(self, number_of_visits_node, number_of_visits_edge):
@@ -163,6 +170,7 @@ class MCTS:
         edge_times_enc = self.get_edge_attributes(parent_state, state)['n']
         edge_sap_value = self.get_edge_attributes(parent_state, state)['sap_value']
         self.get_edge_attributes(parent_state, state)['sap_value'] += (win_player1 - edge_sap_value) / edge_times_enc
+        self.get_edge_attributes(parent_state, state)['flag'] = 0
 
         self.backpropagate(parent_state, win_player1)
 
