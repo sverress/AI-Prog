@@ -153,7 +153,7 @@ class MCTS:
     def simulate(self, state: ([int], bool)):
         """
         :param state:
-        :return: return 1 if the simulation ends in player "true" winning, 0 otherwise
+        :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         while not self.state_manager.is_end_state(state):
             state = random.choice(self.state_manager.generate_child_states(state))
