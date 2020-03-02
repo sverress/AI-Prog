@@ -6,10 +6,12 @@ class GameSimulator:
     NIM = "NIM"
     LEDGE = "LEDGE"
 
-    def __init__(self, g, p, m, game, n, k, b_init: ([int], bool)):
+    def __init__(self, g, p, m, game, n, k, b_init: ([int], bool), verbose, max_tree_height):
         self.g = g
         self.p = p
         self.m = m
+        self.verbose = verbose
+        self.max_tree_height = max_tree_height
         if game == GameSimulator.NIM:
             self.state_manager = Nim
             self.init_state = self.state_manager.init_game_state(N=n, K=k, P=p)
@@ -21,20 +23,22 @@ class GameSimulator:
     def run(self):
         number_of_wins = 0
         for i in range(1, self.g + 1):
-            print(f"game {i}")
-            print(f"init board:       {self.init_state}")
+            if self.verbose:
+                print(f"game {i}")
+                print(f"init board:       {self.init_state}")
             state = (self.init_state[0].copy(), self.init_state[1])  # copy state
-            mcts = MCTS(state, self.state_manager)
+            mcts = MCTS(state, self.state_manager, self.max_tree_height)  # should we add option to keep relevant part of three?
             while not self.state_manager.is_end_state(state):
                 state = mcts.run(self.m)
-                mcts.print_graph()
                 mcts.root_state = state
                 mcts.cut_tree_at_state(state)
-                print(f"chosen new state: {state}")
+                if self.verbose:
+                    print(f"chosen new state: {state}")
             if state[1]:
-                print('winner: player 1')
+                if self.verbose:
+                    print('winner: player 1')
                 number_of_wins += 1
-            else:
+            elif self.verbose:
                 print('winner: player 2')
         print('------------- SUMMARY -------------')
         print(f'Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins/self.g)*100)}%)')
