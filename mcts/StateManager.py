@@ -58,7 +58,7 @@ class StateManager(ABC):
         :return: internal state representation
         """
         state_str, player_str = state.split(":")
-        return [int(cell) for cell in state_str], player_str == "1"
+        return [int(cell) for cell in state_str.split(",")], player_str == "1"
 
     @staticmethod
     def _get_external_state_rep(state: ([int], bool)) -> str:
@@ -69,8 +69,9 @@ class StateManager(ABC):
         """
         output = ""
         for cell in state[0]:
-            output += str(cell)
-        output += "1" if state[0] else "2"
+            output += f"{str(cell)},"
+        output = output[:-1]  # Removing last comma
+        output += ":1" if state[0] else ":2"
         return output
 
 

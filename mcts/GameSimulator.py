@@ -49,7 +49,7 @@ class GameSimulator:
                 print_loader(i, self.g, 1)
             mcts = MCTS(state, self.state_manager, self.max_tree_height)
             while not self.state_manager.is_end_state(state):
-                previous_state = self.state_manager.copy_state(state)
+                previous_state = state
                 state = mcts.run(self.m)
                 mcts.root_state = state
                 mcts.cut_tree_at_state(state)
