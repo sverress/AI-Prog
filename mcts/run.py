@@ -1,15 +1,15 @@
-from mcts.GameSimulator import GameSimulator
+from mcts.GameSimulator import GameSimulator, Games, StartingPlayerConfigs
 """
-FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH CHOSEN PARAMETERS
+FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 30  # number of games in a batch
-P = False  # starting-player option (True for we start, false for other start)
+P = StartingPlayerConfigs.RANDOM  # starting-player option
 M = 500  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
 max_tree_height = 10
 
 # Choosing witch game to play
-GAME = GameSimulator.LEDGE
+GAME = Games.NIM
 
 # SETTINGS FOR NIM GAME
 N = 10  # starting number of pieces/stones in each game
