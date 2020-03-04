@@ -10,7 +10,7 @@ class Games(enum.Enum):
     LEDGE = "LEDGE"
 
 
-class StartingPlayerConfigs(enum.Enum):
+class StartingPlayerOptions(enum.Enum):
     PLAYER_ONE = "PLAYER_ONE"
     PLAYER_TWO = "PLAYER_TWO"
     RANDOM = "RANDOM"
@@ -20,7 +20,7 @@ class StartingPlayerConfigs(enum.Enum):
 
 
 class GameSimulator:
-    def __init__(self, g, p: StartingPlayerConfigs, m, game: Games, n, k, b_init: ([int], bool), verbose, max_tree_height):
+    def __init__(self, g, p: StartingPlayerOptions, m, game: Games, n, k, b_init: ([int], bool), verbose, max_tree_height):
         self.g = g
         self.p = p
         self.m = m
@@ -37,9 +37,9 @@ class GameSimulator:
             )
 
     def get_initial_game_player(self):
-        if self.p == StartingPlayerConfigs.RANDOM:
+        if self.p == StartingPlayerOptions.RANDOM:
             return bool(random.getrandbits(1))  # Get random boolean value
-        return self.p == StartingPlayerConfigs.PLAYER_ONE
+        return self.p == StartingPlayerOptions.PLAYER_ONE
 
     def run(self):
         number_of_wins = 0

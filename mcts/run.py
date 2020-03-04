@@ -1,9 +1,9 @@
-from mcts.GameSimulator import GameSimulator, Games, StartingPlayerConfigs
+from mcts.GameSimulator import GameSimulator, Games, StartingPlayerOptions
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 30  # number of games in a batch
-P = StartingPlayerConfigs.RANDOM  # starting-player option
+P = StartingPlayerOptions.RANDOM  # starting-player option
 M = 500  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
 max_tree_height = 10
