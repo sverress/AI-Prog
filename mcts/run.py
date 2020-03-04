@@ -5,11 +5,11 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH CHOSEN PARAMETERS
 G = 30  # number of games in a batch
 P = False  # starting-player option (True for we start, false for other start)
 M = 500  # number of simulations (and hence rollouts) per actual game move.
-verbose = False
+verbose = True
 max_tree_height = 10
 
 # Choosing witch game to play
-GAME = GameSimulator.LEDGE
+GAME = GameSimulator.NIM
 
 # SETTINGS FOR NIM GAME
 N = 10  # starting number of pieces/stones in each game

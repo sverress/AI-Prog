@@ -16,12 +16,12 @@ class MCTS:
         self.max_tree_height = max_tree_height
 
     def add_node(self, state: ([int], bool)):
-        self.G.add_node(self.state_manager.state_to_string(state), state=state, n=0)
+        self.G.add_node(self.state_manager.state_to_key(state), state=state, n=0)
 
     def add_edge(self, parent_state, child_state):
         self.G.add_edge(
-            self.state_manager.state_to_string(parent_state),
-            self.state_manager.state_to_string(child_state),
+            self.state_manager.state_to_key(parent_state),
+            self.state_manager.state_to_key(child_state),
             sap_value=0, n=0, flag=1)
 
     def get_node_attributes(self, state: ([int], bool)):
@@ -30,7 +30,7 @@ class MCTS:
         :param state:
         :return: the node attributes: dict
         """
-        return self.G.nodes[self.state_manager.state_to_string(state)]
+        return self.G.nodes[self.state_manager.state_to_key(state)]
 
     def get_edge_attributes(self, parent_state: ([int], bool), child_state: ([int], bool)):
         """
@@ -39,8 +39,8 @@ class MCTS:
         :param child_state:
         :return: The desired edge attributes: dict
         """
-        parent_state_key = self.state_manager.state_to_string(parent_state)
-        child_state_key = self.state_manager.state_to_string(child_state)
+        parent_state_key = self.state_manager.state_to_key(parent_state)
+        child_state_key = self.state_manager.state_to_key(child_state)
         return self.G.get_edge_data(parent_state_key, child_state_key)
 
     def get_node_from_key(self, state_key: str):
@@ -51,7 +51,7 @@ class MCTS:
 
     def get_visited_child_states(self, state):
         return [self.get_node_from_key(child).get('state')
-                for child in list(self.G.successors(self.state_manager.state_to_string(state)))]
+                for child in list(self.G.successors(self.state_manager.state_to_key(state)))]
 
     def get_predecessor(self, state: ([int], bool)):
         """
@@ -59,7 +59,7 @@ class MCTS:
         :param state: ([int], bool)
         :return: parent state: ([int], bool)
         """
-        state_key = self.state_manager.state_to_string(state)
+        state_key = self.state_manager.state_to_key(state)
         predecessor_key = sorted(self.G.in_edges(state_key, data=True), key= lambda x: x[2]['flag'], reverse=True)[0][0]
         return self.get_state_from_state_key(predecessor_key)
 
@@ -110,7 +110,7 @@ class MCTS:
         if len(unvisited_states) == 0:
             return None
         chosen_state = random.choice(unvisited_states)
-        chosen_state_key = self.state_manager.state_to_string(chosen_state)
+        chosen_state_key = self.state_manager.state_to_key(chosen_state)
         if chosen_state_key in self.G.nodes:
             self.add_edge(state, chosen_state)
         else:
@@ -119,14 +119,12 @@ class MCTS:
         return chosen_state
 
     def best_child(self, state: ([int], bool)):
-        state_key = self.state_manager.state_to_string(state)
+        state_key = self.state_manager.state_to_key(state)
         sorted_list = sorted(self.G.out_edges(state_key, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
-        #print(sorted_list)
         if state[1]:
             best_state_key = sorted_list[0][1]
         else:
             best_state_key = sorted_list[-1][1]
-        #print(best_state_key)
         return self.get_state_from_state_key(best_state_key)
 
     def best_uct(self, state: ([int], bool)):
@@ -181,6 +179,6 @@ class MCTS:
         self.backpropagate(parent_state, win_player1)
 
     def cut_tree_at_state(self, state: ([int], bool)):
-        sub_tree_nodes = nx.bfs_tree(self.G, self.state_manager.state_to_string(state))
+        sub_tree_nodes = nx.bfs_tree(self.G, self.state_manager.state_to_key(state))
         self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
 

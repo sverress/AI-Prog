@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class StateManager(ABC):
     """
-    INTERFACE FOR STATE MANAGER
+    ABSTRACT CLASS FOR STATE MANAGER
     """
     @staticmethod
     @abstractmethod
@@ -31,7 +31,7 @@ class StateManager(ABC):
         """
 
     @staticmethod
-    def state_to_string(state: ([int], bool)):
+    def state_to_key(state: ([int], bool)):
         """
         Converts the state to a compact string representation
         :param state: list representing state of game
@@ -41,6 +41,15 @@ class StateManager(ABC):
         for char in state[0]:
             list_string += str(char)
         return f"{list_string}{str(state[1])}"
+
+    @staticmethod
+    @abstractmethod
+    def pretty_state_string(state: ([int], bool), **kwargs):
+        """
+        Game specific string representation of state
+        :param state: list representing state of game
+        :return: string representation
+        """
 
 
 class Nim(StateManager):
@@ -60,6 +69,16 @@ class Nim(StateManager):
     @staticmethod
     def is_end_state(state: ([int], bool)):
         return state[0][0] == 0
+
+    @staticmethod
+    def pretty_state_string(state: ([int], bool), **kwargs):
+        output = ""
+        if kwargs.get('include_starting_player', False):
+            output += f"Player {1 if state[1] else 2} is starting. "
+        output += f"Remaining pieces: {state[0][0]}"
+        if kwargs.get('include_max', False):
+            output += f" (remove max {state[0][1]} pieces per move) "
+        return output
 
 
 class Lodge(StateManager):
@@ -89,3 +108,12 @@ class Lodge(StateManager):
     @staticmethod
     def is_end_state(state: ([int], bool)):
         return state[0][0] == 2
+
+    @staticmethod
+    def pretty_state_string(state: ([int], bool), **kwargs):
+        output = ""
+        if kwargs.get('include_starting_player', False):
+            output = f" Player {1 if state[1] else 2} is starting"
+        output += str(state[0])
+        return output
+
