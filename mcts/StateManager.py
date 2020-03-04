@@ -68,7 +68,7 @@ class StateManager(ABC):
 class Nim(StateManager):
     @staticmethod
     def get_move_string(prev_state: ([int], bool), state: ([int], bool)):
-        return f"removed {prev_state[0][0] - state[0][0]} pieces."
+        return f"removed {prev_state[0][0] - state[0][0]} pieces"
 
     @staticmethod
     def generate_child_states(state: ([int], bool)):
@@ -99,12 +99,12 @@ class Lodge(StateManager):
     @staticmethod
     def get_move_string(prev_state: ([int], bool), state: ([int], bool)):
         if prev_state[0][0] - state[0][0] == 1:
-            return "picks up copper."
+            return "picks up copper"
         # Find changed indices
         indices = [i for i in range(len(state[0])) if state[0][i] != prev_state[0][i]]
         # Determine type of piece
         moved_piece = "gold" if prev_state[0][indices[1]] == 2 else "copper"
-        return f"moves {moved_piece} from cell {indices[1]} to {indices[0]}."
+        return f"moves {moved_piece} from cell {indices[1]} to {indices[0]}"
 
     @staticmethod
     def generate_child_states(state: ([int], bool)):
