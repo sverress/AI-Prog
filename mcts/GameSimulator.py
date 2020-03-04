@@ -15,9 +15,6 @@ class StartingPlayerOptions(enum.Enum):
     PLAYER_TWO = "PLAYER_TWO"
     RANDOM = "RANDOM"
 
-    def gello(self):
-        return "s"
-
 
 class GameSimulator:
     def __init__(self, g, p: StartingPlayerOptions, m, game: Games, n, k, b_init: ([int], bool), verbose, max_tree_height):
