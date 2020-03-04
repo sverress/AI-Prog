@@ -109,11 +109,11 @@ class Nim(StateManager):
         return output
 
 
-class Lodge(StateManager):
+class Ledge(StateManager):
     @staticmethod
     def get_move_string(prev_state: str, state: str) -> str:
         prev_board, prev_player = StateManager._get_internal_state_rep(prev_state)
-        current_board, current_player = Lodge._get_internal_state_rep(state)
+        current_board, current_player = StateManager._get_internal_state_rep(state)
         if prev_board[0] - current_board[0] == 1:
             return "picks up copper"
         # Find changed indices
@@ -125,7 +125,7 @@ class Lodge(StateManager):
     @staticmethod
     def generate_child_states(state: str) -> [str]:
         states = []
-        if Lodge.is_end_state(state):
+        if Ledge.is_end_state(state):
             return []
         board, player = StateManager._get_internal_state_rep(state)
         if board[0] > 0:

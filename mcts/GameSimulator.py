@@ -1,4 +1,4 @@
-from mcts.StateManager import Nim, Lodge
+from mcts.StateManager import Nim, Ledge
 from mcts.MCTS import MCTS
 from libs.helpers import print_loader
 import enum
@@ -28,7 +28,7 @@ class GameSimulator:
             self.get_init_state = lambda: self.state_manager.init_game_state(N=n, K=k, P=self.get_initial_game_player())
         if game == Games.LEDGE:
             self.b_init = b_init
-            self.state_manager = Lodge
+            self.state_manager = Ledge
             self.get_init_state = lambda: self.state_manager.init_game_state(
                 B_init=self.b_init, p=self.get_initial_game_player()
             )
