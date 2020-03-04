@@ -31,6 +31,28 @@ class StateManager(ABC):
         """
 
     @staticmethod
+    @abstractmethod
+    def pretty_state_string(state: ([int], bool), **kwargs):
+        """
+        Game specific string representation of state
+        :param state: list representing state of game
+        :return: string representation
+        """
+
+    @staticmethod
+    @abstractmethod
+    def get_move_string(prev_state: ([int], bool), state: ([int], bool)):
+        """
+        :param prev_state: list representing the previous state of game
+        :param state: list representing state of game
+        :return: string to be presented in verbose mode
+        """
+
+    @staticmethod
+    def copy_state(state: ([int], bool)):
+        return state[0].copy(), state[1]
+
+    @staticmethod
     def state_to_key(state: ([int], bool)):
         """
         Converts the state to a compact string representation
@@ -42,17 +64,12 @@ class StateManager(ABC):
             list_string += str(char)
         return f"{list_string}{str(state[1])}"
 
-    @staticmethod
-    @abstractmethod
-    def pretty_state_string(state: ([int], bool), **kwargs):
-        """
-        Game specific string representation of state
-        :param state: list representing state of game
-        :return: string representation
-        """
-
 
 class Nim(StateManager):
+    @staticmethod
+    def get_move_string(prev_state: ([int], bool), state: ([int], bool)):
+        return f"removed {prev_state[0][0] - state[0][0]} pieces."
+
     @staticmethod
     def generate_child_states(state: ([int], bool)):
         if Nim.is_end_state(state):
@@ -72,16 +89,23 @@ class Nim(StateManager):
 
     @staticmethod
     def pretty_state_string(state: ([int], bool), **kwargs):
-        output = ""
-        if kwargs.get('include_starting_player', False):
-            output += f"Player {1 if state[1] else 2} is starting. "
-        output += f"Remaining pieces: {state[0][0]}"
+        output = f"Remaining pieces: {state[0][0]}"
         if kwargs.get('include_max', False):
-            output += f" (remove max {state[0][1]} pieces per move) "
+            output += f" (Max number of removed pieces per move: {state[0][1]}) "
         return output
 
 
 class Lodge(StateManager):
+    @staticmethod
+    def get_move_string(prev_state: ([int], bool), state: ([int], bool)):
+        if prev_state[0][0] - state[0][0] == 1:
+            return "picks up copper."
+        # Find changed indices
+        indices = [i for i in range(len(state[0])) if state[0][i] != prev_state[0][i]]
+        # Determine type of piece
+        moved_piece = "gold" if prev_state[0][indices[1]] == 2 else "copper"
+        return f"moves {moved_piece} from cell {indices[1]} to {indices[0]}."
+
     @staticmethod
     def generate_child_states(state: ([int], bool)):
         states = []
@@ -111,9 +135,5 @@ class Lodge(StateManager):
 
     @staticmethod
     def pretty_state_string(state: ([int], bool), **kwargs):
-        output = ""
-        if kwargs.get('include_starting_player', False):
-            output = f" Player {1 if state[1] else 2} is starting"
-        output += str(state[0])
-        return output
+        return str(state[0])
 

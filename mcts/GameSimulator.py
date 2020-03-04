@@ -26,20 +26,18 @@ class GameSimulator:
         for i in range(1, self.g + 1):
             if self.verbose:
                 print(f"--- Starting game {i} ---")
-                state_string = self.state_manager.pretty_state_string(
-                    self.init_state, include_max=True, include_starting_player=True
-                )
-                print(f"{state_string}")
+                print(f"Start state: {self.state_manager.pretty_state_string(self.init_state, include_max=True)}")
             else:
                 print_loader(i, self.g, 1)
-            state = (self.init_state[0].copy(), self.init_state[1])  # copy state
+            state = self.state_manager.copy_state(self.init_state)
             mcts = MCTS(state, self.state_manager, self.max_tree_height)
             while not self.state_manager.is_end_state(state):
+                previous_state = self.state_manager.copy_state(state)
                 state = mcts.run(self.m)
                 mcts.root_state = state
                 mcts.cut_tree_at_state(state)
                 if self.verbose:
-                    print(f"Player { 2 if state[1] else 1} moves to state:"
+                    print(f"Player { 2 if state[1] else 1} {self.state_manager.get_move_string(previous_state, state)}"
                           f" {self.state_manager.pretty_state_string(state)}")
             if state[1]:
                 number_of_wins += 1

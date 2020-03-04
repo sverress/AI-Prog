@@ -9,7 +9,7 @@ verbose = True
 max_tree_height = 10
 
 # Choosing witch game to play
-GAME = GameSimulator.NIM
+GAME = GameSimulator.LEDGE
 
 # SETTINGS FOR NIM GAME
 N = 10  # starting number of pieces/stones in each game
