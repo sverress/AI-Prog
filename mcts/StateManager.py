@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class StateManager(ABC):
+    """
+    INTERFACE FOR STATE MANAGER
+    """
     @staticmethod
     @abstractmethod
     def generate_child_states(state: ([int], bool)):
@@ -29,6 +32,11 @@ class StateManager(ABC):
 
     @staticmethod
     def state_to_string(state: ([int], bool)):
+        """
+        Converts the state to a compact string representation
+        :param state: list representing state of game
+        :return: compact string representation
+        """
         list_string = ""
         for char in state[0]:
             list_string += str(char)
