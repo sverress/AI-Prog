@@ -1,12 +1,5 @@
-import sys
 import math
 import numpy as np
-
-
-def print_loader(progress, total, interval):
-    bar = "=" * int(progress / interval) + ">" + " " * (int(total / interval) - int(progress / interval))
-    sys.stdout.write(f"\r[{bar}] {int(progress / total * 100)}%")
-    sys.stdout.flush()
 
 
 def convert_string_list_to_tuple_list(string_list):

@@ -1,4 +1,4 @@
-from peg_solitaire.board import SolitaireBoard
+from peg_solitaire.solitaireboard import SolitaireBoard
 from peg_solitaire.helpers import *
 import numpy as np
 import random

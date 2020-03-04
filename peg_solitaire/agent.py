@@ -1,8 +1,9 @@
-from peg_solitaire.board import Triangle, Diamond
+from peg_solitaire.solitaireboard import Triangle, Diamond
 from peg_solitaire.actor import Actor
 from peg_solitaire.critic import Critic
 from peg_solitaire.action import Action
 from peg_solitaire.helpers import *
+from libs.helpers import print_loader
 import copy
 from matplotlib import pyplot as plt
 import json

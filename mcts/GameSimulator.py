@@ -1,6 +1,6 @@
 from mcts.StateManager import Nim, Lodge
 from mcts.MCTS import MCTS
-import sys
+from libs.helpers import print_loader
 
 
 class GameSimulator:
@@ -21,11 +21,6 @@ class GameSimulator:
             self.state_manager = Lodge
             self.init_state = self.state_manager.init_game_state(B_init=self.b_init, p=self.p)
 
-    def print_loader(self, progress, total, interval):
-        bar = "=" * int(progress / interval) + ">" + " " * (int(total / interval) - int(progress / interval))
-        sys.stdout.write(f"\r[{bar}] {int(progress / total * 100)}%")
-        sys.stdout.flush()
-
     def run(self):
         number_of_wins = 0
         for i in range(1, self.g + 1):
@@ -33,7 +28,7 @@ class GameSimulator:
                 print(f"game {i}")
                 print(f"init board:       {self.init_state}")
             else:
-                self.print_loader(i, self.g, 1)
+                print_loader(i, self.g, 1)
             state = (self.init_state[0].copy(), self.init_state[1])  # copy state
             mcts = MCTS(state, self.state_manager, self.max_tree_height)
             while not self.state_manager.is_end_state(state):

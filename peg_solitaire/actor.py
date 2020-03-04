@@ -1,5 +1,5 @@
 import random
-from .board import SolitaireBoard
+from peg_solitaire.solitaireboard import SolitaireBoard
 from peg_solitaire.action import Action
 
 
