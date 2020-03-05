@@ -54,12 +54,13 @@ class GameSimulator:
                 mcts.root_state = state
                 mcts.cut_tree_at_state(state)
                 if self.verbose:
-                    print(f"Player { 2 if state[1] else 1} {self.state_manager.get_move_string(previous_state, state)}"
+                    print(f"Player { 1 if self.state_manager.is_player_1(previous_state) else 2} "
+                          f"{self.state_manager.get_move_string(previous_state, state)}"
                           f" : {self.state_manager.pretty_state_string(state)}")
-            if state[1]:
+            if self.state_manager.is_player_1(state):
                 number_of_wins += 1
             if self.verbose:
-                print(f"Player { 1 if state[1] else 2} wins the game")
+                print(f"Player { 1 if self.state_manager.is_player_1(state) else 2} wins the game")
 
         print('\n------------- SUMMARY -------------')
         print(f'Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins/self.g)*100)}%)')

@@ -71,7 +71,7 @@ class StateManager(ABC):
         for cell in state[0]:
             output += f"{str(cell)},"
         output = output[:-1]  # Removing last comma
-        output += ":1" if state[0] else ":2"
+        output += ":1" if state[1] else ":2"
         return output
 
     @staticmethod
