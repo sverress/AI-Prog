@@ -15,42 +15,7 @@ class MCTS:
         self.c = 1
         self.max_tree_height = max_tree_height
 
-    def add_node(self, state: str):
-        self.G.add_node(state, n=0)
-
-    def add_edge(self, parent_state, child_state):
-        self.G.add_edge(parent_state, child_state, sap_value=0, n=0, flag=1)
-
-    def get_visited_child_states(self, state):
-        return list(self.G.successors(state))
-
-    def get_parent(self, state: str) -> str:
-        parent_list = list(self.G.predecessors(state))
-        if len(parent_list) == 1:
-            return parent_list[0]
-        else:
-            flagged_parent_list = [parent for parent in parent_list if self.G.get_edge_data(parent, state)['flag'] == 1]
-            if len(flagged_parent_list) == 1:
-                return flagged_parent_list[0]
-            else:
-                raise ValueError('More than one parent of input state with positive flag')
-
-    def print_graph(self):
-        pos = nx.shell_layout(self.G)
-        blue_player_nodes = []
-        red_player_nodes = []
-        labels = {}
-        for state in self.G.nodes:
-            labels[state] = self.state_manager.graph_label(state)
-            if self.state_manager.is_player_1(state):
-                blue_player_nodes.append(state)
-            else:
-                red_player_nodes.append(state)
-        nx.draw_networkx_nodes(self.G, pos, nodelist=blue_player_nodes, node_color='b', alpha=0.5)
-        nx.draw_networkx_nodes(self.G, pos, nodelist=red_player_nodes, node_color='r', alpha=0.5)
-        nx.draw_networkx_edges(self.G, pos)
-        nx.draw_networkx_labels(self.G, pos, labels, font_size=10)
-        plt.show()
+    # MCTS METHODS
 
     def run(self, m):
         for i in range(m):
@@ -149,4 +114,43 @@ class MCTS:
     def cut_tree_at_state(self, state: str):
         sub_tree_nodes = nx.bfs_tree(self.G, state)
         self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
+
+    # GRAPH METHODS
+
+    def add_node(self, state: str):
+        self.G.add_node(state, n=0)
+
+    def add_edge(self, parent_state, child_state):
+        self.G.add_edge(parent_state, child_state, sap_value=0, n=0, flag=1)
+
+    def get_visited_child_states(self, state):
+        return list(self.G.successors(state))
+
+    def get_parent(self, state: str) -> str:
+        parent_list = list(self.G.predecessors(state))
+        if len(parent_list) == 1:
+            return parent_list[0]
+        else:
+            flagged_parent_list = [parent for parent in parent_list if self.G.get_edge_data(parent, state)['flag'] == 1]
+            if len(flagged_parent_list) == 1:
+                return flagged_parent_list[0]
+            else:
+                raise ValueError('More than one parent of input state with positive flag')
+
+    def print_graph(self):
+        pos = nx.shell_layout(self.G)
+        blue_player_nodes = []
+        red_player_nodes = []
+        labels = {}
+        for state in self.G.nodes:
+            labels[state] = self.state_manager.graph_label(state)
+            if self.state_manager.is_player_1(state):
+                blue_player_nodes.append(state)
+            else:
+                red_player_nodes.append(state)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=blue_player_nodes, node_color='b', alpha=0.5)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=red_player_nodes, node_color='r', alpha=0.5)
+        nx.draw_networkx_edges(self.G, pos)
+        nx.draw_networkx_labels(self.G, pos, labels, font_size=10)
+        plt.show()
 
