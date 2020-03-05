@@ -74,6 +74,14 @@ class StateManager(ABC):
         output += ":1" if state[0] else ":2"
         return output
 
+    @staticmethod
+    def is_player_1(state: str) -> bool:
+        return state[-1] == '1'
+
+    @staticmethod
+    def graph_label(state: str) -> str:
+        return str(StateManager._get_internal_state_rep(state)[0])
+
 
 class Nim(StateManager):
     @staticmethod
