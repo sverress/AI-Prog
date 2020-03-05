@@ -24,11 +24,7 @@ class MCTS:
     def get_visited_child_states(self, state):
         return list(self.G.successors(state))
 
-    def get_parent(self, state: str):
-        """
-        :param state: ([int], bool)
-        :return: parent state: ([int], bool)
-        """
+    def get_parent(self, state: str) -> str:
         parent_list = list(self.G.predecessors(state))
         if len(parent_list) == 1:
             return parent_list[0]
@@ -133,7 +129,7 @@ class MCTS:
         """
         while not self.state_manager.is_end_state(state):
             state = random.choice(self.state_manager.generate_child_states(state))
-        return 1 if state[1] else -1
+        return 1 if self.state_manager.is_player_1(state) else -1
 
     def backpropagate(self, state: str, win_player1: int):
         if state == self.root_state:

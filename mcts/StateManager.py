@@ -143,11 +143,11 @@ class Ledge(StateManager):
             if board[j] == 0:
                 continue
             i = j - 1
-            while state[0][i] == 0 and i >= 0:
+            while board[i] == 0 and i >= 0:
                 copy_list_state = board.copy()
                 copy_list_state[i] = copy_list_state[j]
                 copy_list_state[j] = 0
-                states.append((copy_list_state, not state[1]))
+                states.append((copy_list_state, not player))
                 i -= 1
         return [StateManager._get_external_state_rep(in_state)for in_state in states]
 
