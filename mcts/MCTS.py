@@ -16,9 +16,19 @@ class MCTS:
         self.max_tree_height = max_tree_height
 
     def add_node(self, state: ([int], bool)):
+        """
+        Adds node to the DiGraph G with initial number of encounters to zero
+        :param state: (list representing board state, player to move): ([int], bool)
+        """
         self.G.add_node(self.state_manager.state_to_key(state), state=state, n=0)
 
     def add_edge(self, parent_state, child_state):
+        """
+        Adds edge to the DiGraph G with initial sap_value = 0, number of encounters = 0 and flag meaning this was the
+            edge used in the latest tree traversal
+        :param parent_state: (list representing board state, player to move): ([int], bool)
+        :param child_state: (list representing board state, player to move): ([int], bool)
+        """
         self.G.add_edge(
             self.state_manager.state_to_key(parent_state),
             self.state_manager.state_to_key(child_state),
@@ -26,17 +36,17 @@ class MCTS:
 
     def get_node_attributes(self, state: ([int], bool)):
         """
-        returns the desired state as dict. Ex; {'state': ([0, 1, 1, 3], 0), 'n': 0}
-        :param state:
+        Fetches the desired state attributes as dict. Ex; {'state': ([0, 1, 1, 3], 0), 'n': 0}
+        :param state: (list representing board state, player to move): ([int], bool)
         :return: the node attributes: dict
         """
         return self.G.nodes[self.state_manager.state_to_key(state)]
 
     def get_edge_attributes(self, parent_state: ([int], bool), child_state: ([int], bool)):
         """
-        Returns ex; {'sap_value': 0, 'n': 0}
-        :param parent_state:
-        :param child_state:
+        Fetches the desired edge attributes as dict. Ex; {'sap_value': 0, 'n': 0, 'flag' : 0}
+        :param parent_state: (list representing board state, player to move): ([int], bool)
+        :param child_state: (list representing board state, player to move): ([int], bool)
         :return: The desired edge attributes: dict
         """
         parent_state_key = self.state_manager.state_to_key(parent_state)
@@ -44,26 +54,44 @@ class MCTS:
         return self.G.get_edge_data(parent_state_key, child_state_key)
 
     def get_node_from_key(self, state_key: str):
+        """
+
+        :param state_key: str
+        :return: the node attributes: dict
+        """
         return self.G.nodes._nodes.get(state_key)
 
     def get_state_from_state_key(self, state_key: str):
+        """
+
+        :param state_key: str
+        :return: the node attributes: dict
+        """
         return self.G.nodes[state_key].get('state')
 
-    def get_visited_child_states(self, state):
+    def get_visited_child_states(self, state: ([int], bool)):
+        """
+
+        :param state: (list representing board state, player to move): ([int], bool)
+        :return: list of successor nodes from state that has already been added to the DiGraph G: [([int], bool)]
+        """
         return [self.get_node_from_key(child).get('state')
                 for child in list(self.G.successors(self.state_manager.state_to_key(state)))]
 
     def get_predecessor(self, state: ([int], bool)):
         """
-
-        :param state: ([int], bool)
-        :return: parent state: ([int], bool)
+        Finds all predeccessors of the state, and returns the one that was encountered during the latest tree traversal
+        :param state: (list representing board state, player to move): ([int], bool)
+        :return: parent state: (list representing board state, player to move): ([int], bool)
         """
         state_key = self.state_manager.state_to_key(state)
         predecessor_key = sorted(self.G.in_edges(state_key, data=True), key= lambda x: x[2]['flag'], reverse=True)[0][0]
         return self.get_state_from_state_key(predecessor_key)
 
     def print_graph(self):
+        """
+        Print the DiGraph object representing the current tree
+        """
         pos = nx.shell_layout(self.G)
         blue_player_nodes = []
         red_player_nodes = []
@@ -82,6 +110,12 @@ class MCTS:
         plt.show()
 
     def run(self, m):
+        """
+        Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times. Then finds the greedy
+            best move from root state of the current tree
+        :param m: int
+        :return: the greedy best move from root node of the current tree
+        """
         for i in range(m):
             state = self.select(self.root_state)
             simulation_result = self.simulate(state)
