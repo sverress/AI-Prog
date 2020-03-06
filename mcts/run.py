@@ -2,7 +2,7 @@ from mcts.GameSimulator import GameSimulator, Games, StartingPlayerOptions
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 4  # number of games in a batch
+G = 30  # number of games in a batch
 P = StartingPlayerOptions.PLAYER_TWO  # starting-player option
 M = 500  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
