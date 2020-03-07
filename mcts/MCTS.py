@@ -45,10 +45,10 @@ class MCTS:
             visited_child_states = self.get_visited_child_states(state)
             tree_height += 1
         # If there still are unvisited nodes we pick them
-        return self.pick_unvisited(state, possible_child_states, visited_child_states) or state
-
-    def pick_unvisited(self, state: str, possible_child_states: [str], visited_child_states: [str]) -> str:
         unvisited_states = list(filter(lambda s: s not in visited_child_states, possible_child_states))
+        return self.node_expansion(state, unvisited_states) or state
+
+    def node_expansion(self, state: str, unvisited_states: [str]) -> str:
         if len(unvisited_states) == 0:
             return ""
         chosen_state = random.choice(unvisited_states)
