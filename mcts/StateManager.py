@@ -126,7 +126,7 @@ class Ledge(StateManager):
         if prev_board[0] - current_board[0] == 1:
             return "picks up copper"
         # Find changed indices
-        from_cell_index, to_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
+        to_cell_index, from_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
         # Determine type of piece
         moved_piece_string = "gold" if prev_board[from_cell_index] == 2 else "copper"
         return f"moves {moved_piece_string} from cell {from_cell_index} to {to_cell_index}"
