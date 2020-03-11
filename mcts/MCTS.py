@@ -7,12 +7,12 @@ import math
 
 
 class MCTS:
-    def __init__(self, state: ([int], bool), state_manager: Type[StateManager], max_tree_height=5):
+    def __init__(self, state: ([int], bool), state_manager: Type[StateManager], max_tree_height=5, c=1):
         self.state_manager = state_manager
         self.G = nx.DiGraph()
         self.root_state = state
         self.add_node(state)
-        self.c = 1
+        self.c = c
         self.max_tree_height = max_tree_height
 
     # MCTS METHODS
@@ -45,10 +45,10 @@ class MCTS:
             visited_child_states = self.get_visited_child_states(state)
             tree_height += 1
         # If there still are unvisited nodes we pick them
-        unvisited_states = list(filter(lambda s: s not in visited_child_states, possible_child_states))
-        return self.node_expansion(state, unvisited_states) or state
+        return self.node_expansion(state, visited_child_states, possible_child_states) or state
 
-    def node_expansion(self, state: str, unvisited_states: [str]) -> str:
+    def node_expansion(self, state: str, visited_child_states: [str], possible_child_states: [str]) -> str:
+        unvisited_states = list(filter(lambda s: s not in visited_child_states, possible_child_states))
         if len(unvisited_states) == 0:
             return ""
         chosen_state = random.choice(unvisited_states)
