@@ -7,7 +7,7 @@ import math
 
 
 class MCTS:
-    def __init__(self, state: ([int], bool), state_manager: Type[StateManager], max_tree_height=5, c=1):
+    def __init__(self, state: str, state_manager: Type[StateManager], max_tree_height=5, c=1):
         self.state_manager = state_manager
         self.G = nx.DiGraph()
         self.root_state = state
@@ -100,7 +100,7 @@ class MCTS:
         """
         while not self.state_manager.is_end_state(state):
             state = random.choice(self.state_manager.generate_child_states(state))
-        return 1 if self.state_manager.is_player_1(state) else -1
+        return -1 if self.state_manager.is_player_1(state) else 1
 
     def backpropagate(self, state: str, win_player1: int):
         if state == self.root_state:

@@ -91,7 +91,7 @@ class Nim(StateManager):
     @staticmethod
     def is_end_state(state: str) -> bool:
         [remaining_pieces, max_to_remove], player = StateManager._get_internal_state_rep(state)
-        return remaining_pieces == 0
+        return remaining_pieces == 0 #remaining_pieces <= max_to_remove
 
     @staticmethod
     def get_move_string(prev_state: str, state: str) -> str:
@@ -125,6 +125,8 @@ class Ledge(StateManager):
         current_board, current_player = StateManager._get_internal_state_rep(state)
         if prev_board[0] - current_board[0] == 1:
             return "picks up copper"
+        if prev_board[0] - current_board[0] == 2:
+            return "picks up gold"
         # Find changed indices
         to_cell_index, from_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
         # Determine type of piece
@@ -158,7 +160,7 @@ class Ledge(StateManager):
     @staticmethod
     def is_end_state(state: str) -> bool:
         board, player = StateManager._get_internal_state_rep(state)
-        return board[0] == 2
+        return not 2 in board
 
     @staticmethod
     def pretty_state_string(state: str, **kwargs) -> str:
