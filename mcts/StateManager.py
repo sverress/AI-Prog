@@ -91,7 +91,7 @@ class Nim(StateManager):
     @staticmethod
     def is_end_state(state: str) -> bool:
         [remaining_pieces, max_to_remove], player = StateManager._get_internal_state_rep(state)
-        return remaining_pieces == 0 #remaining_pieces <= max_to_remove
+        return remaining_pieces == 0
 
     @staticmethod
     def get_move_string(prev_state: str, state: str) -> str:
