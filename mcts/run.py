@@ -17,7 +17,7 @@ N = 70  # starting number of pieces/stones in each game
 K = 8  # maximum number of pieces that either player can take on their turn.
 
 # SETTINGS FOR LEDGE
-B_INIT = [0,1,0,2,0,1,1]  # the initial board configuration.
+B_INIT = [0, 1, 0, 2, 1, 1]  # the initial board configuration.
 
 game = GameSimulator(G, P, M, GAME, N, K, B_INIT, verbose, max_tree_height, c=c)
 game.run()

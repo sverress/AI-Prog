@@ -82,7 +82,6 @@ class GameSimulator:
                 print(
                     f"Player {2 if self.state_manager.is_player_1(state) else 1} wins the game"
                 )
-
         print("\n------------- SUMMARY -------------")
         print(
             f"Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins/self.g)*100)}%)"

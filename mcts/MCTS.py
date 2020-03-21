@@ -25,82 +25,68 @@ class MCTS:
         :return: the greedy best move from root node of the current tree
         """
         for i in range(m):
-            state = self.select(self.root_state)
-            simulation_result = self.simulate(state)
-            self.backpropagate(state, simulation_result)
-        return self.best_child(self.root_state)
+            self.traverse_tree(self.root_state, depth=0)
+        return self.greedy_best_child(self.root_state)
 
-    def select(self, state: str) -> str:
-        # while fully_expanded
-        possible_child_states = self.state_manager.generate_child_states(state)
-        visited_child_states = self.get_visited_child_states(state)
-        # Only move to next tree depth if all the children is visited
-        tree_height = 1
-        while len(possible_child_states) == len(visited_child_states) and \
-                len(possible_child_states) > 0 and \
-                tree_height <= self.max_tree_height:
-            # Get the best child node from the current node
-            state = self.best_uct(state)
-            possible_child_states = self.state_manager.generate_child_states(state)
-            visited_child_states = self.get_visited_child_states(state)
-            tree_height += 1
-        # If there still are unvisited nodes we pick them
-        return self.node_expansion(state, visited_child_states, possible_child_states) or state
+    def traverse_tree(self, state: str, depth) -> str:
+        if depth == self.max_tree_height or self.state_manager.is_end_state(state):
+            self.simulate(state)
+            return
+        out_edgs = list(self.G.out_edges(state, data=True))
+        if not out_edgs:
+            self.expand(state)
+            return
+        unvisited_out_edgs = list(filter(lambda x: x[2]['n'] == 0, out_edgs))
+        if unvisited_out_edgs:
+            child = random.choice(unvisited_out_edgs)[1]
+            self.G.get_edge_data(state, child)['flag'] = 1
+            self.simulate(child)
+            return
+        child = self.best_child_uct(state, out_edgs)
+        self.traverse_tree(child, depth + 1)
 
-    def node_expansion(self, state: str, visited_child_states: [str], possible_child_states: [str]) -> str:
-        unvisited_states = list(filter(lambda s: s not in visited_child_states, possible_child_states))
-        if len(unvisited_states) == 0:
-            return ""
-        chosen_state = random.choice(unvisited_states)
-        if chosen_state in self.G.nodes:
-            self.add_edge(state, chosen_state)
-        else:
-            self.add_node(chosen_state)
-            self.add_edge(state, chosen_state)
-        return chosen_state
+    def expand(self, state):
+        children = self.state_manager.generate_child_states(state)
+        if not children:
+            print('Empty list error')
+        for child in children:
+            if child in self.G.nodes:
+                self.add_edge(state, child)
+            else:
+                self.add_node(child)
+                self.add_edge(state, child)
+        chosen_child = random.choice(children)
+        self.G.get_edge_data(state, chosen_child)['flag'] = 1
+        self.simulate(chosen_child)
 
-    def best_child(self, state: str) -> str:
+    def greedy_best_child(self, state: str) -> str:
         sorted_list = sorted(self.G.out_edges(state, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
         if self.state_manager.is_player_1(state):
             return sorted_list[0][1]
         else:
             return sorted_list[-1][1]
 
-    def best_uct(self, state: str) -> str:
-        visited_child_states = self.get_visited_child_states(state)
-        best_child = None
-        best_child_q = -float('Inf') if self.state_manager.is_player_1(state) else float('Inf')
-        for i in range(0, len(visited_child_states)):
-            child = visited_child_states[i]
-            edge_data = self.G.get_edge_data(state, child)
-            u = self.u(self.G.nodes[state]['n'], edge_data['n'])
-            # Different functions for red and blue
-            if self.state_manager.is_player_1(state):
-                q = edge_data.get('sap_value') + u
-            else:
-                q = edge_data.get('sap_value') - u
-            # Argmax for blue
-            if self.state_manager.is_player_1(state) and q > best_child_q:
-                best_child = child
-                best_child_q = q
-            # Argmin for red
-            if not self.state_manager.is_player_1(state) and q < best_child_q:
-                best_child = child
-                best_child_q = q
-        self.G.get_edge_data(state, best_child)['flag'] = 1
-        return best_child
-
-    def u(self, number_of_visits_node, number_of_visits_edge):
-        return self.c * math.sqrt(math.log(number_of_visits_node) / (1 + number_of_visits_edge))
+    def best_child_uct(self, state: str, out_edgs) -> str:
+        node_n = self.G.nodes[state]['n']
+        if self.state_manager.is_player_1(state):
+            best_edge = max(out_edgs,
+                                 key=lambda x: x[2]['sap_value'] + self.c * math.sqrt(math.log(node_n) / (1+x[2]['n'])))
+        else:
+            best_edge = min(out_edgs,
+                            key=lambda x: x[2]['sap_value'] - self.c * math.sqrt(math.log(node_n) / (1 + x[2]['n'])))
+        best_edge[2]['flag'] = 1
+        return best_edge[1]
 
     def simulate(self, state: str) -> int:
         """
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
+        start_state = state
         while not self.state_manager.is_end_state(state):
-            state = random.choice(self.state_manager.generate_child_states(state))
-        return -1 if self.state_manager.is_player_1(state) else 1
+                state = random.choice(self.state_manager.generate_child_states(state))
+        win_player1 = -1 if self.state_manager.is_player_1(state) else 1
+        self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):
         if state == self.root_state:
@@ -137,9 +123,9 @@ class MCTS:
         :param parent_state: (list representing board state, player to move): ([int], bool)
         :param child_state: (list representing board state, player to move): ([int], bool)
         """
-        self.G.add_edge(parent_state, child_state, sap_value=0, n=0, flag=1)
+        self.G.add_edge(parent_state, child_state, sap_value=0, n=0, flag=0)
 
-    def get_visited_child_states(self, state):
+    def get_child_states(self, state):
         return list(self.G.successors(state))
 
     def get_parent(self, state: str) -> str:
