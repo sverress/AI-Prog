@@ -81,7 +81,8 @@ class MCTS:
         best_edge[2]['flag'] = 1
         return best_edge[1]
 
-    def simulate1(self, state: str) -> int: # Is not compatible with the if not out_edgs check in traverse_tree
+    def simulate1(self, state: str) -> int: # Is not compatible with the if not out_edgs check in traverse_tree.
+                                            # Nor compatible with state manager when check if end state
         """
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
