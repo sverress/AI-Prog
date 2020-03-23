@@ -101,10 +101,6 @@ class StateManager():
         :param state: string representing state of game
         :return: a boolean stating if state is end state
         """
-        if len(self.P1graph.nodes) != [item for sublist in self.board for item in sublist].count(1):
-            print('erorororoor')
-        if len(self.P2graph.nodes) != [item for sublist in self.board for item in sublist].count(2):
-            print('erorororoor')
 
         # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
         if self.state[-1] == '1':

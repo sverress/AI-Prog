@@ -3,11 +3,11 @@ from hex.GameSimulator import GameSimulator, StartingPlayerOptions
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 10  # number of games in a batch
+G = 5  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 100  # number of simulations (and hence rollouts) per actual game move.
+M = 5000  # number of simulations (and hence rollouts) per actual game move.
 verbose = False
-max_tree_height = 5
+max_tree_height = 16
 c = 1
 
 # SETTINGS FOR HEX
