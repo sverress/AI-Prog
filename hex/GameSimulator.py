@@ -27,7 +27,7 @@ class GameSimulator:
         if self.verbose:
             print(f"--- Starting game {i} ---")
             print(
-                f"Start state: {self.state_manager.pretty_state_string(self.current_state, include_max=True)}"
+                f"Start state: {self.state_manager.pretty_state_string()}"
             )
         else:
             print_loader(i, self.g, 1)

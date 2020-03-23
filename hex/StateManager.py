@@ -18,18 +18,6 @@ class StateManager():
         self.P1graph = nx.Graph()
         self.P2graph = nx.Graph()
 
-    def __str__(self):
-        """
-        Creates a simple toString for a board object
-        :return: string representation of the board
-        """
-        output = ""
-        for row in self.board:
-            for col in row:
-                output += f"{node} "
-            output += "\n"
-        return output
-
     def build_board(self, state):
         board = []
         for i in range(self.k):
@@ -123,20 +111,15 @@ class StateManager():
 
 
     def pretty_state_string(self) -> str:
-        return str(self.board)
+        return '\n'+'\n'.join([''.join(['{:2}'.format(item) for item in row]) for row in self.board])
 
-    def get_move_string(prev_state: str, state: str) -> str:
-        prev_board, prev_player = StateManager._get_internal_state_rep(prev_state)
-        current_board, current_player = StateManager._get_internal_state_rep(state)
-        if prev_board[0] - current_board[0] == 1:
-            return "picks up copper"
-        if prev_board[0] - current_board[0] == 2:
-            return "picks up gold"
-        # Find changed indices
-        to_cell_index, from_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
-        # Determine type of piece
-        moved_piece_string = "gold" if prev_board[from_cell_index] == 2 else "copper"
-        return f"moves {moved_piece_string} from cell {from_cell_index} to {to_cell_index}"
+    def get_move_string(self, prev_state: str, state: str) -> str:
+        for i in range(len(state[:-2])):
+            row = math.floor(i/self.k)
+            if state[i] != prev_state[i]:
+                col = i%self.k
+                cell = (row,col)
+        return f"place at cell {cell}"
 
     def _get_internal_state_rep(self, state: str) -> ([[int]], bool):
         """
