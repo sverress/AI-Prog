@@ -1,13 +1,12 @@
 import networkx as nx
-from mcts.StateManager import StateManager
+from hex.StateManager import StateManager
 import matplotlib.pyplot as plt
-from typing import Type
 import random
 import math
 
 
 class MCTS:
-    def __init__(self, state: str, state_manager: Type[StateManager], max_tree_height=5, c=1):
+    def __init__(self, state: str, state_manager: StateManager, max_tree_height=5, c=1):
         self.state_manager = state_manager
         self.G = nx.DiGraph()
         self.root_state = state
