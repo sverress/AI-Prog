@@ -28,7 +28,7 @@ class GameSimulator:
         b_init: ([int], bool),
         verbose,
         max_tree_height,
-        c=1
+        c=1,
     ):
         self.g = g
         self.p = p

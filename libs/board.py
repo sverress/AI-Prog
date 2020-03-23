@@ -5,6 +5,7 @@ class Board(ABC):
     """
     Abstract Board class for a general board
     """
+
     def __init__(self, board_size: int):
         """
         Initializes the board
@@ -45,7 +46,7 @@ class Board(ABC):
         """
         temp = [item for sublist in self.board for item in sublist]
         temp = (str(w) for w in temp)
-        return ''.join(temp)
+        return "".join(temp)
 
     def filter_positions(self, position: tuple):
         """
