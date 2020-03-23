@@ -17,7 +17,7 @@ class MCTS:
 
     # MCTS METHODS
 
-    def run(self, m):
+    def run(self, m: int):
         """
         Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times. Then finds the greedy
             best move from root state of the current tree
@@ -25,11 +25,12 @@ class MCTS:
         :return: the greedy best move from root node of the current tree
         """
         for i in range(m):
+            self.state_manager.reset_state_manager(self.root_state)
             self.traverse_tree(self.root_state, depth=0)
         return self.greedy_best_child(self.root_state)
 
     def traverse_tree(self, state: str, depth) -> str:
-        if depth == self.max_tree_height or self.state_manager.is_end_state(state):
+        if depth == self.max_tree_height or self.is_end_state(state):
             self.simulate(state)
             return
         out_edgs = list(self.G.out_edges(state, data=True))
@@ -39,10 +40,12 @@ class MCTS:
         unvisited_out_edgs = list(filter(lambda x: x[2]['n'] == 0, out_edgs))
         if unvisited_out_edgs:
             child = random.choice(unvisited_out_edgs)[1]
+            self.state_manager.update_state_manager(child)
             self.G.get_edge_data(state, child)['flag'] = 1
             self.simulate(child)
             return
         child = self.best_child_uct(state, out_edgs)
+        self.state_manager.update_state_manager(child)
         self.traverse_tree(child, depth + 1)
 
     def expand(self, state):
@@ -56,19 +59,20 @@ class MCTS:
                 self.add_node(child)
                 self.add_edge(state, child)
         chosen_child = random.choice(children)
+        self.state_manager.update_state_manager(chosen_child)
         self.G.get_edge_data(state, chosen_child)['flag'] = 1
         self.simulate(chosen_child)
 
     def greedy_best_child(self, state: str) -> str:
         sorted_list = sorted(self.G.out_edges(state, data=True), key=lambda x: x[2]['sap_value'], reverse=True)
-        if self.state_manager.is_player_1(state):
+        if self.state_manager.is_P1(state):
             return sorted_list[0][1]
         else:
             return sorted_list[-1][1]
 
     def best_child_uct(self, state: str, out_edgs) -> str:
         node_n = self.G.nodes[state]['n']
-        if self.state_manager.is_player_1(state):
+        if self.state_manager.is_P1(state):
             best_edge = max(out_edgs,
                                  key=lambda x: x[2]['sap_value'] + self.c * math.sqrt(math.log(node_n) / (1+x[2]['n'])))
         else:
@@ -77,6 +81,27 @@ class MCTS:
         best_edge[2]['flag'] = 1
         return best_edge[1]
 
+    def simulate1(self, state: str) -> int: # Is not compatible with the if not out_edgs check in traverse_tree
+        """
+        :param state:
+        :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
+        """
+        start_state = state
+        while not self.state_manager.is_end_state(state):
+            out_edgs = list(self.G.out_edges(state))
+            if not out_edgs:
+                children = self.state_manager.generate_child_states(state)
+                for child in children:
+                    if child in self.G.nodes:
+                        self.add_edge(state, child)
+                    else:
+                        self.add_node(child)
+                        self.add_edge(state, child)
+                out_edgs = list(self.G.out_edges(state))
+            state = random.choice(out_edgs)[1]
+        win_player1 = -1 if self.state_manager.is_P1(state) else 1
+        self.backpropagate(start_state, win_player1)
+
     def simulate(self, state: str) -> int:
         """
         :param state:
@@ -84,8 +109,9 @@ class MCTS:
         """
         start_state = state
         while not self.state_manager.is_end_state(state):
-                state = random.choice(self.state_manager.generate_child_states(state))
-        win_player1 = -1 if self.state_manager.is_player_1(state) else 1
+            state = random.choice(self.state_manager.generate_child_states(state))
+            self.state_manager.update_state_manager(state)
+        win_player1 = -1 if self.state_manager.is_P1(state) else 1
         self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):
@@ -103,10 +129,6 @@ class MCTS:
 
         self.backpropagate(parent_state, win_player1)
 
-    def cut_tree_at_state(self, state: str):
-        sub_tree_nodes = nx.bfs_tree(self.G, state)
-        self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
-
     # GRAPH METHODS
 
     def add_node(self, state: str):
@@ -114,7 +136,7 @@ class MCTS:
         Adds node to the DiGraph G with initial number of encounters to zero
         :param state: (list representing board state, player to move): ([int], bool)
         """
-        self.G.add_node(state, n=0)
+        self.G.add_node(state, n=0, end_state = self.state_manager.is_end_state(state))
 
     def add_edge(self, parent_state, child_state):
         """
@@ -139,6 +161,13 @@ class MCTS:
             else:
                 raise ValueError('More than one parent of input state with positive flag')
 
+    def cut_tree_at_state(self, state: str):
+        sub_tree_nodes = nx.bfs_tree(self.G, state)
+        self.G = nx.DiGraph(self.G.subgraph(sub_tree_nodes))
+
+    def is_end_state(self, state):
+        return self.G.nodes[state]['end_state']
+
     def print_graph(self):
         """
         Print the DiGraph object representing the current tree
@@ -149,7 +178,7 @@ class MCTS:
         labels = {}
         for state in self.G.nodes:
             labels[state] = self.state_manager.graph_label(state)
-            if self.state_manager.is_player_1(state):
+            if self.state_manager.is_P1(state):
                 blue_player_nodes.append(state)
             else:
                 red_player_nodes.append(state)
