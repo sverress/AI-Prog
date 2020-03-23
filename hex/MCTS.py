@@ -56,7 +56,7 @@ class MCTS:
             if child in self.G.nodes:
                 self.add_edge(state, child)
             else:
-                self.add_node(child)
+                self.add_node(child, False)
                 self.add_edge(state, child)
         chosen_child = random.choice(children)
         self.state_manager.update_state_manager(chosen_child)
@@ -82,6 +82,7 @@ class MCTS:
         return best_edge[1]
 
     def simulate1(self, state: str) -> int: # Is not compatible with the if not out_edgs check in traverse_tree
+                                            # Nor compatible with state manager check if end state when we add nodes
         """
         :param state:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
@@ -131,12 +132,12 @@ class MCTS:
 
     # GRAPH METHODS
 
-    def add_node(self, state: str):
+    def add_node(self, state: str, state_is_correct = True):
         """
         Adds node to the DiGraph G with initial number of encounters to zero
         :param state: (list representing board state, player to move): ([int], bool)
         """
-        self.G.add_node(state, n=0, end_state = self.state_manager.is_end_state(state))
+        self.G.add_node(state, n=0, end_state = self.state_manager.is_end_state(state, state_is_correct))
 
     def add_edge(self, parent_state, child_state):
         """

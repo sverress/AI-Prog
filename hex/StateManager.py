@@ -95,21 +95,26 @@ class StateManager():
                 children.append(''.join(child_list))
         return children
 
-    def is_end_state(self, state: str) -> str:
+    def is_end_state(self, state: str, state_is_correct = True) -> str:
         """
         :param state: string representing state of game
         :return: a boolean stating if state is end state
         """
-        # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> incr run time
+        if state_is_correct:
+            board = self.board
+        else:
+            board = self.build_board(state)
+
+        # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
         if state[-1] == '1':
-            print(self.board)
+            print(board)
             print(list(self.P1graph.nodes))
             print(list(self.P2graph.nodes))
             # Check if player 2 won with the last move
             for row1 in range(self.k):
-                if self.board[row1][0] == 2:
+                if board[row1][0] == 2:
                     for row2 in range(self.k):
-                        if self.board[row2][self.k-1] == 2:
+                        if board[row2][self.k-1] == 2:
                             if nx.has_path(self.P2graph, (row1, 0), (row2, self.k-1)):
                                 return True
         else:
