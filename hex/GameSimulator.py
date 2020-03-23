@@ -19,27 +19,32 @@ class GameSimulator:
         self.max_tree_height = max_tree_height
         self.c = c
         self.p = 1 if p == StartingPlayerOptions.P1 else 2
+        self.state_manager = StateManager(self.k, self.p)
+        self.current_state = self.state_manager.get_state()
+        self.number_of_wins = 0
 
-    def print_start_state(self, i, state_manager, state):
+    def print_start_state(self, i):
         if self.verbose:
             print(f"--- Starting game {i} ---")
             print(
-                f"Start state: {state_manager.pretty_state_string(state, include_max=True)}"
+                f"Start state: {self.state_manager.pretty_state_string(self.current_state, include_max=True)}"
             )
         else:
             print_loader(i, self.g, 1)
 
-    def print_move(self, state_manager, previous_state, state):
+    def print_move(self, previous_state):
         if self.verbose:
             print(
-                f"Player {1 if state_manager.is_P1(previous_state) else 2} "
-                f"{state_manager.get_move_string(previous_state, state)}"
-                f" : {state_manager.pretty_state_string(state)}"
+                f"Player {1 if self.state_manager.is_P1(previous_state) else 2} "
+                f"{self.state_manager.get_move_string(previous_state, self.current_state)}"
+                f" : {self.state_manager.pretty_state_string()}"
             )
 
-    def print_winner_of_batch_game(self, state_manager, state):
+    def print_winner_of_batch_game(self):
         if self.verbose:
-            print(f"Player {2 if state_manager.is_P1(state) else 1} wins the game")
+            print(
+                f"Player {2 if self.state_manager.is_P1(self.current_state) else 1} wins the game"
+            )
 
     def print_run_summary(self, number_of_wins):
         print("\n------------- SUMMARY -------------")
@@ -47,20 +52,24 @@ class GameSimulator:
             f"Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins / self.g) * 100)}%)"
         )
 
+    def update_winner_stats(self):
+        if not self.state_manager.is_P1(self.current_state):
+            self.number_of_wins += 1
+
     def run(self):
-        number_of_wins = 0
         for i in range(1, self.g + 1):
-            state_manager = StateManager(self.k, self.p)
-            state = state_manager.get_state()
-            self.print_start_state(i, state_manager, state)
-            mcts = MCTS(state, state_manager, self.max_tree_height, c=self.c)
-            while not mcts.is_end_state(state):  # Should be a call to the state manager
-                previous_state = state
-                state = mcts.run(self.m)  # , previous_state
-                # Should the next two methods be added to the
-                mcts.root_state = state
-                mcts.cut_tree_at_state(state)
-                self.print_move(state_manager, previous_state, state)
-            if not state_manager.is_P1(state):
-                number_of_wins += 1
-            self.print_winner_of_batch_game(state_manager, state)
+            self.current_state = self.state_manager.get_state()
+            self.print_start_state(i)
+            mcts = MCTS(
+                self.current_state, self.state_manager, self.max_tree_height, c=self.c
+            )
+            while not mcts.is_end_state(
+                self.current_state
+            ):  # Should be a call to the state manager
+                previous_state = self.current_state
+                self.current_state = mcts.run(self.m)  # , previous_state
+                mcts.root_state = self.current_state
+                mcts.cut_tree_at_state(self.current_state)
+                self.print_move(previous_state)
+                self.update_winner_stats()
+            self.print_winner_of_batch_game()
