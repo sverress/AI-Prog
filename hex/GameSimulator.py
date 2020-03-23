@@ -19,8 +19,8 @@ class GameSimulator:
         self.max_tree_height = max_tree_height
         self.c = c
         self.p = 1 if p == StartingPlayerOptions.P1 else 2
-        self.state_manager = StateManager(self.k, self.p)
-        self.current_state = self.state_manager.get_state()
+        self.state_manager = None
+        self.current_state = None
         self.number_of_wins = 0
 
     def print_start_state(self, i):
@@ -46,10 +46,10 @@ class GameSimulator:
                 f"Player {2 if self.state_manager.is_P1(self.current_state) else 1} wins the game"
             )
 
-    def print_run_summary(self, number_of_wins):
+    def print_run_summary(self):
         print("\n------------- SUMMARY -------------")
         print(
-            f"Player 1 wins {number_of_wins} games out of {self.g}. ({round((number_of_wins / self.g) * 100)}%)"
+            f"Player 1 wins {self.number_of_wins} games out of {self.g}. ({round((self.number_of_wins / self.g) * 100)}%)"
         )
 
     def update_winner_stats(self):
@@ -58,18 +58,18 @@ class GameSimulator:
 
     def run(self):
         for i in range(1, self.g + 1):
+            self.state_manager = StateManager(self.k, self.p)
             self.current_state = self.state_manager.get_state()
             self.print_start_state(i)
             mcts = MCTS(
-                self.current_state, self.state_manager, self.max_tree_height, c=self.c
+                self.state_manager, self.max_tree_height, c=self.c
             )
-            while not mcts.is_end_state(
-                self.current_state
-            ):  # Should be a call to the state manager
+            while not self.state_manager.is_end_state():
                 previous_state = self.current_state
-                self.current_state = mcts.run(self.m)  # , previous_state
+                self.current_state = mcts.run(self.m)
                 mcts.root_state = self.current_state
                 mcts.cut_tree_at_state(self.current_state)
                 self.print_move(previous_state)
-                self.update_winner_stats()
+            self.update_winner_stats()
             self.print_winner_of_batch_game()
+        self.print_run_summary()

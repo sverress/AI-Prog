@@ -2,6 +2,7 @@ import networkx as nx
 import math
 import copy
 import matplotlib as plt
+import numpy as np
 
 class StateManager():
     """
@@ -69,8 +70,8 @@ class StateManager():
                     self.P2graph.add_node(cell)
                     same_player_neighbors = self.get_same_player_neighbors(cell, 2)
                     for neigh in same_player_neighbors:
-                        if neigh in self.P1graph:
-                            self.P1graph.add_edge(cell, neigh)
+                        if neigh in self.P2graph:
+                            self.P2graph.add_edge(cell, neigh)
                 error_check += 1
                 if error_check > 1:
                     print('error in update state manager')
@@ -95,32 +96,26 @@ class StateManager():
                 children.append(''.join(child_list))
         return children
 
-    def is_end_state(self, state: str, state_is_correct = True) -> str:
+    def is_end_state(self) -> str:
         """
         :param state: string representing state of game
         :return: a boolean stating if state is end state
         """
-        if state_is_correct:
-            board = self.board
-        else:
-            board = self.build_board(state)
+        if len(self.P1graph.nodes) != [item for sublist in self.board for item in sublist].count(1):
+            print('erorororoor')
+        if len(self.P2graph.nodes) != [item for sublist in self.board for item in sublist].count(2):
+            print('erorororoor')
 
         # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
-        if state[-1] == '1':
-            print(board)
-            print(list(self.P1graph.nodes))
-            print(list(self.P2graph.nodes))
+        if self.state[-1] == '1':
             # Check if player 2 won with the last move
             for row1 in range(self.k):
-                if board[row1][0] == 2:
+                if self.board[row1][0] == 2:
                     for row2 in range(self.k):
-                        if board[row2][self.k-1] == 2:
+                        if self.board[row2][self.k-1] == 2:
                             if nx.has_path(self.P2graph, (row1, 0), (row2, self.k-1)):
                                 return True
         else:
-            print(self.board)
-            print(list(self.P1graph.nodes))
-            print(list(self.P2graph.nodes))
             # Check if player 1 won with the last move
             for col1 in range(self.k):
                 if self.board[0][col1] == 1:
