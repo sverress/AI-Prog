@@ -2,6 +2,7 @@ import networkx as nx
 import math
 import copy
 import matplotlib as plt
+import numpy as np
 
 class StateManager():
     """
@@ -16,18 +17,6 @@ class StateManager():
         self.board = self.build_board(self.state)
         self.P1graph = nx.Graph()
         self.P2graph = nx.Graph()
-
-    def __str__(self):
-        """
-        Creates a simple toString for a board object
-        :return: string representation of the board
-        """
-        output = ""
-        for row in self.board:
-            for col in row:
-                output += f"{node} "
-            output += "\n"
-        return output
 
     def build_board(self, state):
         board = []
@@ -69,8 +58,8 @@ class StateManager():
                     self.P2graph.add_node(cell)
                     same_player_neighbors = self.get_same_player_neighbors(cell, 2)
                     for neigh in same_player_neighbors:
-                        if neigh in self.P1graph:
-                            self.P1graph.add_edge(cell, neigh)
+                        if neigh in self.P2graph:
+                            self.P2graph.add_edge(cell, neigh)
                 error_check += 1
                 if error_check > 1:
                     print('error in update state manager')
@@ -95,16 +84,14 @@ class StateManager():
                 children.append(''.join(child_list))
         return children
 
-    def is_end_state(self, state: str) -> str:
+    def is_end_state(self) -> str:
         """
         :param state: string representing state of game
         :return: a boolean stating if state is end state
         """
-        # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> incr run time
-        if state[-1] == '1':
-            print(self.board)
-            print(list(self.P1graph.nodes))
-            print(list(self.P2graph.nodes))
+
+        # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
+        if self.state[-1] == '1':
             # Check if player 2 won with the last move
             for row1 in range(self.k):
                 if self.board[row1][0] == 2:
@@ -113,9 +100,6 @@ class StateManager():
                             if nx.has_path(self.P2graph, (row1, 0), (row2, self.k-1)):
                                 return True
         else:
-            print(self.board)
-            print(list(self.P1graph.nodes))
-            print(list(self.P2graph.nodes))
             # Check if player 1 won with the last move
             for col1 in range(self.k):
                 if self.board[0][col1] == 1:
@@ -127,20 +111,15 @@ class StateManager():
 
 
     def pretty_state_string(self) -> str:
-        return str(self.board)
+        return '\n'+'\n'.join([''.join(['{:2}'.format(item) for item in row]) for row in self.board])
 
-    def get_move_string(prev_state: str, state: str) -> str:
-        prev_board, prev_player = StateManager._get_internal_state_rep(prev_state)
-        current_board, current_player = StateManager._get_internal_state_rep(state)
-        if prev_board[0] - current_board[0] == 1:
-            return "picks up copper"
-        if prev_board[0] - current_board[0] == 2:
-            return "picks up gold"
-        # Find changed indices
-        to_cell_index, from_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
-        # Determine type of piece
-        moved_piece_string = "gold" if prev_board[from_cell_index] == 2 else "copper"
-        return f"moves {moved_piece_string} from cell {from_cell_index} to {to_cell_index}"
+    def get_move_string(self, prev_state: str, state: str) -> str:
+        for i in range(len(state[:-2])):
+            row = math.floor(i/self.k)
+            if state[i] != prev_state[i]:
+                col = i%self.k
+                cell = (row,col)
+        return f"place at cell {cell}"
 
     def _get_internal_state_rep(self, state: str) -> ([[int]], bool):
         """
