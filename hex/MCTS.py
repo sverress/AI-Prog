@@ -26,7 +26,10 @@ class MCTS:
         for i in range(m):
             self.traverse_tree(self.root_state, depth=0)
             self.state_manager.reset_state_manager(self.root_state)
-        return self.greedy_best_child(self.root_state)
+        child = self.greedy_best_child(self.root_state)
+        self.root_state = child
+        self.cut_tree_at_state(child)
+        return child
 
     def traverse_tree(self, state: str, depth):
         if depth == self.max_tree_height or self.is_end_state(state):

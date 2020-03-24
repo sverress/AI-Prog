@@ -74,8 +74,6 @@ class GameSimulator:
 
                 previous_state = self.current_state
                 self.current_state = mcts.run(self.m)
-                mcts.root_state = self.current_state
-                mcts.cut_tree_at_state(self.current_state) # Should be done in mcts class
                 self.print_move(previous_state)
             self.update_winner_stats()
             #self.anet.train()
