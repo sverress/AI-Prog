@@ -223,3 +223,26 @@ class StateManager:
         nx.draw_networkx_edges(self.P1graph, pos)
         nx.draw_networkx_labels(self.P1graph, pos, labels, font_size=10)
         plt.show()
+
+    def get_action(self, current_state: str, previous_state: str):
+        """
+        :param current_state: current state as a string
+        :param previous_state: previous state as a string
+        :return: the position of the placed piece and the
+            player who did it as a string on the form : ´x_pos,y_pos:player_id´
+        """
+        current_board = current_state[:-2]
+        previous_board = previous_state[:-2]
+        change_indices = [
+            i
+            for i in range(len(current_board))
+            if current_board[i] != previous_board[i]
+        ]
+        if len(change_indices) != 1:
+            raise ValueError(
+                f"Number of changed piece locations are not 1, but {len(change_indices)}"
+            )
+        change_index = change_indices[0]
+        x_pos, y_pos = change_index % self.k, math.floor(change_index / self.k)
+        played_by_player = int(previous_state[-1])
+        return f"{x_pos},{y_pos}:{played_by_player}"

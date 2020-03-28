@@ -1,5 +1,6 @@
 from tkinter import *
 import math
+from hex.StateManager import StateManager
 
 # COLORS
 PLAYER_ONE_COLOR = "#3232ff"  # Blue
@@ -14,9 +15,11 @@ FONT_COLOR = "#FFF"
 
 
 class GameVisualizer:
-    def __init__(self, k):
+    def __init__(self, k, frame_rate=1000):
         self.k = k
+        self.frame_rate = frame_rate
         self.master = Tk()
+        self.master.title("HexGameVisualizer")
         self.start_pos = (60, 30)
 
         self.canvas = Canvas(
@@ -30,10 +33,24 @@ class GameVisualizer:
         self.board_border = []
         self.border_size = 10
         self.size = 20
+        self.actions = []
+        self.player_pieces = []
+
+    def add_action(self, action: str):
+        self.actions.append(action)
+
+    def preprocess_actions(self):
+        new_actions = []
+        for action in self.actions:
+            positions, player = action.split(":")
+            x_pos, y_pos = positions.split(",")
+            new_actions.append((int(x_pos), int(y_pos), int(player)))
+        return new_actions
 
     def run(self):
+        self.actions = self.preprocess_actions()
         self.build_and_draw_board()
-        # self.master.after(0, self.draw)
+        self.master.after(self.frame_rate, self.draw)
         mainloop()
 
     def build_and_draw_board(self):
@@ -184,9 +201,17 @@ class GameVisualizer:
         return Cell(self.canvas, self.board[self.get_board_pos(pos)].top, player=player)
 
     def draw(self):
-        cell = Cell(self.canvas, (200 + self.counter, 200), self.counter)
-        self.counter += 1
-        self.master.after(1000, self.draw)
+        action = self.actions.pop()
+        new_piece_pos = action[:-1]
+        self.player_pieces.append(
+            Cell(
+                self.canvas,
+                self.board[self.get_board_pos(new_piece_pos)].top,
+                player=action[-1],
+            )
+        )
+        if len(self.actions) > 0:
+            self.master.after(self.frame_rate, self.draw)
 
 
 class Cell:
@@ -257,5 +282,19 @@ class Cell:
         )
 
 
-game = GameVisualizer(10)
-game.run()
+def play_random_game():
+    import random
+
+    my_k = 4
+    game = GameVisualizer(my_k)
+    state_manager = StateManager(my_k, 1)
+    while not state_manager.is_end_state():
+        previous_state = state_manager.get_state()
+        possible_states = state_manager.generate_child_states(previous_state)
+        current_state = random.choice(possible_states)
+        state_manager.update_state_manager(current_state)
+        taken_action = state_manager.get_action(current_state, previous_state)
+        print(taken_action)
+        game.add_action(taken_action)
+
+    game.run()
