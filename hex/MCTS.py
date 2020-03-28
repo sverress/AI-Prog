@@ -40,6 +40,7 @@ class MCTS:
         if unvisited_out_edgs:
             child = random.choice(unvisited_out_edgs)[1]
             self.state_manager.update_state_manager(child)
+            self.G.nodes[child]['end_state'] = self.state_manager.is_end_state()
             self.G.get_edge_data(state, child)['flag'] = 1
             self.simulate(child)
             return
@@ -49,9 +50,8 @@ class MCTS:
 
     def expand(self, state):
         children = self.state_manager.generate_child_states(state)
-        if not children:
-            print('Empty list error')
         for child in children:
+            # Could this cause some problems?
             if child in self.G.nodes:
                 self.add_edge(state, child)
             else:
