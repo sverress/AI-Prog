@@ -4,7 +4,8 @@ import copy
 import matplotlib as plt
 import numpy as np
 
-class StateManager():
+
+class StateManager:
     """
     CLASS FOR STATE MANAGER
     Class uses internal representation of state as a graph to make computations.
@@ -13,7 +14,7 @@ class StateManager():
 
     def __init__(self, k: int, p: int):
         self.k = k
-        self.state = (':'+str(p)).zfill(k**2 + 2)
+        self.state = (":" + str(p)).zfill(k ** 2 + 2)
         self.board = self.build_board(self.state)
         self.P1graph = nx.Graph()
         self.P2graph = nx.Graph()
@@ -35,7 +36,7 @@ class StateManager():
         for i in range(self.k):
             board.append([])
             for j in range(self.k):
-                board[i].append(int(state[i*self.k + j]))
+                board[i].append(int(state[i * self.k + j]))
         return board
 
     def get_state(self):
@@ -51,16 +52,15 @@ class StateManager():
             if self.board[node[0]][node[1]] == 0:
                 self.P2graph.remove_node(node)
 
-
     def update_state_manager(self, state):
         error_check = 0
         for i in range(len(state[:-2])):
-            row = math.floor(i/self.k)
+            row = math.floor(i / self.k)
             if state[i] != self.state[i]:
-                col = i%self.k
+                col = i % self.k
                 self.board[row][col] = int(state[i])
-                cell = (row,col)
-                if self.state[-1] == '1':
+                cell = (row, col)
+                if self.state[-1] == "1":
                     self.P1graph.add_node(cell)
                     same_player_neighbors = self.get_same_player_neighbors(cell, 1)
                     for neigh in same_player_neighbors:
@@ -74,9 +74,8 @@ class StateManager():
                             self.P2graph.add_edge(cell, neigh)
                 error_check += 1
                 if error_check > 1:
-                    print('error in update state manager')
+                    print("error in update state manager")
         self.state = state
-
 
     def generate_child_states(self, state: str) -> [str]:
         """
@@ -86,14 +85,14 @@ class StateManager():
         """
         children = []
         player = state[-1]
-        next_player = '1' if player == '2' else '2'
+        next_player = "1" if player == "2" else "2"
         state_list = list(state)
         for i, val in enumerate(state[:-2]):
-            if val == '0':
+            if val == "0":
                 child_list = copy.deepcopy(state_list)
                 child_list[i] = player
                 child_list[-1] = next_player
-                children.append(''.join(child_list))
+                children.append("".join(child_list))
         return children
 
     def is_end_state(self) -> str:
@@ -101,30 +100,33 @@ class StateManager():
         :param state: string representing state of game
         :return: a boolean stating if state is end state
         """
-        if len(self.P1graph.nodes) != [item for sublist in self.board for item in sublist].count(1):
-            print('erorororoor')
-        if len(self.P2graph.nodes) != [item for sublist in self.board for item in sublist].count(2):
-            print('erorororoor')
+        if len(self.P1graph.nodes) != [
+            item for sublist in self.board for item in sublist
+        ].count(1):
+            print("erorororoor")
+        if len(self.P2graph.nodes) != [
+            item for sublist in self.board for item in sublist
+        ].count(2):
+            print("erorororoor")
 
         # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
-        if self.state[-1] == '1':
+        if self.state[-1] == "1":
             # Check if player 2 won with the last move
             for row1 in range(self.k):
                 if self.board[row1][0] == 2:
                     for row2 in range(self.k):
-                        if self.board[row2][self.k-1] == 2:
-                            if nx.has_path(self.P2graph, (row1, 0), (row2, self.k-1)):
+                        if self.board[row2][self.k - 1] == 2:
+                            if nx.has_path(self.P2graph, (row1, 0), (row2, self.k - 1)):
                                 return True
         else:
             # Check if player 1 won with the last move
             for col1 in range(self.k):
                 if self.board[0][col1] == 1:
                     for col2 in range(self.k):
-                        if self.board[self.k-1][col2] == 1:
-                            if nx.has_path(self.P1graph, (0, col1), (self.k-1, col2)):
+                        if self.board[self.k - 1][col2] == 1:
+                            if nx.has_path(self.P1graph, (0, col1), (self.k - 1, col2)):
                                 return True
         return False
-
 
     def pretty_state_string(self) -> str:
         return str(self.board)
@@ -137,10 +139,14 @@ class StateManager():
         if prev_board[0] - current_board[0] == 2:
             return "picks up gold"
         # Find changed indices
-        to_cell_index, from_cell_index = [i for i in range(len(current_board)) if current_board[i] != prev_board[i]]
+        to_cell_index, from_cell_index = [
+            i for i in range(len(current_board)) if current_board[i] != prev_board[i]
+        ]
         # Determine type of piece
         moved_piece_string = "gold" if prev_board[from_cell_index] == 2 else "copper"
-        return f"moves {moved_piece_string} from cell {from_cell_index} to {to_cell_index}"
+        return (
+            f"moves {moved_piece_string} from cell {from_cell_index} to {to_cell_index}"
+        )
 
     def _get_internal_state_rep(self, state: str) -> ([[int]], bool):
         """
@@ -165,7 +171,7 @@ class StateManager():
         return output
 
     def is_P1(self, state: str) -> bool:
-        return state[-1] == '1'
+        return state[-1] == "1"
 
     def graph_label(self, state: str) -> str:
         return str(StateManager._get_internal_state_rep(state)[0])
@@ -181,7 +187,14 @@ class StateManager():
 
     def get_neighbors_indices(self, position) -> [tuple]:
         r, c = position
-        indices =  [(r-1, c), (r-1, c+1), (r, c-1), (r, c+1), (r+1, c-1), (r+1, c)]
+        indices = [
+            (r - 1, c),
+            (r - 1, c + 1),
+            (r, c - 1),
+            (r, c + 1),
+            (r + 1, c - 1),
+            (r + 1, c),
+        ]
         # Removing indices outside the board
         return list(filter(lambda pos: self.filter_positions(pos), indices))
 
@@ -204,7 +217,9 @@ class StateManager():
         for state in self.P1graph.nodes:
             labels[state] = self.graph_label(state)
             nodes.append(state)
-        nx.draw_networkx_nodes(self.P1graph, pos, nodelist=nodes, node_color='b', alpha=0.5)
+        nx.draw_networkx_nodes(
+            self.P1graph, pos, nodelist=nodes, node_color="b", alpha=0.5
+        )
         nx.draw_networkx_edges(self.P1graph, pos)
         nx.draw_networkx_labels(self.P1graph, pos, labels, font_size=10)
         plt.show()

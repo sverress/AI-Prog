@@ -257,5 +257,5 @@ class Cell:
         )
 
 
-game = GameVisualizer(18)
+game = GameVisualizer(10)
 game.run()
