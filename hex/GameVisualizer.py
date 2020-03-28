@@ -15,9 +15,11 @@ FONT_COLOR = "#FFF"
 
 
 class GameVisualizer:
-    def __init__(self, k, frame_rate=1000):
+    def __init__(self, k, frame_rate=1000, initial_state=None):
         self.k = k
         self.frame_rate = frame_rate
+        self.initial_state_given = initial_state is not None
+        self.initial_state = initial_state
         self.master = Tk()
         self.master.title("HexGameVisualizer")
         self.start_pos = (60, 30)
@@ -50,8 +52,24 @@ class GameVisualizer:
     def run(self):
         self.actions = self.preprocess_actions()
         self.build_and_draw_board()
-        self.master.after(self.frame_rate, self.draw)
+        if self.initial_state_given:
+            self.draw_initial_state()
+        if len(self.actions):
+            self.master.after(self.frame_rate, self.draw)
         mainloop()
+
+    def draw_initial_state(self):
+        initial_board = self.initial_state[:-2]
+        for i, char in enumerate(initial_board):
+            player = int(char)
+            if player:
+                self.player_pieces.append(
+                    Cell(
+                        self.canvas,
+                        self.board[i].top,
+                        player=player,
+                    )
+                )
 
     def build_and_draw_board(self):
         starting_x, starting_y = self.start_pos
@@ -85,7 +103,7 @@ class GameVisualizer:
                 first_row[-1].right1[1] - 2 * self.border_size,
                 first_row[-1].top[0],
                 (first_row[-1].right1[1] + first_row[-1].right2[1]) / 2,
-                fill=PLAYER_TWO_COLOR,
+                fill=PLAYER_ONE_COLOR,
             )
         )
         [
@@ -113,7 +131,7 @@ class GameVisualizer:
                 first_column[-1].left2[1] + 2 * self.border_size,
                 first_column[-1].bottom[0],
                 (first_column[-1].left2[1] + first_column[-1].left1[1]) / 2,
-                fill=PLAYER_ONE_COLOR,
+                fill=PLAYER_TWO_COLOR,
             )
         )
         [
@@ -121,7 +139,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.left1[0] - self.border_size / 1.5,
                     (cell.left1[1] + cell.left2[1]) / 2,
-                    text=str(i),
+                    text=str(i + 1),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -143,7 +161,7 @@ class GameVisualizer:
                 last_row[-1].right2[1] + self.border_size,
                 last_row[-1].right2[0],
                 last_row[-1].right2[1],
-                fill=PLAYER_TWO_COLOR,
+                fill=PLAYER_ONE_COLOR,
             )
         )
         [
@@ -174,7 +192,7 @@ class GameVisualizer:
                 last_column[0].right1[1] - 2 * self.border_size,
                 last_column[0].top[0],
                 (last_column[0].right1[1] + last_column[0].right2[1]) / 2,
-                fill=PLAYER_ONE_COLOR,
+                fill=PLAYER_TWO_COLOR,
             )
         )
         [
@@ -182,7 +200,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.right1[0] + self.border_size / 1.5,
                     (cell.left1[1] + cell.left2[1]) / 2,
-                    text=str(i),
+                    text=str(i + 1),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -282,7 +300,12 @@ class Cell:
         )
 
 
+# EXAMPLES OF USE
 def play_random_game():
+    """
+    Play a random game using the StateManager
+     to generate new states and check if game is over
+    """
     import random
 
     my_k = 4
@@ -294,7 +317,12 @@ def play_random_game():
         current_state = random.choice(possible_states)
         state_manager.update_state_manager(current_state)
         taken_action = state_manager.get_action(current_state, previous_state)
-        print(taken_action)
         game.add_action(taken_action)
-
     game.run()
+
+
+def give_initial_state():
+    initial_state = "2011002220110210:1"
+    game = GameVisualizer(4, initial_state=initial_state)
+    game.run()
+
