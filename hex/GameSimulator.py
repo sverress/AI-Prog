@@ -1,7 +1,9 @@
 from hex.StateManager import StateManager
+from hex.ANET import ANET
 from hex.MCTS import MCTS
 from libs.helpers import print_loader
 import enum
+import random
 
 
 class StartingPlayerOptions(enum.Enum):
@@ -22,6 +24,7 @@ class GameSimulator:
         self.state_manager = None
         self.current_state = None
         self.number_of_wins = 0
+        self.anet = ANET(k)
 
     def print_start_state(self, i):
         if self.verbose:
@@ -65,11 +68,14 @@ class GameSimulator:
                 self.state_manager, self.max_tree_height, c=self.c
             )
             while not self.state_manager.is_end_state():
+                # Get distribution and add the case to anet
+                # distribution_of_visit_counts = mcts.run(self.m)
+                # self.anet.add_case(self.current_state, distribution_of_visit_counts)
+
                 previous_state = self.current_state
                 self.current_state = mcts.run(self.m)
-                mcts.root_state = self.current_state
-                mcts.cut_tree_at_state(self.current_state)
                 self.print_move(previous_state)
             self.update_winner_stats()
+            #self.anet.train()
             self.print_winner_of_batch_game()
         self.print_run_summary()
