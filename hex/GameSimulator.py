@@ -3,7 +3,6 @@ from hex.ANET import ANET
 from hex.MCTS import MCTS
 from libs.helpers import print_loader
 import enum
-import random
 
 
 class StartingPlayerOptions(enum.Enum):
@@ -24,14 +23,12 @@ class GameSimulator:
         self.state_manager = None
         self.current_state = None
         self.number_of_wins = 0
-        self.anet = ANET(k)
+        self.actor_network = ANET(k)
 
     def print_start_state(self, i):
         if self.verbose:
             print(f"--- Starting game {i} ---")
-            print(
-                f"Start state: {self.state_manager.pretty_state_string()}"
-            )
+            print(f"Start state: {self.state_manager.pretty_state_string()}")
         else:
             print_loader(i, self.g, 1)
 
@@ -52,7 +49,8 @@ class GameSimulator:
     def print_run_summary(self):
         print("\n------------- SUMMARY -------------")
         print(
-            f"Player 1 wins {self.number_of_wins} games out of {self.g}. ({round((self.number_of_wins / self.g) * 100)}%)"
+            f"Player 1 wins {self.number_of_wins} games out of {self.g}."
+            f" ({round((self.number_of_wins / self.g) * 100)}%)"
         )
 
     def update_winner_stats(self):
@@ -64,18 +62,13 @@ class GameSimulator:
             self.state_manager = StateManager(self.k, self.p)
             self.current_state = self.state_manager.get_state()
             self.print_start_state(i)
-            mcts = MCTS(
-                self.state_manager, self.max_tree_height, c=self.c
-            )
+            mcts = MCTS(self.state_manager, self.actor_network, max_tree_height=self.max_tree_height, c=self.c)
             while not self.state_manager.is_end_state():
-                # Get distribution and add the case to anet
-                # distribution_of_visit_counts = mcts.run(self.m)
-                # self.anet.add_case(self.current_state, distribution_of_visit_counts)
-
                 previous_state = self.current_state
                 self.current_state = mcts.run(self.m)
+                print(self.actor_network.predict(self.current_state))
                 self.print_move(previous_state)
             self.update_winner_stats()
-            #self.anet.train()
+            self.actor_network.train()
             self.print_winner_of_batch_game()
         self.print_run_summary()

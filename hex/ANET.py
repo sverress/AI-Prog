@@ -12,6 +12,8 @@ class ANET:
         self.batch_size = batch_size
         self.replay_buffer = []
         self.number_of_train_executions = 0
+        # Input shape: Adding one to give information of current player. Multiply by two to get binary data
+        self.input_shape = ((self.size_of_board ** 2) * 2 + 2, )
 
         # Building model
         self.model = Sequential()
@@ -20,7 +22,7 @@ class ANET:
             Dense(
                 units=size_of_board,
                 activation="relu",
-                input_shape=(size_of_board ** 2,),
+                input_shape=self.input_shape,
                 kernel_initializer="random_uniform",
             )
         )
@@ -44,15 +46,16 @@ class ANET:
         )
 
     @staticmethod
-    def string_to_input_np(state: str):
-        """
-        Might be a StateManager method
-        """
-        board_str = state[:-2]  # extract board part of state string
-        return np.array([[float(cell) for cell in board_str]])
+    def convert_state_to_network_format(state: str):
+        board_str, player_str = state.split(":")  # extract board part of state string
+        board_nn_representation = [int(player_str == "1"), int(player_str == "2")]
+        for cell_value in board_str:
+            board_nn_representation.append(int(cell_value == "1"))
+            board_nn_representation.append(int(cell_value == "2"))
+        return board_nn_representation
 
     def predict(self, state: str):
-        return self.model.predict(ANET.string_to_input_np(state))[0]
+        return self.model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
 
     def train(self):
         x, y = self._get_random_minibatch()
@@ -65,25 +68,25 @@ class ANET:
         pass
 
     def _get_random_minibatch(self):
-        random.shuffle(self.replay_buffer)
-        try:
-            batch = random.sample(self.replay_buffer, self.batch_size)
-        except ValueError:
-            raise ValueError(
-                "Batch size is bigger than replay buffer. Increase number of simulations or lower batch size"
-            )
+        # random.shuffle(self.replay_buffer)
+        # try:
+        #    batch = random.sample(self.replay_buffer, self.batch_size)
+        # except ValueError:
+        #    raise ValueError(
+        #        "Batch size is bigger than replay buffer. Increase number of simulations or lower batch size"
+        #    )
 
         x = []
         y = []
-        for case in batch:
+        for case in self.replay_buffer:
             x.append(case[0])  # Add state as x
             y.append(case[1])  # Add distribution as y
         return (
-            np.array(x).reshape((len(x), self.size_of_board ** 2)),
-            np.array(y).reshape((len(y), self.size_of_board ** 2)),
+            np.array(x),
+            np.array(y)
         )
 
     def add_case(self, state, distribution_of_visit_counts):
         self.replay_buffer.append(
-            (ANET.string_to_input_np(state), distribution_of_visit_counts)
+            (ANET.convert_state_to_network_format(state), distribution_of_visit_counts)
         )
