@@ -1,11 +1,10 @@
 import networkx as nx
-
-from hex.GameVisualizer import GameVisualizer
-from hex.StateManager import StateManager
 import matplotlib.pyplot as plt
 import random
 import math
 import numpy as np
+
+from hex.StateManager import StateManager
 
 
 class MCTS:
@@ -154,31 +153,36 @@ class MCTS:
         win_player1 = -1 if self.state_manager.is_P1(state) else 1
         self.backpropagate(start_state, win_player1)
 
-    def epsilon_greedy_child_state_from_distribution(self, distribution: np.ndarray, state: str, epsilon=0.2):
+    def epsilon_greedy_child_state_from_distribution(
+        self, distribution: np.ndarray, state: str, epsilon=0.2
+    ):
         if random.random() > epsilon:
             chosen_index = int(np.argmax(distribution))
         else:
-            chosen_index = random.randint(0, self.state_manager.k - 1)
+            # Choose random state from those with positive probability
+            # prob == 0 might be occupied cells on the board
+            chosen_index = random.choice([i[0] for i, prob in np.ndenumerate(distribution) if prob > 0])
         return StateManager.get_next_state_from_distribution_position(
             chosen_index, state
         )
 
     def simulate(self, state: str):
         """
-        :param state:
+        Performs one roll-out using the actor net as policy
+        :param state: start state of simulation
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         start_state = state
-        game = GameVisualizer(self.state_manager.k, initial_state=start_state)
         while not self.state_manager.is_end_state():
             distribution = self.actor_net.predict(state)
-            new_state = self.epsilon_greedy_child_state_from_distribution(distribution, state)
-            action = self.state_manager.get_action(new_state, state)
-            game.add_action(action)
+            new_state = self.epsilon_greedy_child_state_from_distribution(
+                distribution, state
+            )
             self.state_manager.update_state_manager(new_state)
             state = new_state
-        game.run()
-        win_player1 = -1 if self.state_manager.is_P1(state) else 1  # Reward for end state
+        win_player1 = (
+            -1 if self.state_manager.is_P1(state) else 1
+        )  # Reward for end state
         self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):

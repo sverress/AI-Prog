@@ -2,7 +2,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import optimizers
 import numpy as np
-import random
+from hex.StateManager import StateManager
 
 
 class ANET:
@@ -47,7 +47,7 @@ class ANET:
 
     @staticmethod
     def convert_state_to_network_format(state: str):
-        board_str, player_str = state.split(":")  # extract board part of state string
+        board_str, player_str = StateManager.extract_board_and_player_from_state(state)
         board_nn_representation = [int(player_str == "1"), int(player_str == "2")]
         for cell_value in board_str:
             board_nn_representation.append(int(cell_value == "1"))
@@ -55,7 +55,12 @@ class ANET:
         return board_nn_representation
 
     def predict(self, state: str):
-        return self.model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
+        net_distribution = self.model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
+        # Filter out taken cells in the board
+        for index, share_of_distribution in np.ndenumerate(net_distribution):
+            if StateManager.index_cell_is_occupied(index[0], state):
+                net_distribution[index] = 0
+        return net_distribution/sum(net_distribution)
 
     def train(self):
         x, y = self._get_random_minibatch()

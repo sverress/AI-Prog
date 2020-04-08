@@ -109,14 +109,16 @@ class StateManager:
         return False
 
     def pretty_state_string(self) -> str:
-        return '\n'+'\n'.join([''.join(['{:2}'.format(item) for item in row]) for row in self.board])
+        return "\n" + "\n".join(
+            ["".join(["{:2}".format(item) for item in row]) for row in self.board]
+        )
 
     def get_move_string(self, prev_state: str, state: str) -> str:
         for i in range(len(state[:-2])):
-            row = math.floor(i/self.k)
+            row = math.floor(i / self.k)
             if state[i] != prev_state[i]:
-                col = i%self.k
-                cell = (row,col)
+                col = i % self.k
+                cell = (row, col)
         return f"place at cell {cell}"
 
     def _get_internal_state_rep(self, state: str) -> ([[int]], bool):
@@ -224,8 +226,10 @@ class StateManager:
         if 0 < int_player < 3:
             return "1" if int_player == 2 else "2"
         else:
-            raise ValueError(f"Input player not 1 or 2, integer input player: {int_player}."
-                             f" String input player {player}")
+            raise ValueError(
+                f"Input player not 1 or 2, integer input player: {int_player}."
+                f" String input player {player}"
+            )
 
     @staticmethod
     def get_next_state_from_distribution_position(index: int, state: str):
@@ -247,4 +251,10 @@ class StateManager:
                 output_state += cell_value
         return f"{output_state}:{opposite_player}"
 
+    @staticmethod
+    def extract_board_and_player_from_state(state: str) -> (str, str):
+        return state.split(":")
 
+    @staticmethod
+    def index_cell_is_occupied(index: int, state: str) -> bool:
+        return state[index] == "1" or state[index] == "2"
