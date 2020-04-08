@@ -42,7 +42,7 @@ class ANET:
             )
         )
         self.model.compile(
-            loss="mean_squared_error", optimizer=optimizers.SGD(), metrics=["accuracy"]
+            loss="categorical_crossentropy", optimizer=optimizers.Adam(), metrics=["accuracy"]
         )
 
     @staticmethod
