@@ -1,10 +1,9 @@
-from typing import Dict, Any
-
 import networkx as nx
 from hex.StateManager import StateManager
 import matplotlib.pyplot as plt
 import random
 import math
+import numpy as np
 
 
 class MCTS:
@@ -39,8 +38,10 @@ class MCTS:
                     break
 
         return [
-            change_indices_dict[index]/total_visits if index in change_indices_dict else 0
-            for index in range(self.state_manager.k**2)
+            change_indices_dict[index] / total_visits
+            if index in change_indices_dict
+            else 0
+            for index in range(self.state_manager.k ** 2)
         ]
 
     def run(self, m: int):
@@ -151,6 +152,15 @@ class MCTS:
         win_player1 = -1 if self.state_manager.is_P1(state) else 1
         self.backpropagate(start_state, win_player1)
 
+    def epsilon_greedy_child_state_from_distribution(self, distribution: np.ndarray, state: str, epsilon=0.2):
+        if random.random() > epsilon:
+            chosen_index = int(np.argmax(distribution))
+        else:
+            chosen_index = random.randint(0, self.state_manager.k - 1)
+        return StateManager.get_next_state_from_distribution_position(
+            chosen_index, state
+        )
+
     def simulate(self, state: str):
         """
         :param state:
@@ -158,10 +168,10 @@ class MCTS:
         """
         start_state = state
         while not self.state_manager.is_end_state():
-            children = self.state_manager.generate_child_states(state)
-            state = random.choice(children)
+            distribution = self.actor_net.predict(state)
+            state = self.epsilon_greedy_child_state_from_distribution(distribution, state)
             self.state_manager.update_state_manager(state)
-        win_player1 = -1 if self.state_manager.is_P1(state) else 1
+        win_player1 = -1 if self.state_manager.is_P1(state) else 1  # Reward for end state
         self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):

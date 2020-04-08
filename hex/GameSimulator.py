@@ -66,7 +66,6 @@ class GameSimulator:
             while not self.state_manager.is_end_state():
                 previous_state = self.current_state
                 self.current_state = mcts.run(self.m)
-                print(self.actor_network.predict(self.current_state))
                 self.print_move(previous_state)
             self.update_winner_stats()
             self.actor_network.train()

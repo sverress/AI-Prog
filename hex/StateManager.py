@@ -217,3 +217,24 @@ class StateManager:
         x_pos, y_pos = change_index % self.k, math.floor(change_index / self.k)
         played_by_player = int(previous_state[-1])
         return f"{x_pos},{y_pos}:{played_by_player}"
+
+    @staticmethod
+    def get_next_state_from_distribution_position(index: int, state: str):
+        """
+        After getting the distribution from the network we use this method to find the
+        child state from the changed position. Use the previous state and input index to
+        return the correct child state.
+        :param index: 1d index of the position of the move to be made
+        :param state: the state before this action
+        :return: the child state after insertion into index
+        """
+        board, player = state.split(":")
+        output_state = ""
+        for board_index, cell_value in enumerate(board):
+            if board_index == index:
+                output_state += player
+            else:
+                output_state += cell_value
+        return f"{output_state}:{player}"
+
+
