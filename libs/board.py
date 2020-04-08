@@ -6,7 +6,7 @@ class Board(ABC):
     Abstract Board class for a general board
     """
 
-    def __init__(self, board_size: int):
+    def __init__(self, board_size: int, initial_state=""):
         """
         Initializes the board
         :param board_size: Size of the board
@@ -14,7 +14,7 @@ class Board(ABC):
         """
         self.board = []
         self.board_size = board_size
-        self.build_board(board_size)
+        self.board = self.build_board(initial_state)
 
     def __str__(self):
         """
@@ -84,9 +84,9 @@ class Board(ABC):
         pass
 
     @abstractmethod
-    def build_board(self, board_size):
+    def build_board(self, state: str) -> []:
         """
         Implementation specific method for different boards.
-        :param board_size: dimension of board
+        :param state: dimension of board
         """
         pass

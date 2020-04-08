@@ -159,10 +159,10 @@ class SolitaireBoard(ABC, Board):
         pass
 
     @abstractmethod
-    def build_board(self, board_size):
+    def build_board(self, state):
         """
         Implementation specific method for different boards.
-        :param board_size: dimension of board
+        :param state: dimension of board
         """
         pass
 
@@ -189,11 +189,13 @@ class SolitaireBoard(ABC, Board):
 
 
 class Diamond(SolitaireBoard):
-    def build_board(self, board_size):
-        for i in range(board_size):
-            self.board.append([])
-            for j in range(board_size):
-                self.board[i].append(1)
+    def build_board(self, state):
+        board = []
+        for i in range(self.board_size):
+            board.append([])
+            for j in range(self.board_size):
+                board[i].append(1)
+        return board
 
     def get_neighbors_indices(self, position):
         r, c = position
@@ -203,11 +205,13 @@ class Diamond(SolitaireBoard):
 
 
 class Triangle(SolitaireBoard):
-    def build_board(self, board_size):
-        for i in range(board_size):
-            self.board.append([])
+    def build_board(self, state):
+        board = []
+        for i in range(self.board_size):
+            board.append([])
             for j in range(i+1):
-                self.board[i].append(1)
+                board[i].append(1)
+        return board
 
     def get_neighbors_indices(self, position):
         r, c = position

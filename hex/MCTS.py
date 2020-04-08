@@ -42,7 +42,7 @@ class MCTS:
             change_indices_dict[index] / total_visits
             if index in change_indices_dict
             else 0
-            for index in range(self.state_manager.k ** 2)
+            for index in range(self.state_manager.board_size ** 2)
         ]
 
     def run(self, m: int):
@@ -54,7 +54,7 @@ class MCTS:
         """
         for i in range(m):
             self.traverse_tree(self.root_state, depth=0)
-            self.state_manager.reset_state_manager(self.root_state)
+            self.state_manager.set_state_manager(self.root_state)
         distribution = self.get_distribution(self.root_state)
         self.actor_net.add_case(self.root_state, distribution.copy())
         child = self.greedy_best_child(self.root_state)

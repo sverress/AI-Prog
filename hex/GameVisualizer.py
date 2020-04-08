@@ -15,7 +15,7 @@ FONT_COLOR = "#FFF"
 
 
 class GameVisualizer:
-    def __init__(self, k, frame_rate=1000, initial_state=None):
+    def __init__(self, k, frame_rate=1000, initial_state=None, cartesian_cords=False):
         self.k = k
         self.frame_rate = frame_rate
         self.initial_state_given = initial_state is not None
@@ -37,6 +37,7 @@ class GameVisualizer:
         self.size = 20
         self.actions = []
         self.player_pieces = []
+        self.cartesian_cords = cartesian_cords
 
     def add_action(self, action: str):
         self.actions.append(action)
@@ -46,7 +47,8 @@ class GameVisualizer:
         for action in self.actions:
             positions, player = action.split(":")
             x_pos, y_pos = positions.split(",")
-            new_actions.append((int(x_pos), int(y_pos), int(player)))
+            # row and col are opposite of state manager
+            new_actions.append((int(y_pos), int(x_pos), int(player)))
         return new_actions
 
     def run(self):
@@ -111,7 +113,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.top[0] - 1.5 * self.border_size,
                     cell.top[1],
-                    text=chr(65 + i),
+                    text=str(i) if self.cartesian_cords else chr(65 + i),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -139,7 +141,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.left1[0] - self.border_size / 1.5,
                     (cell.left1[1] + cell.left2[1]) / 2,
-                    text=str(i + 1),
+                    text=str(i) if self.cartesian_cords else str(i + 1),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -169,7 +171,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.bottom[0] + 1.2 * self.border_size,
                     cell.bottom[1],
-                    text=chr(65 + i),
+                    text=str(i) if self.cartesian_cords else chr(65 + i),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -200,7 +202,7 @@ class GameVisualizer:
                 self.canvas.create_text(
                     cell.right1[0] + self.border_size / 1.5,
                     (cell.left1[1] + cell.left2[1]) / 2,
-                    text=str(i + 1),
+                    text=str(i) if self.cartesian_cords else str(i + 1),
                     fill=FONT_COLOR,
                     font=(FONT, FONT_SIZE),
                 )
@@ -325,4 +327,16 @@ def give_initial_state():
     initial_state = "2011002220110210:1"
     game = GameVisualizer(4, initial_state=initial_state)
     game.run()
+
+
+def visualize_test():
+    state_manager = StateManager(8, 1)
+    actions = ["1,2:1"]
+    game = GameVisualizer(8, cartesian_cords=True, initial_state=state_manager.get_state())
+    for action in actions:
+        state_manager.perform_action(action)
+        game.add_action(action)
+    print(state_manager.pretty_state_string())
+    game.run()
+
 

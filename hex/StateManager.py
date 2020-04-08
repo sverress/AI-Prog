@@ -4,33 +4,64 @@ import copy
 import matplotlib as plt
 import numpy as np
 
+from libs.board import Board
 
-class StateManager:
+
+class StateManager(Board):
     """
-    CLASS FOR STATE MANAGER
+    STATE MANAGER
     Class uses internal representation of state as a graph to make computations.
-    All communication with the outside is done with string representations
+    All communication with the outside is done with string representations ´board_string:current_player´ ex: 0201:2
     """
 
-    def __init__(self, k: int, p: int):
-        self.k = k
-        self.state = (":" + str(p)).zfill(k ** 2 + 2)
-        self.board = self.build_board(self.state)
+    def __init__(self, board_size: int, starting_player: int) -> None:
+        """
+        Constructor of StateManager. Inherits from the Board class.
+        Builds emtpy self.board from the self.state variable created.
+        Creates two graphs for each player keeping track of the structure of their pieces
+        :param board_size: number of rows/cols in the board
+        :param starting_player: the player that starts, either 1 or 2.
+        """
+        if starting_player > 2 or starting_player < 1:
+            raise ValueError("Starting player should be either 1 or 2")
+        if board_size > 10:
+            raise Warning("Board not tested for boards bigger than board size 10")
+        self.state = (":" + str(starting_player)).zfill(board_size ** 2 + 2)
+        super().__init__(board_size, self.state)
         self.P1graph = nx.Graph()
         self.P2graph = nx.Graph()
+        # Variable to indicate to get_state_function if is has to update self.state first
+        self.can_use_cache = True
 
-    def build_board(self, state):
+    def build_board(self, state: str) -> [[int]]:
+        """
+        Build and return a board as a 2d-array numpy array
+        :param state: str of board
+        :return: 2d np array
+        """
         board = []
-        for i in range(self.k):
+        for i in range(self.board_size):
             board.append([])
-            for j in range(self.k):
-                board[i].append(int(state[i * self.k + j]))
-        return board
+            for j in range(self.board_size):
+                board[i].append(int(state[i * self.board_size + j]))
+        return np.array(board)
 
-    def get_state(self):
+    def get_state(self) -> str:
         return self.state
 
-    def reset_state_manager(self, state):
+    @staticmethod
+    def extract_state(state: str) -> (str, str):
+        return state.split(":")
+
+    def get_extracted_state(self) -> (str, str):
+        return StateManager.extract_state(self.get_state())
+
+    def set_state_manager(self, state: str) -> None:
+        """
+        Sets the state manager to the given state building the networks for both players for computing end state.
+        Sets the state and board variable of the object to the new state
+        :param state: state to set the state manager to
+        """
         self.state = state
         self.board = self._get_internal_state_rep(state)[0]
         for node in list(self.P1graph.nodes):
@@ -40,30 +71,83 @@ class StateManager:
             if self.board[node[0]][node[1]] == 0:
                 self.P2graph.remove_node(node)
 
-    def update_state_manager(self, state):
-        error_check = 0
-        for i in range(len(state[:-2])):
-            row = math.floor(i / self.k)
-            if state[i] != self.state[i]:
-                col = i % self.k
-                self.board[row][col] = int(state[i])
-                cell = (row, col)
-                if self.state[-1] == "1":
-                    self.P1graph.add_node(cell)
-                    same_player_neighbors = self.get_same_player_neighbors(cell, 1)
-                    for neigh in same_player_neighbors:
-                        if neigh in self.P1graph:
-                            self.P1graph.add_edge(cell, neigh)
-                else:
-                    self.P2graph.add_node(cell)
-                    same_player_neighbors = self.get_same_player_neighbors(cell, 2)
-                    for neigh in same_player_neighbors:
-                        if neigh in self.P2graph:
-                            self.P2graph.add_edge(cell, neigh)
-                error_check += 1
-                if error_check > 1:
-                    print("error in update state manager")
-        self.state = state
+    def check_and_extract_action_string(self, action: str) -> (int, int, int):
+        """
+        Checks that the incoming string is on the correct format and within limits of the board
+        :param action: action string
+        :return: x_pos, y_pos, player
+        """
+        position, player = action.split(":")
+        str_board, state_player = self.get_extracted_state()
+        if player != state_player:
+            raise ValueError(f"Input action performed by {player}, but current player is {state_player}")
+        x_pos, y_pos = [int(str_index) for str_index in position.split(",")]
+        if not self.filter_positions((x_pos, y_pos)):
+            raise ValueError(f"Given action position ({x_pos},{y_pos}) is outside the board")
+        return x_pos, y_pos, int(player)
+
+    def get_player_graph(self, player: int):
+        if player == 1:
+            return self.P1graph
+        else:
+            return self.P2graph
+
+    def perform_action(self, action: str) -> None:
+        """
+        Performs the given action changing the current state of the state manager
+        :param action: action on the form ´x_pos,y_pos:player_id´
+        """
+        x_pos, y_pos, player = self.check_and_extract_action_string(action)
+        # Set action position to player id
+        self.board[x_pos, y_pos] = player
+        self.update_string_state(StateManager.get_opposite_player(player))
+        # Add new node to player piece graph
+        player_graph = self.get_player_graph(player)
+        player_graph.add_node(action)
+        # Add neighbor nodes of same player to player graph
+        for neighbor in self.get_same_player_neighbors((x_pos, y_pos), player):
+            neighbor_node_action_string = f"{neighbor[0]},{neighbor[1]}:{player}"
+            neighbor_node = player_graph.nodes[neighbor_node_action_string]
+            player_graph.add_edge(neighbor_node, action)
+
+    def update_string_state(self, player: str):
+        """
+        Syncs the string state with the board state
+        :param player: player id of current player
+        """
+        self.state = ""
+        for row in self.board:
+            for cell in row:
+                self.state += str(cell)
+        self.state = f"{self.state}:{player}"
+
+    def get_same_player_neighbors(self, position: tuple, player: int) -> [tuple]:
+        """
+        Gets the neighbor cells of the given player
+        :param position:
+        :param player:
+        :return:
+        """
+        neighbors = self.get_neighbors_indices(position)
+        return list(filter(lambda x: self.board[x[0]][x[1]] == player, neighbors))
+
+    def get_neighbors_indices(self, position) -> [tuple]:
+        """
+        Gets all the neighbors for the given position of the board
+        :param position: (x_index: int, y_index: int)
+        :return: list of cell neighbors
+        """
+        r, c = position
+        indices = [
+            (r - 1, c),
+            (r - 1, c + 1),
+            (r, c - 1),
+            (r, c + 1),
+            (r + 1, c - 1),
+            (r + 1, c),
+        ]
+        # Removing indices outside the board
+        return list(filter(lambda pos: self.filter_positions(pos), indices))
 
     def generate_child_states(self, state: str) -> [str]:
         """
@@ -92,19 +176,23 @@ class StateManager:
         # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
         if self.state[-1] == "1":
             # Check if player 2 won with the last move
-            for row1 in range(self.k):
+            for row1 in range(self.board_size):
                 if self.board[row1][0] == 2:
-                    for row2 in range(self.k):
-                        if self.board[row2][self.k - 1] == 2:
-                            if nx.has_path(self.P2graph, (row1, 0), (row2, self.k - 1)):
+                    for row2 in range(self.board_size):
+                        if self.board[row2][self.board_size - 1] == 2:
+                            if nx.has_path(
+                                self.P2graph, (row1, 0), (row2, self.board_size - 1)
+                            ):
                                 return True
         else:
             # Check if player 1 won with the last move
-            for col1 in range(self.k):
+            for col1 in range(self.board_size):
                 if self.board[0][col1] == 1:
-                    for col2 in range(self.k):
-                        if self.board[self.k - 1][col2] == 1:
-                            if nx.has_path(self.P1graph, (0, col1), (self.k - 1, col2)):
+                    for col2 in range(self.board_size):
+                        if self.board[self.board_size - 1][col2] == 1:
+                            if nx.has_path(
+                                self.P1graph, (0, col1), (self.board_size - 1, col2)
+                            ):
                                 return True
         return False
 
@@ -115,9 +203,9 @@ class StateManager:
 
     def get_move_string(self, prev_state: str, state: str) -> str:
         for i in range(len(state[:-2])):
-            row = math.floor(i / self.k)
+            row = math.floor(i / self.board_size)
             if state[i] != prev_state[i]:
-                col = i % self.k
+                col = i % self.board_size
                 cell = (row, col)
         return f"place at cell {cell}"
 
@@ -149,36 +237,7 @@ class StateManager:
     def graph_label(self, state: str) -> str:
         return str(StateManager._get_internal_state_rep(state)[0])
 
-    def get_same_player_neighbors(self, position: tuple, player: int) -> [tuple]:
-        """
-        Gets all the neighbors for the given position of the board
-        :param position: (x_index: int, y_index: int)
-        :return: list of cell neighbors
-        """
-        neighbors = self.get_neighbors_indices(position)
-        return list(filter(lambda x: self.board[x[0]][x[1]] == player, neighbors))
 
-    def get_neighbors_indices(self, position) -> [tuple]:
-        r, c = position
-        indices = [
-            (r - 1, c),
-            (r - 1, c + 1),
-            (r, c - 1),
-            (r, c + 1),
-            (r + 1, c - 1),
-            (r + 1, c),
-        ]
-        # Removing indices outside the board
-        return list(filter(lambda pos: self.filter_positions(pos), indices))
-
-    def filter_positions(self, position: tuple):
-        """
-        Standard filters for all position tuples in board class
-        :param position: (x_index: int, y_index: int)
-        :return: boolean describing if the position is within the board size
-        """
-        x, y = position
-        return 0 <= x < self.k and 0 <= y < self.k
 
     def print_graph(self):
         """
@@ -216,19 +275,20 @@ class StateManager:
                 f"Number of changed piece locations are not 1, but {len(change_indices)}"
             )
         change_index = change_indices[0]
-        x_pos, y_pos = change_index % self.k, math.floor(change_index / self.k)
+        x_pos, y_pos = (
+            change_index % self.board_size,
+            math.floor(change_index / self.board_size),
+        )
         played_by_player = int(previous_state[-1])
         return f"{x_pos},{y_pos}:{played_by_player}"
 
     @staticmethod
-    def get_opposite_player(player: str) -> str:
-        int_player = int(player)
-        if 0 < int_player < 3:
-            return "1" if int_player == 2 else "2"
+    def get_opposite_player(player: int) -> str:
+        if 0 < player < 3:
+            return "1" if player == 2 else "2"
         else:
             raise ValueError(
-                f"Input player not 1 or 2, integer input player: {int_player}."
-                f" String input player {player}"
+                f"Input player not 1 or 2, input player: {player}."
             )
 
     @staticmethod
