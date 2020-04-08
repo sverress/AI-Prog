@@ -219,6 +219,15 @@ class StateManager:
         return f"{x_pos},{y_pos}:{played_by_player}"
 
     @staticmethod
+    def get_opposite_player(player: str) -> str:
+        int_player = int(player)
+        if 0 < int_player < 3:
+            return "1" if int_player == 2 else "2"
+        else:
+            raise ValueError(f"Input player not 1 or 2, integer input player: {int_player}."
+                             f" String input player {player}")
+
+    @staticmethod
     def get_next_state_from_distribution_position(index: int, state: str):
         """
         After getting the distribution from the network we use this method to find the
@@ -229,12 +238,13 @@ class StateManager:
         :return: the child state after insertion into index
         """
         board, player = state.split(":")
+        opposite_player = StateManager.get_opposite_player(player)
         output_state = ""
         for board_index, cell_value in enumerate(board):
             if board_index == index:
                 output_state += player
             else:
                 output_state += cell_value
-        return f"{output_state}:{player}"
+        return f"{output_state}:{opposite_player}"
 
 

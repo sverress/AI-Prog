@@ -1,4 +1,6 @@
 import networkx as nx
+
+from hex.GameVisualizer import GameVisualizer
 from hex.StateManager import StateManager
 import matplotlib.pyplot as plt
 import random
@@ -167,10 +169,15 @@ class MCTS:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         start_state = state
+        game = GameVisualizer(self.state_manager.k, initial_state=start_state)
         while not self.state_manager.is_end_state():
             distribution = self.actor_net.predict(state)
-            state = self.epsilon_greedy_child_state_from_distribution(distribution, state)
-            self.state_manager.update_state_manager(state)
+            new_state = self.epsilon_greedy_child_state_from_distribution(distribution, state)
+            action = self.state_manager.get_action(new_state, state)
+            game.add_action(action)
+            self.state_manager.update_state_manager(new_state)
+            state = new_state
+        game.run()
         win_player1 = -1 if self.state_manager.is_P1(state) else 1  # Reward for end state
         self.backpropagate(start_state, win_player1)
 
