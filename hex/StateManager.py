@@ -107,8 +107,7 @@ class StateManager(Board):
         # Add neighbor nodes of same player to player graph
         for neighbor in self.get_same_player_neighbors((x_pos, y_pos), player):
             neighbor_node_action_string = f"{neighbor[0]},{neighbor[1]}:{player}"
-            neighbor_node = player_graph.nodes[neighbor_node_action_string]
-            player_graph.add_edge(neighbor_node, action)
+            player_graph.add_edge(neighbor_node_action_string, action)
 
     def update_string_state(self, player: str):
         """
