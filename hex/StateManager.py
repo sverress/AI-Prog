@@ -33,6 +33,9 @@ class StateManager(Board):
         # Variable to indicate to get_state_function if is has to update self.state first
         self.can_use_cache = True
 
+    def __str__(self):
+        return self.pretty_state_string()
+
     def build_board(self, state: str) -> [[int]]:
         """
         Build and return a board as a 2d-array numpy array
