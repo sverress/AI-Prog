@@ -80,10 +80,14 @@ class StateManager(Board):
         position, player = action.split(":")
         str_board, state_player = self.get_extracted_state()
         if player != state_player:
-            raise ValueError(f"Input action performed by {player}, but current player is {state_player}")
+            raise ValueError(
+                f"Input action performed by {player}, but current player is {state_player}"
+            )
         x_pos, y_pos = [int(str_index) for str_index in position.split(",")]
         if not self.filter_positions((x_pos, y_pos)):
-            raise ValueError(f"Given action position ({x_pos},{y_pos}) is outside the board")
+            raise ValueError(
+                f"Given action position ({x_pos},{y_pos}) is outside the board"
+            )
         return x_pos, y_pos, int(player)
 
     def get_player_graph(self, player: int):
@@ -147,6 +151,18 @@ class StateManager(Board):
         ]
         # Removing indices outside the board
         return list(filter(lambda pos: self.filter_positions(pos), indices))
+
+    def generate_possible_actions(self, state: str) -> [str]:
+        output = []
+        board, player = StateManager.extract_state(state)
+        for index, cell_value in enumerate(board):
+            if cell_value == "0":
+                x_pos, y_pos = (
+                    math.floor(index / self.board_size),
+                    index % self.board_size,
+                )
+                output.append(f"{x_pos},{y_pos}:{player}")
+        return output
 
     def generate_child_states(self, state: str) -> [str]:
         """
@@ -236,8 +252,6 @@ class StateManager(Board):
     def graph_label(self, state: str) -> str:
         return str(StateManager._get_internal_state_rep(state)[0])
 
-
-
     def print_graph(self):
         """
         Print the DiGraph object representing the current tree
@@ -286,9 +300,7 @@ class StateManager(Board):
         if 0 < player < 3:
             return "1" if player == 2 else "2"
         else:
-            raise ValueError(
-                f"Input player not 1 or 2, input player: {player}."
-            )
+            raise ValueError(f"Input player not 1 or 2, input player: {player}.")
 
     @staticmethod
     def get_next_state_from_distribution_position(index: int, state: str):
