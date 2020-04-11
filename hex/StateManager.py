@@ -171,15 +171,11 @@ class StateManager(Board):
         :return: list of strings representing child states
         """
         children = []
-        player = state[-1]
-        next_player = "1" if player == "2" else "2"
-        state_list = list(state)
-        for i, val in enumerate(state[:-2]):
-            if val == "0":
-                child_list = copy.deepcopy(state_list)
-                child_list[i] = player
-                child_list[-1] = next_player
-                children.append("".join(child_list))
+        board, player = StateManager.extract_state(state)
+        next_player = StateManager.get_opposite_player(int(player))
+        for index, cell_value in enumerate(board):
+            if cell_value == "0":
+                children.append(f"{board[:index]}{player}{board[index+1:]}:{next_player}")
         return children
 
     def is_end_state(self) -> str:

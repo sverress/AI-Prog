@@ -49,10 +49,7 @@ class TestStateManager(unittest.TestCase):
     def test_generate_possible_actions(self):
         # Creating list of tuple with state and corresponding number of possible states
         state_list = [
-            (
-                (":" + str(1)).zfill(self.state_manager.board_size ** 2 + 2),
-                self.state_manager.board_size ** 2,
-            ),
+            (self.state_manager.get_state(), self.state_manager.board_size ** 2,),
             ("1" * 60 + "0" * 4 + ":1", 4),
         ]
         for state_tuple in state_list:
@@ -68,4 +65,31 @@ class TestStateManager(unittest.TestCase):
         self.assertSequenceEqual(
             self.state_manager.generate_possible_actions(("1" * 61 + "001:1")),
             ["7,5:1", "7,6:1"],
+        )
+
+    def test_generate_child_states(self):
+        initial_state = self.state_manager.get_state()
+        # checking number of child states
+        self.assertEqual(
+            len(self.state_manager.generate_child_states(initial_state)),
+            self.state_manager.board_size ** 2,
+        )
+        self.assertEqual(
+            len(self.state_manager.generate_child_states("2" * 63 + "0:1")), 1
+        )
+        # Check that the player switches
+        self.assertEqual(
+            self.state_manager.generate_child_states("2" * 63 + "0:1")[0][-1], "2"
+        )
+        self.assertEqual(
+            self.state_manager.generate_child_states("2" * 63 + "0:2")[0][-1], "1"
+        )
+        # Checking that output is correct
+        self.assertSequenceEqual(
+            self.state_manager.generate_child_states("2" * 63 + "0:1"),
+            ["2" * 63 + "1:2"],
+        )
+        self.assertSequenceEqual(
+            self.state_manager.generate_child_states("2" * 30 + "00" + "1" * 32 + ":2"),
+            ["2" * 30 + "20" + "1" * 32 + ":1", "2" * 30 + "02" + "1" * 32 + ":1"],
         )
