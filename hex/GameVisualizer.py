@@ -63,12 +63,16 @@ class GameVisualizer:
     def draw_initial_state(self):
         initial_board = self.initial_state[:-2]
         for i, char in enumerate(initial_board):
+            new_piece_pos = (
+                i % self.k,
+                math.floor(i / self.k),
+            )
             player = int(char)
             if player:
                 self.player_pieces.append(
                     Cell(
                         self.canvas,
-                        self.board[i].top,
+                        self.board[self.get_board_pos(new_piece_pos)].top,
                         player=player,
                     )
                 )
@@ -323,20 +327,20 @@ def play_random_game():
     game.run()
 
 
-def give_initial_state():
+def initial_state():
     initial_state = "2011002220110210:1"
     game = GameVisualizer(4, initial_state=initial_state)
     game.run()
 
 
-def visualize_test():
+def test():
     state_manager = StateManager(8, 1)
     actions = ["1,2:1"]
-    game = GameVisualizer(8, cartesian_cords=True, initial_state=state_manager.get_state())
+    game = GameVisualizer(
+        8, cartesian_cords=True, initial_state=state_manager.get_state()
+    )
     for action in actions:
         state_manager.perform_action(action)
         game.add_action(action)
     print(state_manager.pretty_state_string())
     game.run()
-
-
