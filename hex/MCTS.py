@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import random
 import math
 import numpy as np
-import enum
 
 from hex.StateManager import StateManager
 
@@ -74,9 +73,7 @@ class MCTS:
         if not outgoing_edges:
             self.expand(state)
             return
-        unvisited_outgoing_edges = list(
-            filter(lambda x: x[2]["n"] == 0, outgoing_edges)
-        )
+        unvisited_outgoing_edges = self.tree.get_outgoing_edges(state, only_unvisited=True)
         if unvisited_outgoing_edges:
             child = random.choice(unvisited_outgoing_edges)[1]
             self.state_manager.set_state_manager(child)
@@ -210,7 +207,7 @@ class MCTS:
         self.backpropagate(parent_state, win_player1)
 
 
-class TreeConstants(enum.Enum):
+class TreeConstants:
     # Node attributes
     IS_END_STATE = "is_end_state"
 
@@ -261,12 +258,13 @@ class StateTree:
         sub_tree_nodes = nx.bfs_tree(self.graph, state)
         self.graph = nx.DiGraph(self.graph.subgraph(sub_tree_nodes))
 
-    @staticmethod
-    def edge_is_unvisited(edge):
-        return edge[2][TreeConstants.NUMBER_OF_VISITS] == 0
+    def edge_is_unvisited(self, edge):
+        parent, child = edge
+        return self.get_edge_number_of_visits(parent, child) == 0
 
-    def get_outgoing_edges(self, state: str, unvisited=False, sorted_by_saps=False):
-        # TODO: Get output format of this function
+    def get_outgoing_edges(
+        self, state: str, only_unvisited=False, sorted_by_saps=False
+    ) -> [(str, str)]:
 
         outgoing_edges = list(self.graph.out_edges(state))
         if sorted_by_saps:
@@ -275,9 +273,9 @@ class StateTree:
                 key=lambda x: x[2]["sap_value"],
                 reverse=True,
             )
-        if unvisited:
+        if only_unvisited:
             outgoing_edges = [
-                edge for edge in outgoing_edges if StateTree.edge_is_unvisited(edge)
+                edge for edge in outgoing_edges if self.edge_is_unvisited(edge)
             ]
         return outgoing_edges
 
