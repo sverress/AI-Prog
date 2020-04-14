@@ -306,6 +306,7 @@ class Cell:
         )
 
 
+
 # EXAMPLES OF USE
 def play_random_game():
     """
@@ -314,22 +315,24 @@ def play_random_game():
     """
     import random
 
-    my_k = 4
+    my_k = 8
     game = GameVisualizer(my_k)
     state_manager = StateManager(my_k, 1)
     while not state_manager.is_end_state():
         previous_state = state_manager.get_state()
+        print(previous_state)
         possible_states = state_manager.generate_child_states(previous_state)
         current_state = random.choice(possible_states)
-        state_manager.update_state_manager(current_state)
         taken_action = state_manager.get_action(current_state, previous_state)
+        state_manager.perform_action(taken_action)
         game.add_action(taken_action)
     game.run()
 
 
+
 def initial_state():
-    initial_state = "2011002220110210:1"
-    game = GameVisualizer(4, initial_state=initial_state)
+    initial_state = "2112102122011010211221002101022212201222022111011220021110221001:1"
+    game = GameVisualizer(8, initial_state=initial_state, cartesian_cords=True)
     game.run()
 
 

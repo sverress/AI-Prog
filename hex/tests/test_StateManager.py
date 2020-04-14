@@ -1,6 +1,5 @@
 import unittest
-
-from hex.GameVisualizer import GameVisualizer
+import networkx as nx
 from hex.StateManager import StateManager
 
 
@@ -93,3 +92,32 @@ class TestStateManager(unittest.TestCase):
             self.state_manager.generate_child_states("2" * 30 + "00" + "1" * 32 + ":2"),
             ["2" * 30 + "20" + "1" * 32 + ":1", "2" * 30 + "02" + "1" * 32 + ":1"],
         )
+
+    def test_set_state_manager(self):
+        initial_state = (
+            "2112102122011010211221002101022212201222022111011220021110221001:1"
+        )
+        self.state_manager.set_state_manager(initial_state)
+        path2 = [
+            "0,0:2",
+            "1,0:2",
+            "2,0:2",
+            "3,0:2",
+        ]
+        path1 = [
+            "0,4:1",
+            "1,3:1",
+            "2,2:1",
+            "3,1:1",
+            "4,0:1",
+        ]
+
+        # Check some of the paths in the state
+        def check_path(path, correct_graph, invalid_graph):
+            for i in range(len(path)-1):
+                self.assertTrue(correct_graph.has_edge(path[i], path[i+1]))
+                self.assertFalse(invalid_graph.has_edge(path[i], path[i + 1]))
+            self.assertTrue(nx.has_path(correct_graph, path[0], path[-1]))
+
+        check_path(path2, self.state_manager.P2graph, self.state_manager.P1graph)
+        check_path(path1, self.state_manager.P1graph, self.state_manager.P2graph)

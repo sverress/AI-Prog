@@ -1,7 +1,5 @@
 import networkx as nx
 import math
-import copy
-import matplotlib as plt
 import numpy as np
 
 from libs.board import Board
@@ -36,6 +34,9 @@ class StateManager(Board):
     def __str__(self):
         return self.pretty_state_string()
 
+    def current_player(self):
+        return int(self.state[-1])
+
     def build_board(self, state: str) -> [[int]]:
         """
         Build and return a board as a 2d-array numpy array
@@ -65,24 +66,27 @@ class StateManager(Board):
         Sets the state and board variable of the object to the new state
         :param state: state to set the state manager to
         """
+        # Setting both of the representations of the board
         self.state = state
-        self.board = self._get_internal_state_rep(state)[0]
-        for node in list(self.P1graph.nodes):
-            if self.board[node[0]][node[1]] == 0:
-                self.P1graph.remove_node(node)
-        for node in list(self.P2graph.nodes):
-            if self.board[node[0]][node[1]] == 0:
-                self.P2graph.remove_node(node)
+        self.board = self.build_board(state)
 
-    def check_and_extract_action_string(self, action: str) -> (int, int, int):
+        # Connect graph for both players
+        for row_index, row in enumerate(self.board):
+            for column_index, player_in_cell in enumerate(row):
+                if player_in_cell == 0:
+                    continue
+                self.perform_action(f"{row_index},{column_index}:{player_in_cell}", only_graph_operations=False)
+
+    def check_and_extract_action_string(self, action: str, check_player_turn=True) -> (int, int, int):
         """
         Checks that the incoming string is on the correct format and within limits of the board
         :param action: action string
+        :param check_player_turn: boolean to indicate if we should check that the action comes from correct player
         :return: x_pos, y_pos, player
         """
         position, player = action.split(":")
         str_board, state_player = self.get_extracted_state()
-        if player != state_player:
+        if check_player_turn and player != state_player:
             raise ValueError(
                 f"Input action performed by {player}, but current player is {state_player}"
             )
@@ -94,20 +98,19 @@ class StateManager(Board):
         return x_pos, y_pos, int(player)
 
     def get_player_graph(self, player: int):
-        if player == 1:
-            return self.P1graph
-        else:
-            return self.P2graph
+        return {1: self.P1graph, 2: self.P2graph}.get(player, None)
 
-    def perform_action(self, action: str) -> None:
+    def perform_action(self, action: str, only_graph_operations=False) -> None:
         """
         Performs the given action changing the current state of the state manager
         :param action: action on the form ´x_pos,y_pos:player_id´
+        :param only_graph_operations: boolean to indicate if only player graphs should be updated.
         """
-        x_pos, y_pos, player = self.check_and_extract_action_string(action)
-        # Set action position to player id
-        self.board[x_pos, y_pos] = player
-        self.update_string_state(StateManager.get_opposite_player(player))
+        x_pos, y_pos, player = self.check_and_extract_action_string(action, check_player_turn=only_graph_operations)
+        if not only_graph_operations:
+            # Set action position to player id
+            self.board[x_pos, y_pos] = player
+            self.update_string_state(StateManager.get_opposite_player(player))
         # Add new node to player piece graph
         player_graph = self.get_player_graph(player)
         player_graph.add_node(action)
@@ -116,7 +119,7 @@ class StateManager(Board):
             neighbor_node_action_string = f"{neighbor[0]},{neighbor[1]}:{player}"
             player_graph.add_edge(neighbor_node_action_string, action)
 
-    def update_string_state(self, player: str):
+    def update_string_state(self, player: int):
         """
         Syncs the string state with the board state
         :param player: player id of current player
@@ -178,37 +181,20 @@ class StateManager(Board):
         next_player = StateManager.get_opposite_player(int(player))
         for index, cell_value in enumerate(board):
             if cell_value == "0":
-                children.append(f"{board[:index]}{player}{board[index+1:]}:{next_player}")
+                children.append(
+                    f"{board[:index]}{player}{board[index+1:]}:{next_player}"
+                )
         return children
 
-    def is_end_state(self) -> str:
+    def is_end_state(self):
         """
-        :param state: string representing state of game
+        Check if the current state of the state manager is an end state
         :return: a boolean stating if state is end state
         """
 
-        # Perhaps first check if player one is present in all rows or player 2 is present in all columns -> decr run time
-        if self.state[-1] == "1":
-            # Check if player 2 won with the last move
-            for row1 in range(self.board_size):
-                if self.board[row1][0] == 2:
-                    for row2 in range(self.board_size):
-                        if self.board[row2][self.board_size - 1] == 2:
-                            if nx.has_path(
-                                self.P2graph, (row1, 0), (row2, self.board_size - 1)
-                            ):
-                                return True
-        else:
-            # Check if player 1 won with the last move
-            for col1 in range(self.board_size):
-                if self.board[0][col1] == 1:
-                    for col2 in range(self.board_size):
-                        if self.board[self.board_size - 1][col2] == 1:
-                            if nx.has_path(
-                                self.P1graph, (0, col1), (self.board_size - 1, col2)
-                            ):
-                                return True
-        return False
+        # Checks if the opposite player of the current states player has a path between his sides of the board
+        player = StateManager.get_opposite_player(self.current_player())
+        return all([not char == "0" for char in self.get_extracted_state()[0]])
 
     def pretty_state_string(self) -> str:
         return "\n" + "\n".join(
@@ -223,50 +209,8 @@ class StateManager(Board):
                 cell = (row, col)
         return f"place at cell {cell}"
 
-    def _get_internal_state_rep(self, state: str) -> ([[int]], bool):
-        """
-        Method to be used by subclass to convert from string state rep to internal representation
-        :param state: string representing state of game
-        :return: internal state representation
-        """
-        state_str, player_str = state.split(":")
-        return self.build_board(state_str), player_str == "1"
-
-    def _get_external_state_rep(self, state: ([[int]], bool)) -> str:
-        """
-        External representation format ´<state/board>:<player nr.>´
-        :param state: internal representation of state
-        :return: external representation of state
-        """
-        output = ""
-        for row in state[0]:
-            for col in state[0][row]:
-                output += str(state[row][col])
-        output += ":1" if state[1] else ":2"
-        return output
-
     def is_P1(self, state: str) -> bool:
         return state[-1] == "1"
-
-    def graph_label(self, state: str) -> str:
-        return str(StateManager._get_internal_state_rep(state)[0])
-
-    def print_graph(self):
-        """
-        Print the DiGraph object representing the current tree
-        """
-        pos = nx.shell_layout(self.P1graph)
-        nodes = []
-        labels = {}
-        for state in self.P1graph.nodes:
-            labels[state] = self.graph_label(state)
-            nodes.append(state)
-        nx.draw_networkx_nodes(
-            self.P1graph, pos, nodelist=nodes, node_color="b", alpha=0.5
-        )
-        nx.draw_networkx_edges(self.P1graph, pos)
-        nx.draw_networkx_labels(self.P1graph, pos, labels, font_size=10)
-        plt.show()
 
     def get_action(self, current_state: str, previous_state: str):
         """
@@ -288,16 +232,16 @@ class StateManager(Board):
             )
         change_index = change_indices[0]
         x_pos, y_pos = (
-            change_index % self.board_size,
             math.floor(change_index / self.board_size),
+            change_index % self.board_size,
         )
         played_by_player = int(previous_state[-1])
         return f"{x_pos},{y_pos}:{played_by_player}"
 
     @staticmethod
-    def get_opposite_player(player: int) -> str:
+    def get_opposite_player(player: int) -> int:
         if 0 < player < 3:
-            return "1" if player == 2 else "2"
+            return 1 if player == 2 else 2
         else:
             raise ValueError(f"Input player not 1 or 2, input player: {player}.")
 
