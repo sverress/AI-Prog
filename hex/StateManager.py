@@ -31,10 +31,17 @@ class StateManager(Board):
         # Variable to indicate to get_state_function if is has to update self.state first
         self.can_use_cache = True
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Docstring for StateManager Class
+        :return:
+        """
         return self.pretty_state_string()
 
-    def current_player(self):
+    def current_player(self) -> int:
+        """
+        :return: The the current player from the state as an integer
+        """
         return int(self.state[-1])
 
     def build_board(self, state: str) -> [[int]]:
@@ -51,13 +58,25 @@ class StateManager(Board):
         return np.array(board)
 
     def get_state(self) -> str:
+        """
+        :return: the string representation of the board and current player
+        """
         return self.state
 
     @staticmethod
     def extract_state(state: str) -> (str, str):
+        """
+        Separate the board from the current player
+        :param state: the string representation of the state
+        :return: a tuple: (`string representation of the board`, `player string`)
+        """
         return state.split(":")
 
     def get_extracted_state(self) -> (str, str):
+        """
+        Uses the extract state method on the current state to separate the board from the current player
+        :return: a tuple: (`string representation of the current board`, `current player string`)
+        """
         return StateManager.extract_state(self.get_state())
 
     def set_state_manager(self, state: str) -> None:
@@ -77,7 +96,7 @@ class StateManager(Board):
                     continue
                 self.perform_action(
                     f"{row_index},{column_index}:{player_in_cell}",
-                    only_graph_operations=False,
+                    only_graph_operations=True,
                 )
 
     def check_and_extract_action_string(
@@ -102,17 +121,23 @@ class StateManager(Board):
             )
         return x_pos, y_pos, int(player)
 
-    def get_player_graph(self, player: int):
+    def get_player_graph(self, player: int) -> nx.Graph:
+        """
+        Uses a dict as a switch to return the graph of the input player
+        :param player: player id to find correct graph
+        :return: graph of the input player. None if there is no graph for input player
+        """
         return {1: self.P1graph, 2: self.P2graph}.get(player, None)
 
     def perform_action(self, action: str, only_graph_operations=False) -> None:
         """
-        Performs the given action changing the current state of the state manager
+        Performs the given action changing the current state of the state manager, and updating the graph for the player
+        who did the action
         :param action: action on the form ´x_pos,y_pos:player_id´
         :param only_graph_operations: boolean to indicate if only player graphs should be updated.
         """
         x_pos, y_pos, player = self.check_and_extract_action_string(
-            action, check_player_turn=only_graph_operations
+            action, check_player_turn=(not only_graph_operations)
         )
         if not only_graph_operations:
             # Set action position to player id
@@ -126,7 +151,7 @@ class StateManager(Board):
             neighbor_node_action_string = f"{neighbor[0]},{neighbor[1]}:{player}"
             player_graph.add_edge(neighbor_node_action_string, action)
 
-    def update_string_state(self, player: int):
+    def update_string_state(self, player: int) -> None:
         """
         Syncs the string state with the board state
         :param player: player id of current player
@@ -139,19 +164,19 @@ class StateManager(Board):
 
     def get_same_player_neighbors(self, position: tuple, player: int) -> [tuple]:
         """
-        Gets the neighbor cells of the given player
-        :param position:
-        :param player:
-        :return:
+        Gets the neighbor cells of the given position, filtering out the cells occupied with the opposite player.
+        :param position: the posistion on the board for the cell to find neighbors for
+        :param player: the player id to filter out opposite player pieces
+        :return: list of positions ex: `[(1,3), (5,2), ...]`
         """
         neighbors = self.get_neighbors_indices(position)
         return list(filter(lambda x: self.board[x[0]][x[1]] == player, neighbors))
 
     def get_neighbors_indices(self, position) -> [tuple]:
         """
-        Gets all the neighbors for the given position of the board
+        Gets all the neighbors for the given position of the board, filtering out those outside the board.
         :param position: (x_index: int, y_index: int)
-        :return: list of cell neighbors
+        :return: list of cell neighbors positions ex: `[(1,3), (5,2), ...]`
         """
         r, c = position
         indices = [
@@ -166,6 +191,12 @@ class StateManager(Board):
         return list(filter(lambda pos: self.filter_positions(pos), indices))
 
     def generate_possible_actions(self, state: str) -> [str]:
+        """
+        Generates all possible actions from input state by going over
+         all the cells in the board adding those who are not occupied
+        :param state: string representation of the board
+        :return: list of possible actions ex: `["1,3:2", "1,4:2", "3,6:2", ...]`
+        """
         output = []
         board, player = StateManager.extract_state(state)
         for index, cell_value in enumerate(board):
@@ -177,9 +208,12 @@ class StateManager(Board):
                 output.append(f"{x_pos},{y_pos}:{player}")
         return output
 
-    def generate_child_states(self, state: str) -> [str]:
+    @staticmethod
+    def generate_child_states(state: str) -> [str]:
         """
-        Takes in a parent state and returns the child states from this state
+        Takes in a parent state and returns the child states from this state.
+        Goes through all the cells in the board and checks if they are occupied.
+        Returns a new state for every open cell.
         :param state: string representing state of game
         :return: list of strings representing child states
         """
@@ -193,11 +227,13 @@ class StateManager(Board):
                 )
         return children
 
-    def get_player_sides(self, player: int):
+    def get_player_sides(self, player: int) -> ([str], [str]):
         """
-        Returns the player nodes at each player side. Using dict as switch.
+        Returns the player nodes (action strings) at each end of the board where the players have to connect a path.
+         Using dict as switch.
         :param player: the player to get the nodes for
         :return: a tuple with the lists of nodes for the two sides
+        ex: `(["0,3:2", "0,4:2", "0,6:2", ...], ["7,3:2", "7,4:2", "7,6:2", ...])`
         """
         return {
             1: (
@@ -223,16 +259,14 @@ class StateManager(Board):
                     for i in range(self.board_size)
                     if self.board[i][self.board_size - 1] == player
                 ],
-            )
+            ),
         }.get(player, None)
 
-    def is_end_state(self):
+    def is_end_state(self) -> bool:
         """
-        Check if the current state of the state manager is an end state
-        :return: a boolean stating if state is end state
+        Checks if the opposite player of the current states player has a path between his sides of the board
+        :return: a boolean stating if the current state is end state
         """
-
-        # Checks if the opposite player of the current states player has a path between his sides of the board
         player = StateManager.get_opposite_player(self.current_player())
         # Get the two sides the player needs to connect a path between
         first, second = self.get_player_sides(player)
@@ -241,27 +275,22 @@ class StateManager(Board):
         for start in first:
             for finish in second:
                 if nx.has_path(player_graph, start, finish):
-                    print(f"Found a path between {start} and {finish}")
                     return True
         return False
 
     def pretty_state_string(self) -> str:
+        """
+        :return: nice looking string showing the board for console
+        """
         return "\n" + "\n".join(
             ["".join(["{:2}".format(item) for item in row]) for row in self.board]
         )
 
     def get_move_string(self, prev_state: str, state: str) -> str:
-        for i in range(len(state[:-2])):
-            row = math.floor(i / self.board_size)
-            if state[i] != prev_state[i]:
-                col = i % self.board_size
-                cell = (row, col)
-        return f"place at cell {cell}"
+        x_pos, y_pos, player = self.check_and_extract_action_string(self.get_action(state, prev_state))
+        return f"Player {player} placed piece at ({x_pos}, {y_pos})"
 
-    def is_P1(self, state: str) -> bool:
-        return state[-1] == "1"
-
-    def get_action(self, current_state: str, previous_state: str):
+    def get_action(self, current_state: str, previous_state: str) -> str:
         """
         :param current_state: current state as a string
         :param previous_state: previous state as a string
@@ -289,13 +318,18 @@ class StateManager(Board):
 
     @staticmethod
     def get_opposite_player(player: int) -> int:
+        """
+        Takes in a player and returns the next player
+        :param player: player id
+        :return: opposite player id
+        """
         if 0 < player < 3:
             return 1 if player == 2 else 2
         else:
             raise ValueError(f"Input player not 1 or 2, input player: {player}.")
 
     @staticmethod
-    def get_next_state_from_distribution_position(index: int, state: str):
+    def get_next_state_from_distribution_position(index: int, state: str) -> str:
         """
         After getting the distribution from the network we use this method to find the
         child state from the changed position. Use the previous state and input index to
@@ -315,9 +349,12 @@ class StateManager(Board):
         return f"{output_state}:{opposite_player}"
 
     @staticmethod
-    def extract_board_and_player_from_state(state: str) -> (str, str):
-        return state.split(":")
-
-    @staticmethod
     def index_cell_is_occupied(index: int, state: str) -> bool:
+        """
+        Check if the input index of the string representation
+         of the board contains a piece from either of the players
+        :param index: index of string representation of board
+        :param state: string represnetation of the board
+        :return: true if it is occupied, false otherwise
+        """
         return state[index] == "1" or state[index] == "2"

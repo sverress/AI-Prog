@@ -73,13 +73,13 @@ class MCTS:
         unvisited_out_edgs = list(filter(lambda x: x[2]["n"] == 0, out_edgs))
         if unvisited_out_edgs:
             child = random.choice(unvisited_out_edgs)[1]
-            self.state_manager.update_state_manager(child)
+            self.state_manager.set_state_manager(child)
             self.G.nodes[child]["end_state"] = self.state_manager.is_end_state()
             self.G.get_edge_data(state, child)["flag"] = 1
             self.simulate(child)
             return
         child = self.best_child_uct(state, out_edgs)
-        self.state_manager.update_state_manager(child)
+        self.state_manager.set_state_manager(child)
         self.traverse_tree(child, depth + 1)
 
     def expand(self, state):
@@ -92,7 +92,7 @@ class MCTS:
                 self.add_node(child)
                 self.add_edge(state, child)
         chosen_child = random.choice(children)
-        self.state_manager.update_state_manager(chosen_child)
+        self.state_manager.set_state_manager(chosen_child)
         self.G.nodes[chosen_child]["end_state"] = self.state_manager.is_end_state()
         self.G.get_edge_data(state, chosen_child)["flag"] = 1
         self.simulate(chosen_child)
@@ -105,11 +105,11 @@ class MCTS:
         )
         if self.state_manager.is_P1(state):
             best_child = sorted_list[0][1]
-            self.state_manager.update_state_manager(best_child)
+            self.state_manager.set_state_manager(best_child)
             return best_child
         else:
             best_child = sorted_list[-1][1]
-            self.state_manager.update_state_manager(best_child)
+            self.state_manager.set_state_manager(best_child)
             return best_child
 
     def best_child_uct(self, state: str, out_edgs) -> str:
@@ -178,7 +178,7 @@ class MCTS:
             new_state = self.epsilon_greedy_child_state_from_distribution(
                 distribution, state
             )
-            self.state_manager.update_state_manager(new_state)
+            self.state_manager.set_state_manager(new_state)
             state = new_state
         win_player1 = (
             -1 if self.state_manager.is_P1(state) else 1

@@ -47,7 +47,7 @@ class ANET:
 
     @staticmethod
     def convert_state_to_network_format(state: str):
-        board_str, player_str = StateManager.extract_board_and_player_from_state(state)
+        board_str, player_str = StateManager.extract_state(state)
         board_nn_representation = [int(player_str == "1"), int(player_str == "2")]
         for cell_value in board_str:
             board_nn_representation.append(int(cell_value == "1"))
