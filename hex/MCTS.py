@@ -83,7 +83,7 @@ class MCTS:
         self.traverse_tree(child, depth + 1)
 
     def expand(self, state):
-        children = self.state_manager.generate_child_states(state)
+        children = StateManager.generate_child_states(state)
         for child in children:
             # Could this cause some problems?
             if child in self.G.nodes:
@@ -141,7 +141,7 @@ class MCTS:
         while not self.state_manager.is_end_state():
             out_edgs = list(self.G.out_edges(state))
             if not out_edgs:
-                children = self.state_manager.generate_child_states(state)
+                children = StateManager.generate_child_states(state)
                 for child in children:
                     if child in self.G.nodes:
                         self.add_edge(state, child)
