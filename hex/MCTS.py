@@ -103,7 +103,7 @@ class MCTS:
             key=lambda x: x[2]["sap_value"],
             reverse=True,
         )
-        if self.state_manager.is_P1(state):
+        if self.state_manager.get_player(state) == 1:
             best_child = sorted_list[0][1]
             self.state_manager.set_state_manager(best_child)
             return best_child
@@ -114,7 +114,7 @@ class MCTS:
 
     def best_child_uct(self, state: str, out_edgs) -> str:
         node_n = self.G.nodes[state]["n"]
-        if self.state_manager.is_P1(state):
+        if self.state_manager.get_player(state) == 1:
             best_edge = max(
                 out_edgs,
                 key=lambda x: x[2]["sap_value"]
@@ -150,7 +150,7 @@ class MCTS:
                         self.add_edge(state, child)
                 out_edgs = list(self.G.out_edges(state))
             state = random.choice(out_edgs)[1]
-        win_player1 = -1 if self.state_manager.is_P1(state) else 1
+        win_player1 = -1 if self.state_manager.get_player(state) == 1 else 1
         self.backpropagate(start_state, win_player1)
 
     def epsilon_greedy_child_state_from_distribution(
@@ -180,9 +180,10 @@ class MCTS:
             )
             self.state_manager.set_state_manager(new_state)
             state = new_state
+        # If we are in an end state the opposite player of the current player is the winner
         win_player1 = (
-            -1 if self.state_manager.is_P1(state) else 1
-        )  # Reward for end state
+            -1 if self.state_manager.current_player() == 1 else 1
+        )  # Reward for end states
         self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):
@@ -257,7 +258,7 @@ class MCTS:
         labels = {}
         for state in self.G.nodes:
             labels[state] = self.state_manager.graph_label(state)
-            if self.state_manager.is_P1(state):
+            if self.state_manager.get_player(state) == 1:
                 blue_player_nodes.append(state)
             else:
                 red_player_nodes.append(state)

@@ -38,11 +38,19 @@ class StateManager(Board):
         """
         return self.pretty_state_string()
 
+    @staticmethod
+    def get_player(state: str) -> int:
+        """
+        :param state: string representation of state
+        :return: the player taking the next move from input state
+        """
+        return int(state[-1])
+
     def current_player(self) -> int:
         """
         :return: The the current player from the state as an integer
         """
-        return int(self.state[-1])
+        return StateManager.get_player(self.state)
 
     def build_board(self, state: str) -> [[int]]:
         """
@@ -287,7 +295,9 @@ class StateManager(Board):
         )
 
     def get_move_string(self, prev_state: str, state: str) -> str:
-        x_pos, y_pos, player = self.check_and_extract_action_string(self.get_action(state, prev_state))
+        x_pos, y_pos, player = self.check_and_extract_action_string(
+            self.get_action(state, prev_state), check_player_turn=False
+        )
         return f"Player {player} placed piece at ({x_pos}, {y_pos})"
 
     def get_action(self, current_state: str, previous_state: str) -> str:
@@ -339,7 +349,7 @@ class StateManager(Board):
         :return: the child state after insertion into index
         """
         board, player = state.split(":")
-        opposite_player = StateManager.get_opposite_player(player)
+        opposite_player = StateManager.get_opposite_player(int(player))
         output_state = ""
         for board_index, cell_value in enumerate(board):
             if board_index == index:
