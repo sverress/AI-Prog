@@ -27,13 +27,12 @@ class MCTS:
         :return: a normalized list of length equal to the total number of positions on the board
         """
 
-        split_board = lambda input_state: input_state.split(":")
-        parent_board, parent_player = split_board(state)
+        parent_board, parent_player = StateManager.extract_state(state)
         child_states = self.tree.get_child_states(state)
         change_indices_dict = {}
         total_visits = 0
         for child in child_states:
-            child_board, child_player = split_board(child)
+            child_board, child_player = StateManager.extract_state(child)
             for i in range(len(child_board)):
                 if parent_board[i] != child_board[i]:
                     child_number_of_visits = self.tree.get_state_number_of_visits(child)
@@ -50,8 +49,8 @@ class MCTS:
 
     def run(self, m: int):
         """
-        Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times. Then finds the greedy
-            best move from root state of the current tree
+        Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
+        Then finds the greedy best move from root state of the current tree
         :param m: number of iterations to run
         :return: the greedy best move from root node of the current tree
         """
@@ -73,15 +72,17 @@ class MCTS:
         if not outgoing_edges:
             self.expand(state)
             return
-        unvisited_outgoing_edges = self.tree.get_outgoing_edges(state, only_unvisited=True)
+        unvisited_outgoing_edges = self.tree.get_outgoing_edges(
+            state, only_unvisited=True
+        )
         if unvisited_outgoing_edges:
-            child = random.choice(unvisited_outgoing_edges)[1]
+            parent, child = random.choice(unvisited_outgoing_edges)
             self.state_manager.set_state_manager(child)
             self.tree.set_end_state(child, self.state_manager.is_end_state())
             self.tree.set_active_edge(state, child, True)
             self.simulate(child)
             return
-        child = self.best_child_uct(state, outgoing_edges)
+        child = self.best_child_uct(state)
         self.state_manager.set_state_manager(child)
         self.traverse_tree(child, depth + 1)
 
@@ -101,7 +102,9 @@ class MCTS:
         self.simulate(chosen_child)
 
     def greedy_best_child(self, state: str) -> str:
-        sorted_list = self.tree.get_outgoing_edges(state, sorted_by_saps=True)
+        sorted_list = self.tree.get_outgoing_edges(
+            state, sort_by_function=lambda edge: self.tree.get_sap_value(*edge)
+        )
         if self.state_manager.get_player(state) == 1:
             best_child = sorted_list[0][1]  # Why is this the best one?
             self.state_manager.set_state_manager(best_child)
@@ -111,46 +114,48 @@ class MCTS:
             self.state_manager.set_state_manager(best_child)
             return best_child
 
-    def best_child_uct(self, state: str, out_edgs) -> str:
-        node_n = self.tree.get_state_number_of_visits(state)
-        if self.state_manager.get_player(state) == 1:
-            best_edge = max(
-                out_edgs,
-                key=lambda x: x[2]["sap_value"]
-                + self.c * math.sqrt(math.log(node_n) / (1 + x[2]["n"])),
-            )
+    def compute_uct(
+        self,
+        sap_value: float,
+        number_of_visits_node: int,
+        number_of_visits_edge: int,
+        maximizing_player: bool,
+    ):
+        uct = sap_value
+        usa_term = self.c * math.sqrt(
+            math.log(number_of_visits_node) / (1 + number_of_visits_edge)
+        )
+        if maximizing_player:
+            uct += usa_term
         else:
-            best_edge = min(
-                out_edgs,
-                key=lambda x: x[2]["sap_value"]
-                - self.c * math.sqrt(math.log(node_n) / (1 + x[2]["n"])),
-            )
-        best_edge[2]["flag"] = 1
-        return best_edge[1]
+            uct -= usa_term
+        return uct
 
-    def simulate1(
-        self, state: str
-    ) -> int:  # Is not compatible with the if not out_edgs check in traverse_tree
-        # Nor compatible with state manager check if end state when we add nodes
-        """
-        :param state:
-        :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
-        """
-        start_state = state
-        while not self.state_manager.is_end_state():
-            outgoing_edges = list(self.tree.get_outgoing_edges(state))
-            if not outgoing_edges:
-                children = StateManager.generate_child_states(state)
-                for child in children:
-                    if child in self.tree.get_nodes():
-                        self.tree.add_edge(state, child)
-                    else:
-                        self.tree.add_state_node(child)
-                        self.tree.add_edge(state, child)
-                outgoing_edges = self.tree.get_outgoing_edges(state)
-            state = random.choice(outgoing_edges)[1]
-        win_player1 = -1 if self.state_manager.get_player(state) == 1 else 1
-        self.backpropagate(start_state, win_player1)
+    def best_child_uct(self, state: str) -> str:
+        state_number_of_visits = self.tree.get_state_number_of_visits(state)
+        if self.state_manager.get_player(state) == 1:
+            best_edge = self.tree.get_outgoing_edges(
+                state,
+                sort_by_function=lambda edge: self.compute_uct(
+                    self.tree.get_sap_value(*edge),
+                    state_number_of_visits,
+                    self.tree.get_edge_number_of_visits(*edge),
+                    True,
+                ),
+            )[0]
+        else:
+            best_edge = self.tree.get_outgoing_edges(
+                state,
+                sort_by_function=lambda edge: self.compute_uct(
+                    self.tree.get_sap_value(*edge),
+                    state_number_of_visits,
+                    self.tree.get_edge_number_of_visits(*edge),
+                    False,
+                ),
+            )[-1]
+        parent, best_child = best_edge
+        self.tree.set_active_edge(parent, best_child, True)
+        return best_child
 
     def epsilon_greedy_child_state_from_distribution(
         self, distribution: np.ndarray, state: str, epsilon=0.2
@@ -263,14 +268,16 @@ class StateTree:
         return self.get_edge_number_of_visits(parent, child) == 0
 
     def get_outgoing_edges(
-        self, state: str, only_unvisited=False, sorted_by_saps=False
+        self, state: str, only_unvisited=False, sort_by_function=None
     ) -> [(str, str)]:
 
-        outgoing_edges = list(self.graph.out_edges(state))
-        if sorted_by_saps:
+        outgoing_edges = list(
+            self.graph.out_edges(state)
+        )
+        if sort_by_function:
             outgoing_edges = sorted(
-                self.graph.out_edges(state, data=True),
-                key=lambda x: x[2]["sap_value"],
+                outgoing_edges,
+                key=sort_by_function,
                 reverse=True,
             )
         if only_unvisited:
