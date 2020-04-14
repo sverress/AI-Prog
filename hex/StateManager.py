@@ -75,9 +75,14 @@ class StateManager(Board):
             for column_index, player_in_cell in enumerate(row):
                 if player_in_cell == 0:
                     continue
-                self.perform_action(f"{row_index},{column_index}:{player_in_cell}", only_graph_operations=False)
+                self.perform_action(
+                    f"{row_index},{column_index}:{player_in_cell}",
+                    only_graph_operations=False,
+                )
 
-    def check_and_extract_action_string(self, action: str, check_player_turn=True) -> (int, int, int):
+    def check_and_extract_action_string(
+        self, action: str, check_player_turn=True
+    ) -> (int, int, int):
         """
         Checks that the incoming string is on the correct format and within limits of the board
         :param action: action string
@@ -106,7 +111,9 @@ class StateManager(Board):
         :param action: action on the form ´x_pos,y_pos:player_id´
         :param only_graph_operations: boolean to indicate if only player graphs should be updated.
         """
-        x_pos, y_pos, player = self.check_and_extract_action_string(action, check_player_turn=only_graph_operations)
+        x_pos, y_pos, player = self.check_and_extract_action_string(
+            action, check_player_turn=only_graph_operations
+        )
         if not only_graph_operations:
             # Set action position to player id
             self.board[x_pos, y_pos] = player
@@ -186,6 +193,39 @@ class StateManager(Board):
                 )
         return children
 
+    def get_player_sides(self, player: int):
+        """
+        Returns the player nodes at each player side. Using dict as switch.
+        :param player: the player to get the nodes for
+        :return: a tuple with the lists of nodes for the two sides
+        """
+        return {
+            1: (
+                [
+                    f"{0},{i}:{player}"
+                    for i in range(self.board_size)
+                    if self.board[0][i] == player
+                ],
+                [
+                    f"{self.board_size-1},{i}:{player}"
+                    for i in range(self.board_size)
+                    if self.board[self.board_size - 1][i] == player
+                ],
+            ),
+            2: (
+                [
+                    f"{i},{0}:{player}"
+                    for i in range(self.board_size)
+                    if self.board[i][0] == player
+                ],
+                [
+                    f"{i},{self.board_size-1}:{player}"
+                    for i in range(self.board_size)
+                    if self.board[i][self.board_size - 1] == player
+                ],
+            )
+        }.get(player, None)
+
     def is_end_state(self):
         """
         Check if the current state of the state manager is an end state
@@ -194,7 +234,16 @@ class StateManager(Board):
 
         # Checks if the opposite player of the current states player has a path between his sides of the board
         player = StateManager.get_opposite_player(self.current_player())
-        return all([not char == "0" for char in self.get_extracted_state()[0]])
+        # Get the two sides the player needs to connect a path between
+        first, second = self.get_player_sides(player)
+        player_graph = self.get_player_graph(player)
+        # Check if there is a path between the two sides
+        for start in first:
+            for finish in second:
+                if nx.has_path(player_graph, start, finish):
+                    print(f"Found a path between {start} and {finish}")
+                    return True
+        return False
 
     def pretty_state_string(self) -> str:
         return "\n" + "\n".join(

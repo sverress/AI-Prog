@@ -225,7 +225,7 @@ class GameVisualizer:
         return Cell(self.canvas, self.board[self.get_board_pos(pos)].top, player=player)
 
     def draw(self):
-        action = self.actions.pop()
+        action = self.actions.pop(0)
         new_piece_pos = action[:-1]
         self.player_pieces.append(
             Cell(
@@ -315,7 +315,7 @@ def play_random_game():
     """
     import random
 
-    my_k = 8
+    my_k = 4
     game = GameVisualizer(my_k)
     state_manager = StateManager(my_k, 1)
     while not state_manager.is_end_state():
@@ -331,14 +331,14 @@ def play_random_game():
 
 
 def initial_state():
-    initial_state = "2112102122011010211221002101022212201222022111011220021110221001:1"
+    initial_state = "2112102122011010211221002101022212201222122111011220021110221001:1"
     game = GameVisualizer(8, initial_state=initial_state, cartesian_cords=True)
     game.run()
 
 
 def test():
     state_manager = StateManager(8, 1)
-    actions = ["1,2:1"]
+    actions = ["1,2:1", "7,3:2"]
     game = GameVisualizer(
         8, cartesian_cords=True, initial_state=state_manager.get_state()
     )

@@ -121,3 +121,8 @@ class TestStateManager(unittest.TestCase):
 
         check_path(path2, self.state_manager.P2graph, self.state_manager.P1graph)
         check_path(path1, self.state_manager.P1graph, self.state_manager.P2graph)
+
+    def test_is_end_state(self):
+        end_state_p1 = "2112102122011010211221002101022212201222122111011220021110221001:2"
+        self.state_manager.set_state_manager(end_state_p1)
+        self.assertTrue(self.state_manager.is_end_state())
