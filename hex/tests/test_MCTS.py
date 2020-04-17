@@ -29,7 +29,6 @@ class TestMCTS(unittest.TestCase):
         self.root_child_states = self.state_manager.generate_child_states(init_state)
         # Building first layer of tree
         for child in self.root_child_states:
-            print(child)
             self.mcts.tree.add_state_node(child)
             self.mcts.tree.add_edge(init_state, child)
 
@@ -38,7 +37,14 @@ class TestMCTS(unittest.TestCase):
         distribution = self.mcts.get_distribution(self.state_manager.get_state())
         # If there is only one visited state it should have the whole distribution
         self.assertEqual(distribution[self.changed_index], 1)
-        self.mcts.tree.increment_state_number_of_visits(self.root_child_states[8])
+        # Adding more runs will change the distribution
+        second_changed_index = 8
+        for i in range(3):
+            self.mcts.tree.increment_state_number_of_visits(self.root_child_states[second_changed_index])
+        distribution = self.mcts.get_distribution(self.state_manager.get_state())
+        self.assertEqual(distribution[self.changed_index], 0.25)
+        self.assertEqual(distribution[second_changed_index], 0.75)
+
 
 
 
