@@ -70,4 +70,6 @@ class GameSimulator:
             self.update_winner_stats()
             self.actor_network.train()
             self.print_winner_of_batch_game()
+            if i % 50 == 0:
+                self.actor_network.save_model(episode_num=i)
         self.print_run_summary()
