@@ -25,6 +25,7 @@ class TOPP:
                 wins_p1, wins_p2 = self.play_match(num_games_per_match, player1, player2)
                 score_matrix[index1, index2] += wins_p1
                 score_matrix[index2, index1] += wins_p2
+        print(score_matrix)
 
     def play_match(self, num_games_per_match, player1, player2):
         wins_p1 = 0
@@ -37,8 +38,12 @@ class TOPP:
                 model = player1 if current_player == 1 else player2
                 state = self.state_manager.get_state()
                 distribution = self.action_distribution(state, model)
-                action =
+                action = # some method converting distribution and state to action
                 self.state_manager.perform_action(action)
+            if current_player == 1:
+                wins_p1 += 1
+            else:
+                wins_p2 += 1
             starting_player = 1 if starting_player == 2 else 2
 
         return wins_p1, wins_p2
