@@ -8,7 +8,7 @@ from hex.StateManager import StateManager
 
 
 class MCTS:
-    def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1):
+    def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1, number_of_simulations=10):
         self.state_manager = StateManager(
             state_manager.board_size, state_manager.current_player()
         )
@@ -19,25 +19,25 @@ class MCTS:
         self.c = c
         self.max_tree_height = max_tree_height
         self.actor_net = actor_net
+        self.number_of_simulations = number_of_simulations
 
-    def run(self, m: int):
+    def run(self, root_state: str):
         """
         Main method: Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
         Then finds the greedy best move from root state of the current tree
-        :param m: number of iterations to run
+        :param root_state: state to run the algorithm from -> root node
         :return: the greedy best action from root node of the current tree
         """
-        for i in range(m):
+        self.tree.cut_tree_with_new_root_node(root_state)
+        self.state_manager.set_state_manager(self.tree.root_state)
+        for i in range(self.number_of_simulations):
             rollout_state = self.traverse_tree(self.tree.root_state, depth=0)
             simulation_reward = self.simulate(rollout_state)
             self.backpropagate(rollout_state, simulation_reward)
             self.state_manager.set_state_manager(self.tree.root_state)
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
-        action = self.greedy_best_action(self.tree.root_state)
-        self.state_manager.perform_action(action)
-        self.tree.cut_tree_with_new_root_node(self.state_manager.get_state())
-        return action
+        return self.greedy_best_action(self.tree.root_state)
 
     # MAIN ALGORITHM METHODS
 
@@ -86,11 +86,10 @@ class MCTS:
     def simulate(self, state: str):
         """
         Performs one roll-out using the actor net as policy
-        :param state: start state of simulation
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
-        start_state = state
-        self.state_manager.set_state_manager(state)
+        if self.state_manager.get_state() != state:
+            raise ValueError("The state manager is not set to the start of the simulation")
         while not self.state_manager.is_end_state():
             distribution = self.actor_net.predict(self.state_manager.get_state())
             chosen_action = self.epsilon_greedy_action_from_distribution(
@@ -157,11 +156,11 @@ class MCTS:
         return best_child
 
     def compute_uct(
-            self,
-            sap_value: float,
-            number_of_visits_node: int,
-            number_of_visits_edge: int,
-            maximizing_player: bool,
+        self,
+        sap_value: float,
+        number_of_visits_node: int,
+        number_of_visits_edge: int,
+        maximizing_player: bool,
     ) -> float:
         """
         Computes the uct for the tree policy
@@ -193,7 +192,8 @@ class MCTS:
 
     def choose_random_child(self, parent_state: str, child_list: [str]) -> str:
         """
-        Helper method choosing a random state from the child list and adding edge and node parameters
+        Helper method choosing a random state from the child list, updating state manager
+        and adding edge and node parameters
         :param parent_state: parent state for the child list (to set edge parameters)
         :param child_list: list of children from parent state
         :return: chosen child
@@ -203,7 +203,6 @@ class MCTS:
         self.tree.set_end_state(child, self.state_manager.is_end_state())
         self.tree.set_active_edge(parent_state, child, True)
         return child
-
 
     def epsilon_greedy_action_from_distribution(
         self, distribution: np.ndarray, state: str, epsilon=0.2

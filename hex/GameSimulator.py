@@ -34,7 +34,9 @@ class GameSimulator:
 
     def print_action(self, action: str):
         if self.verbose:
-            x_pos, y_pos, player = self.state_manager.check_and_extract_action_string(action, check_player_turn=False)
+            x_pos, y_pos, player = self.state_manager.check_and_extract_action_string(
+                action, check_player_turn=False
+            )
             print(
                 f"Player {player} placed a piece at ({x_pos}, {y_pos})"
                 f" : {self.state_manager.pretty_state_string()}"
@@ -61,9 +63,15 @@ class GameSimulator:
         for i in range(1, self.g + 1):
             self.state_manager = StateManager(self.k, self.p)
             self.print_start_state(i)
-            mcts = MCTS(self.state_manager, self.actor_network, max_tree_height=self.max_tree_height, c=self.c)
+            mcts = MCTS(
+                self.state_manager,
+                self.actor_network,
+                max_tree_height=self.max_tree_height,
+                c=self.c,
+                number_of_simulations=self.m,
+            )
             while not self.state_manager.is_end_state():
-                action = mcts.run(self.m)
+                action = mcts.run(self.state_manager.get_state())
                 self.state_manager.perform_action(action)
                 self.print_action(action)
             self.update_winner_stats()
