@@ -93,6 +93,8 @@ class StateManager(Board):
         Sets the state and board variable of the object to the new state
         :param state: state to set the state manager to
         """
+        if state == self.get_state():
+            return
         # Setting both of the representations of the board
         self.state = state
         self.board = self.build_board(state)
@@ -294,21 +296,15 @@ class StateManager(Board):
             ["".join(["{:2}".format(item) for item in row]) for row in self.board]
         )
 
-    def get_move_string(self, prev_state: str, state: str) -> str:
-        x_pos, y_pos, player = self.check_and_extract_action_string(
-            self.get_action(state, prev_state), check_player_turn=False
-        )
-        return f"Player {player} placed piece at ({x_pos}, {y_pos})"
-
-    def get_action(self, current_state: str, previous_state: str) -> str:
+    def get_action(self, current_state: str, next_state: str,) -> str:
         """
-        :param current_state: current state as a string
-        :param previous_state: previous state as a string
+        :param next_state: current state as a string
+        :param current_state: previous state as a string
         :return: the position of the placed piece and the
             player who did it as a string on the form : ´x_pos,y_pos:player_id´
         """
-        current_board = current_state[:-2]
-        previous_board = previous_state[:-2]
+        current_board = next_state[:-2]
+        previous_board = current_state[:-2]
         change_indices = [
             i
             for i in range(len(current_board))
@@ -319,12 +315,24 @@ class StateManager(Board):
                 f"Number of changed piece locations are not 1, but {len(change_indices)}"
             )
         change_index = change_indices[0]
-        x_pos, y_pos = (
-            math.floor(change_index / self.board_size),
-            change_index % self.board_size,
-        )
-        played_by_player = int(previous_state[-1])
+        x_pos, y_pos = self.convert_flattened_index_to_cords(change_index)
+        played_by_player = int(current_state[-1])
         return f"{x_pos},{y_pos}:{played_by_player}"
+
+    def convert_flattened_index_to_cords(self, index: int) -> (int, int):
+        return (
+            math.floor(index / self.board_size),
+            index % self.board_size,
+        )
+
+    def check_difference_and_perform_action(self, next_state: str) -> None:
+        """
+        Can only be used if the incoming state is one action away from the current state of the state manager.
+        Takes in the state, checks where the difference is from the current state, creates a state from that
+        difference and performs that action.
+        :param next_state: next state
+        """
+        self.perform_action(self.get_action(self.get_state(), next_state))
 
     @staticmethod
     def get_opposite_player(player: int) -> int:
@@ -338,25 +346,18 @@ class StateManager(Board):
         else:
             raise ValueError(f"Input player not 1 or 2, input player: {player}.")
 
-    @staticmethod
-    def get_next_state_from_distribution_position(index: int, state: str) -> str:
+    def get_action_from_flattened_board_index(self, index: int, state: str) -> str:
         """
         After getting the distribution from the network we use this method to find the
-        child state from the changed position. Use the previous state and input index to
-        return the correct child state.
+        action from the changed position. Use the previous state and input index to
+        return the correct action.
         :param index: 1d index of the position of the move to be made
         :param state: the state before this action
         :return: the child state after insertion into index
         """
-        board, player = state.split(":")
-        opposite_player = StateManager.get_opposite_player(int(player))
-        output_state = ""
-        for board_index, cell_value in enumerate(board):
-            if board_index == index:
-                output_state += player
-            else:
-                output_state += cell_value
-        return f"{output_state}:{opposite_player}"
+        board, player = StateManager.extract_state(state)
+        x_pos, y_pos = self.convert_flattened_index_to_cords(index)
+        return f"{x_pos},{y_pos}:{player}"
 
     @staticmethod
     def index_cell_is_occupied(index: int, state: str) -> bool:

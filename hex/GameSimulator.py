@@ -32,11 +32,11 @@ class GameSimulator:
         else:
             print_loader(i, self.g, 1)
 
-    def print_move(self, previous_state):
+    def print_action(self, action: str):
         if self.verbose:
+            x_pos, y_pos, player = self.state_manager.check_and_extract_action_string(action, check_player_turn=False)
             print(
-                f"Player {1 if self.state_manager.get_player(previous_state) == 1 else 2} "
-                f"{self.state_manager.get_move_string(previous_state, self.current_state)}"
+                f"Player {player} placed a piece at ({x_pos}, {y_pos})"
                 f" : {self.state_manager.pretty_state_string()}"
             )
 
@@ -60,13 +60,12 @@ class GameSimulator:
     def run(self):
         for i in range(1, self.g + 1):
             self.state_manager = StateManager(self.k, self.p)
-            self.current_state = self.state_manager.get_state()
             self.print_start_state(i)
             mcts = MCTS(self.state_manager, self.actor_network, max_tree_height=self.max_tree_height, c=self.c)
             while not self.state_manager.is_end_state():
-                previous_state = self.current_state
-                self.current_state = mcts.run(self.m)
-                self.print_move(previous_state)
+                action = mcts.run(self.m)
+                self.state_manager.perform_action(action)
+                self.print_action(action)
             self.update_winner_stats()
             self.actor_network.train()
             self.print_winner_of_batch_game()

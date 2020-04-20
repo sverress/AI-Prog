@@ -9,11 +9,10 @@ from hex.StateManager import StateManager
 
 class MCTS:
     def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1):
-        self.state_manager = state_manager
-        self.tree = StateTree()
-        self.root_state = self.state_manager.get_state()
+        self.state_manager = StateManager(state_manager.board_size, state_manager.current_player())
+        self.tree = StateTree(self.state_manager.get_state())
         self.tree.add_state_node(
-            self.root_state, is_end_state=self.state_manager.is_end_state()
+            self.tree.root_state, is_end_state=self.state_manager.is_end_state()
         )
         self.c = c
         self.max_tree_height = max_tree_height
@@ -52,17 +51,17 @@ class MCTS:
         Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
         Then finds the greedy best move from root state of the current tree
         :param m: number of iterations to run
-        :return: the greedy best move from root node of the current tree
+        :return: the greedy best action from root node of the current tree
         """
         for i in range(m):
-            self.traverse_tree(self.root_state, depth=0)
-            self.state_manager.set_state_manager(self.root_state)
-        distribution = self.get_distribution(self.root_state)
-        self.actor_net.add_case(self.root_state, distribution.copy())
-        child = self.greedy_best_child(self.root_state)
-        self.root_state = child
-        self.tree.cut_at_state(child)
-        return child
+            self.traverse_tree(self.tree.root_state, depth=0)
+            self.state_manager.set_state_manager(self.tree.root_state)
+        distribution = self.get_distribution(self.tree.root_state)
+        self.actor_net.add_case(self.tree.root_state, distribution.copy())
+        action = self.greedy_best_action(self.tree.root_state)
+        self.state_manager.perform_action(action)
+        self.tree.cut_tree_with_new_root_node(self.state_manager.get_state())
+        return action
 
     def traverse_tree(self, state: str, depth):
         if depth == self.max_tree_height or self.tree.is_end_state(state):
@@ -77,13 +76,13 @@ class MCTS:
         )
         if unvisited_outgoing_edges:
             parent, child = random.choice(unvisited_outgoing_edges)
-            self.state_manager.set_state_manager(child)
+            self.state_manager.check_difference_and_perform_action(child)
             self.tree.set_end_state(child, self.state_manager.is_end_state())
             self.tree.set_active_edge(state, child, True)
             self.simulate(child)
             return
         child = self.best_child_uct(state)
-        self.state_manager.set_state_manager(child)
+        self.state_manager.check_difference_and_perform_action(child)
         self.traverse_tree(child, depth + 1)
 
     def expand(self, state):
@@ -101,18 +100,15 @@ class MCTS:
         self.tree.set_active_edge(state, chosen_child, True)
         self.simulate(chosen_child)
 
-    def greedy_best_child(self, state: str) -> str:
+    def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(
             state, sort_by_function=lambda edge: self.tree.get_sap_value(*edge)
         )
         if self.state_manager.get_player(state) == 1:
-            best_child = sorted_list[0][1]  # Why is this the best one?
-            self.state_manager.set_state_manager(best_child)
-            return best_child
+            best_edge = sorted_list[0]
         else:
-            best_child = sorted_list[-1][1]
-            self.state_manager.set_state_manager(best_child)
-            return best_child
+            best_edge = sorted_list[-1]
+        return self.state_manager.get_action(*best_edge)
 
     def compute_uct(
         self,
@@ -157,7 +153,7 @@ class MCTS:
         self.tree.set_active_edge(parent, best_child, True)
         return best_child
 
-    def epsilon_greedy_child_state_from_distribution(
+    def epsilon_greedy_action_from_distribution(
         self, distribution: np.ndarray, state: str, epsilon=0.2
     ):
         if random.random() > epsilon:
@@ -168,9 +164,13 @@ class MCTS:
             chosen_index = random.choice(
                 [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
             )
-        return StateManager.get_next_state_from_distribution_position(
+        return self.state_manager.get_action_from_flattened_board_index(
             chosen_index, state
         )
+
+    @staticmethod
+    def get_end_state_reward(current_player: int) -> int:
+        return -1 if current_player == 1 else 1
 
     def simulate(self, state: str):
         """
@@ -179,21 +179,21 @@ class MCTS:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         start_state = state
+        self.state_manager.set_state_manager(state)
         while not self.state_manager.is_end_state():
-            distribution = self.actor_net.predict(state)
-            new_state = self.epsilon_greedy_child_state_from_distribution(
-                distribution, state
+            distribution = self.actor_net.predict(self.state_manager.get_state())
+            chosen_action = self.epsilon_greedy_action_from_distribution(
+                distribution, self.state_manager.get_state()
             )
-            self.state_manager.set_state_manager(new_state)
-            state = new_state
-        # If we are in an end state the opposite player of the current player is the winner
-        win_player1 = (
-            -1 if self.state_manager.current_player() == 1 else 1
+            self.state_manager.perform_action(chosen_action)
+        # If we are in a end state the opposite player of the current player is the winner
+        win_player1 = MCTS.get_end_state_reward(
+            self.state_manager.current_player()
         )  # Reward for end states
         self.backpropagate(start_state, win_player1)
 
     def backpropagate(self, state: str, win_player1: int):
-        if state == self.root_state:
+        if state == self.tree.root_state:
             self.tree.increment_state_number_of_visits(state)
             return
         parent_state = self.tree.get_parent(state)
@@ -229,8 +229,12 @@ class TreeConstants:
 
 
 class StateTree:
-    def __init__(self):
+    def __init__(self, root_state: str):
         self.graph = nx.DiGraph()
+        self.root_state = root_state
+
+    def set_root_state(self, state: str) -> None:
+        self.root_state = state
 
     def get_nodes(self):
         return self.graph.nodes
@@ -259,7 +263,8 @@ class StateTree:
     def increment_state_number_of_visits(self, state: str) -> None:
         self.graph.nodes[state][TreeConstants.NUMBER_OF_VISITS] += 1
 
-    def cut_at_state(self, state: str) -> None:
+    def cut_tree_with_new_root_node(self, state: str) -> None:
+        self.set_root_state(state)
         sub_tree_nodes = nx.bfs_tree(self.graph, state)
         self.graph = nx.DiGraph(self.graph.subgraph(sub_tree_nodes))
 
@@ -271,15 +276,9 @@ class StateTree:
         self, state: str, only_unvisited=False, sort_by_function=None
     ) -> [(str, str)]:
 
-        outgoing_edges = list(
-            self.graph.out_edges(state)
-        )
+        outgoing_edges = list(self.graph.out_edges(state))
         if sort_by_function:
-            outgoing_edges = sorted(
-                outgoing_edges,
-                key=sort_by_function,
-                reverse=True,
-            )
+            outgoing_edges = sorted(outgoing_edges, key=sort_by_function, reverse=True,)
         if only_unvisited:
             outgoing_edges = [
                 edge for edge in outgoing_edges if self.edge_is_unvisited(edge)

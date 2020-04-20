@@ -3,7 +3,7 @@ import networkx as nx
 from hex.StateManager import StateManager
 
 
-class TestStateManager(unittest.TestCase):
+class TestBigStateManager(unittest.TestCase):
     def setUp(self) -> None:
         self.state_manager = StateManager(8, 1)
         self.valid_action = "0,0:1"
@@ -114,8 +114,8 @@ class TestStateManager(unittest.TestCase):
 
         # Check some of the paths in the state
         def check_path(path, correct_graph, invalid_graph):
-            for i in range(len(path)-1):
-                self.assertTrue(correct_graph.has_edge(path[i], path[i+1]))
+            for i in range(len(path) - 1):
+                self.assertTrue(correct_graph.has_edge(path[i], path[i + 1]))
                 self.assertFalse(invalid_graph.has_edge(path[i], path[i + 1]))
             self.assertTrue(nx.has_path(correct_graph, path[0], path[-1]))
 
@@ -123,6 +123,30 @@ class TestStateManager(unittest.TestCase):
         check_path(path1, self.state_manager.P1graph, self.state_manager.P2graph)
 
     def test_is_end_state(self):
-        end_state_p1 = "2112102122011010211221002101022212201222122111011220021110221001:2"
+        end_state_p1 = (
+            "2112102122011010211221002101022212201222122111011220021110221001:2"
+        )
         self.state_manager.set_state_manager(end_state_p1)
         self.assertTrue(self.state_manager.is_end_state())
+
+    def test_convert_flattened_index_to_cords(self):
+        # index 8 should be second row first col
+        self.assertSequenceEqual(
+            self.state_manager.convert_flattened_index_to_cords(8), (1, 0)
+        )
+        self.assertSequenceEqual(
+            self.state_manager.convert_flattened_index_to_cords(18), (2, 2)
+        )
+
+
+class TestSmallStateManager(unittest.TestCase):
+    def setUp(self) -> None:
+        self.state_manager = StateManager(3, 1)
+        self.valid_action = "0,0:1"
+
+    def test_is_end_state(self):
+        end_state_p1 = (
+            "100200120:2"
+        )
+        self.state_manager.set_state_manager(end_state_p1)
+        self.assertFalse(self.state_manager.is_end_state())

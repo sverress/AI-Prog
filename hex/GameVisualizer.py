@@ -323,7 +323,7 @@ def play_random_game():
         print(previous_state)
         possible_states = state_manager.generate_child_states(previous_state)
         current_state = random.choice(possible_states)
-        taken_action = state_manager.get_action(current_state, previous_state)
+        taken_action = state_manager.get_action(previous_state, current_state)
         state_manager.perform_action(taken_action)
         game.add_action(taken_action)
     game.run()
