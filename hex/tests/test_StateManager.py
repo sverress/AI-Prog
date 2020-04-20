@@ -1,5 +1,6 @@
 import unittest
 import networkx as nx
+
 from hex.StateManager import StateManager
 
 

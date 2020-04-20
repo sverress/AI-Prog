@@ -1,4 +1,5 @@
 import unittest
+
 from hex.MCTS import MCTS
 from hex.StateManager import StateManager
 

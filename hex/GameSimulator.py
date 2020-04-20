@@ -1,8 +1,9 @@
+import enum
+
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from hex.MCTS import MCTS
 from libs.helpers import print_loader
-import enum
 
 
 class StartingPlayerOptions(enum.Enum):

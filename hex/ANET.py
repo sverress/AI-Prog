@@ -2,9 +2,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import optimizers
 import numpy as np
-from hex.StateManager import StateManager
 import random
 import math
+
+from hex.StateManager import StateManager
 
 
 class ANET:
