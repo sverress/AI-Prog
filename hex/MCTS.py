@@ -9,7 +9,9 @@ from hex.StateManager import StateManager
 
 class MCTS:
     def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1):
-        self.state_manager = StateManager(state_manager.board_size, state_manager.current_player())
+        self.state_manager = StateManager(
+            state_manager.board_size, state_manager.current_player()
+        )
         self.tree = StateTree(self.state_manager.get_state())
         self.tree.add_state_node(
             self.tree.root_state, is_end_state=self.state_manager.is_end_state()
@@ -18,7 +20,6 @@ class MCTS:
         self.max_tree_height = max_tree_height
         self.actor_net = actor_net
 
-    # MCTS METHODS
     def get_distribution(self, state: str):
         """
         Returns the distribution of total visits for child nodes of input state
@@ -48,13 +49,15 @@ class MCTS:
 
     def run(self, m: int):
         """
-        Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
+        Main method: Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
         Then finds the greedy best move from root state of the current tree
         :param m: number of iterations to run
         :return: the greedy best action from root node of the current tree
         """
         for i in range(m):
-            self.traverse_tree(self.tree.root_state, depth=0)
+            rollout_state = self.traverse_tree(self.tree.root_state, depth=0)
+            simulation_reward = self.simulate(rollout_state)
+            self.backpropagate(rollout_state, simulation_reward)
             self.state_manager.set_state_manager(self.tree.root_state)
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
@@ -63,43 +66,60 @@ class MCTS:
         self.tree.cut_tree_with_new_root_node(self.state_manager.get_state())
         return action
 
-    def traverse_tree(self, state: str, depth):
+    def traverse_tree(self, state: str, depth: int) -> str:
+        """
+        Traversing the tree expanding nodes by using the tree policy (tree_policy)
+        :param state: current state
+        :param depth: current depth of the tree
+        :return chosen state to simulate from
+        """
         if depth == self.max_tree_height or self.tree.is_end_state(state):
-            self.simulate(state)
-            return
-        outgoing_edges = self.tree.get_outgoing_edges(state)
-        if not outgoing_edges:
-            chosen_child = self.expand(state)
-            self.simulate(chosen_child)
-            return
-        unvisited_outgoing_edges = self.tree.get_outgoing_edges(
-            state, only_unvisited=True
-        )
-        if unvisited_outgoing_edges:
-            parent, child = random.choice(unvisited_outgoing_edges)
+            return state
+        # If the current state has not explored it's children yet: Add all to graph and chose one to simulate from
+        elif not self.tree.get_outgoing_edges(state):
+            children = self.expand(state)
+            return self.choose_random_child(state, children)
+        # If the current state still has unvisited children: chose one at random and simulate from it
+        elif self.tree.get_outgoing_edges(state, only_unvisited=True):
+            return self.choose_random_child(
+                state,
+                [
+                    child
+                    for (parent, child) in self.tree.get_outgoing_edges(
+                        state, only_unvisited=True
+                    )
+                ],
+            )
+        else:
+            child = self.tree_policy(state)
             self.state_manager.check_difference_and_perform_action(child)
-            self.tree.set_end_state(child, self.state_manager.is_end_state())
-            self.tree.set_active_edge(state, child, True)
-            self.simulate(child)
-            return
-        child = self.best_child_uct(state)
-        self.state_manager.check_difference_and_perform_action(child)
-        self.traverse_tree(child, depth + 1)
+            return self.traverse_tree(child, depth + 1)
 
-    def expand(self, state):
+    def expand(self, state) -> [str]:
+        """
+        Expanding all child nodes from the input state and adding them to the graph.
+        :param state: state to find all children from
+        :return: list of all child states
+        """
         children = StateManager.generate_child_states(state)
         for child in children:
-            # Could this cause some problems?
-            if child in self.tree.get_nodes():
-                self.tree.add_edge(state, child)
-            else:
+            if child not in self.tree.get_nodes():
                 self.tree.add_state_node(child)
-                self.tree.add_edge(state, child)
-        chosen_child = random.choice(children)
-        self.state_manager.check_difference_and_perform_action(chosen_child)
-        self.tree.set_end_state(chosen_child, self.state_manager.is_end_state())
-        self.tree.set_active_edge(state, chosen_child, True)
-        return chosen_child
+            self.tree.add_edge(state, child)
+        return children
+
+    def choose_random_child(self, parent_state: str, child_list: [str]) -> str:
+        """
+        Helper method choosing a random state from the child list and adding edge and node parameters
+        :param parent_state: parent state for the child list (to set edge parameters)
+        :param child_list: list of children from parent state
+        :return: chosen child
+        """
+        child = random.choice(child_list)
+        self.state_manager.check_difference_and_perform_action(child)
+        self.tree.set_end_state(child, self.state_manager.is_end_state())
+        self.tree.set_active_edge(parent_state, child, True)
+        return child
 
     def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(
@@ -117,7 +137,15 @@ class MCTS:
         number_of_visits_node: int,
         number_of_visits_edge: int,
         maximizing_player: bool,
-    ):
+    ) -> float:
+        """
+        Computes the uct for the tree policy
+        :param sap_value: sap value for the edge
+        :param number_of_visits_node: number of visits for the parent state
+        :param number_of_visits_edge: number of visits for the edge between the two nodes
+        :param maximizing_player: if the current player is the maximizing player
+        :return: uct value
+        """
         uct = sap_value
         usa_term = self.c * math.sqrt(
             math.log(number_of_visits_node) / (1 + number_of_visits_edge)
@@ -128,7 +156,12 @@ class MCTS:
             uct -= usa_term
         return uct
 
-    def best_child_uct(self, state: str) -> str:
+    def tree_policy(self, state: str) -> str:
+        """
+        Using the uct score to determine the child state of a input state
+        :param state: input state
+        :return: child state
+        """
         state_number_of_visits = self.tree.get_state_number_of_visits(state)
         if self.state_manager.get_player(state) == 1:
             best_edge = self.tree.get_outgoing_edges(
@@ -157,6 +190,13 @@ class MCTS:
     def epsilon_greedy_action_from_distribution(
         self, distribution: np.ndarray, state: str, epsilon=0.2
     ):
+        """
+        Chooses an epsilon greedy index from the distribution converting that index to an action
+        :param distribution: distribution from number of simulations per node
+        :param state: current state to calculate action
+        :param epsilon: the epsilon value to be used
+        :return: actionstring
+        """
         if random.random() > epsilon:
             chosen_index = int(np.argmax(distribution))
         else:
@@ -171,6 +211,11 @@ class MCTS:
 
     @staticmethod
     def get_end_state_reward(current_player: int) -> int:
+        """
+        We have chosen player 1 to be "us", giving a positive reward if player 1 wins.
+        :param current_player: current player for the state manager
+        :return: reward for end state
+        """
         return -1 if current_player == 1 else 1
 
     def simulate(self, state: str):
@@ -187,13 +232,14 @@ class MCTS:
                 distribution, self.state_manager.get_state()
             )
             self.state_manager.perform_action(chosen_action)
-        # If we are in a end state the opposite player of the current player is the winner
-        win_player1 = MCTS.get_end_state_reward(
-            self.state_manager.current_player()
-        )  # Reward for end states
-        self.backpropagate(start_state, win_player1)
+        return MCTS.get_end_state_reward(self.state_manager.current_player())
 
-    def backpropagate(self, state: str, win_player1: int):
+    def backpropagate(self, state: str, simulation_reward: int):
+        """
+        Starts at rollout start state and jumps up in the tree updating the nodes sap and number of visits
+        :param state: rollout start state
+        :param simulation_reward: reward from simulation
+        """
         if state == self.tree.root_state:
             self.tree.increment_state_number_of_visits(state)
             return
@@ -205,12 +251,12 @@ class MCTS:
         edge_sap_value = self.tree.get_sap_value(parent_state, state)
         new_sap_value = (
             self.tree.get_sap_value(parent_state, state)
-            + (win_player1 - edge_sap_value) / edge_times_enc
+            + (simulation_reward - edge_sap_value) / edge_times_enc
         )
         self.tree.set_sap_value(parent_state, state, new_sap_value)
         self.tree.set_active_edge(parent_state, state, False)
 
-        self.backpropagate(parent_state, win_player1)
+        self.backpropagate(parent_state, simulation_reward)
 
 
 class TreeConstants:
