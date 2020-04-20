@@ -69,7 +69,8 @@ class MCTS:
             return
         outgoing_edges = self.tree.get_outgoing_edges(state)
         if not outgoing_edges:
-            self.expand(state)
+            chosen_child = self.expand(state)
+            self.simulate(chosen_child)
             return
         unvisited_outgoing_edges = self.tree.get_outgoing_edges(
             state, only_unvisited=True
@@ -95,10 +96,10 @@ class MCTS:
                 self.tree.add_state_node(child)
                 self.tree.add_edge(state, child)
         chosen_child = random.choice(children)
-        self.state_manager.set_state_manager(chosen_child)
+        self.state_manager.check_difference_and_perform_action(chosen_child)
         self.tree.set_end_state(chosen_child, self.state_manager.is_end_state())
         self.tree.set_active_edge(state, chosen_child, True)
-        self.simulate(chosen_child)
+        return chosen_child
 
     def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(

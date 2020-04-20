@@ -31,6 +31,10 @@ class StateManager(Board):
         # Variable to indicate to get_state_function if is has to update self.state first
         self.can_use_cache = True
 
+    def reset_player_graphs(self):
+        self.P1graph = nx.Graph()
+        self.P2graph = nx.Graph()
+
     def __str__(self) -> str:
         """
         Docstring for StateManager Class
@@ -98,6 +102,9 @@ class StateManager(Board):
         # Setting both of the representations of the board
         self.state = state
         self.board = self.build_board(state)
+
+        # Clear graphs
+        self.reset_player_graphs()
 
         # Connect graph for both players
         for row_index, row in enumerate(self.board):

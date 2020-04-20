@@ -38,7 +38,8 @@ class TOPP:
                 model = player1 if current_player == 1 else player2
                 state = self.state_manager.get_state()
                 distribution = self.action_distribution(state, model)
-                action = # some method converting distribution and state to action
+                argmax_distribution_index = int(np.argmax(distribution))  # Greedy best from distribution
+                action = self.state_manager.get_action_from_flattened_board_index(argmax_distribution_index, state)
                 self.state_manager.perform_action(action)
             if current_player == 1:
                 wins_p1 += 1

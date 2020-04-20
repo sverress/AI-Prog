@@ -146,7 +146,8 @@ class TestSmallStateManager(unittest.TestCase):
 
     def test_is_end_state(self):
         end_state_p1 = (
-            "100200120:2"
+            "121000221:2"
         )
         self.state_manager.set_state_manager(end_state_p1)
         self.assertFalse(self.state_manager.is_end_state())
+

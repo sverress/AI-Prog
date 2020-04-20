@@ -43,7 +43,7 @@ class GameSimulator:
     def print_winner_of_batch_game(self):
         if self.verbose:
             print(
-                f"Player {2 if self.state_manager.get_player(self.current_state) == 1 else 1} wins the game"
+                f"Player {2 if self.state_manager.current_player() == 1 else 1} wins the game"
             )
 
     def print_run_summary(self):
@@ -54,7 +54,7 @@ class GameSimulator:
         )
 
     def update_winner_stats(self):
-        if not self.state_manager.get_player(self.current_state) == 1:
+        if not self.state_manager.current_player() == 1:
             self.number_of_wins += 1
 
     def run(self):

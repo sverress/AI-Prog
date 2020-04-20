@@ -331,8 +331,8 @@ def play_random_game():
 
 
 def initial_state():
-    initial_state = "2112102122011010211221002101022212201222122111011220021110221001:1"
-    game = GameVisualizer(8, initial_state=initial_state, cartesian_cords=True)
+    initial_state = "121000221:2"
+    game = GameVisualizer(3, initial_state=initial_state, cartesian_cords=True)
     game.run()
 
 
