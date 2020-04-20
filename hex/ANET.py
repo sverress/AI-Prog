@@ -3,12 +3,14 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras import optimizers
 import numpy as np
 from hex.StateManager import StateManager
+import random
 
 
 class ANET:
-    def __init__(self, size_of_board, save_interval=10, batch_size=10):
+    def __init__(self, size_of_board, save_interval=10, batch_size=10, max_size_buffer=1000):
         self.save_interval = save_interval
         self.size_of_board = size_of_board
+        self.max_size_buffer = max_size_buffer
         self.batch_size = batch_size
         self.replay_buffer = []
         self.number_of_train_executions = 0
@@ -69,8 +71,8 @@ class ANET:
         if self.number_of_train_executions % self.save_interval == 0:
             self.save_model()
 
-    def save_model(self):
-        pass
+    def save_model(self, episode_num):
+        self.model.save(f'saved_models/model_{episode_num}.h5')
 
     def _get_random_minibatch(self):
         # random.shuffle(self.replay_buffer)
@@ -95,3 +97,7 @@ class ANET:
         self.replay_buffer.append(
             (ANET.convert_state_to_network_format(state), distribution_of_visit_counts)
         )
+        if len(self.replay_buffer) > self.max_size_buffer:
+            index = random.randint(1,300)
+            del self.replay_buffer[index]
+
