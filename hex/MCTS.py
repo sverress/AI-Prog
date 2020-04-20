@@ -20,33 +20,6 @@ class MCTS:
         self.max_tree_height = max_tree_height
         self.actor_net = actor_net
 
-    def get_distribution(self, state: str):
-        """
-        Returns the distribution of total visits for child nodes of input state
-        :param state: state to get distribution from
-        :return: a normalized list of length equal to the total number of positions on the board
-        """
-
-        parent_board, parent_player = StateManager.extract_state(state)
-        child_states = self.tree.get_child_states(state)
-        change_indices_dict = {}
-        total_visits = 0
-        for child in child_states:
-            child_board, child_player = StateManager.extract_state(child)
-            for i in range(len(child_board)):
-                if parent_board[i] != child_board[i]:
-                    child_number_of_visits = self.tree.get_state_number_of_visits(child)
-                    change_indices_dict[i] = child_number_of_visits
-                    total_visits += child_number_of_visits
-                    break
-
-        return [
-            change_indices_dict[index] / total_visits
-            if index in change_indices_dict
-            else 0
-            for index in range(self.state_manager.board_size ** 2)
-        ]
-
     def run(self, m: int):
         """
         Main method: Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
@@ -65,6 +38,8 @@ class MCTS:
         self.state_manager.perform_action(action)
         self.tree.cut_tree_with_new_root_node(self.state_manager.get_state())
         return action
+
+    # MAIN ALGORITHM METHODS
 
     def traverse_tree(self, state: str, depth: int) -> str:
         """
@@ -108,116 +83,6 @@ class MCTS:
             self.tree.add_edge(state, child)
         return children
 
-    def choose_random_child(self, parent_state: str, child_list: [str]) -> str:
-        """
-        Helper method choosing a random state from the child list and adding edge and node parameters
-        :param parent_state: parent state for the child list (to set edge parameters)
-        :param child_list: list of children from parent state
-        :return: chosen child
-        """
-        child = random.choice(child_list)
-        self.state_manager.check_difference_and_perform_action(child)
-        self.tree.set_end_state(child, self.state_manager.is_end_state())
-        self.tree.set_active_edge(parent_state, child, True)
-        return child
-
-    def greedy_best_action(self, state: str) -> str:
-        sorted_list = self.tree.get_outgoing_edges(
-            state, sort_by_function=lambda edge: self.tree.get_sap_value(*edge)
-        )
-        if self.state_manager.get_player(state) == 1:
-            best_edge = sorted_list[0]
-        else:
-            best_edge = sorted_list[-1]
-        return self.state_manager.get_action(*best_edge)
-
-    def compute_uct(
-        self,
-        sap_value: float,
-        number_of_visits_node: int,
-        number_of_visits_edge: int,
-        maximizing_player: bool,
-    ) -> float:
-        """
-        Computes the uct for the tree policy
-        :param sap_value: sap value for the edge
-        :param number_of_visits_node: number of visits for the parent state
-        :param number_of_visits_edge: number of visits for the edge between the two nodes
-        :param maximizing_player: if the current player is the maximizing player
-        :return: uct value
-        """
-        uct = sap_value
-        usa_term = self.c * math.sqrt(
-            math.log(number_of_visits_node) / (1 + number_of_visits_edge)
-        )
-        if maximizing_player:
-            uct += usa_term
-        else:
-            uct -= usa_term
-        return uct
-
-    def tree_policy(self, state: str) -> str:
-        """
-        Using the uct score to determine the child state of a input state
-        :param state: input state
-        :return: child state
-        """
-        state_number_of_visits = self.tree.get_state_number_of_visits(state)
-        if self.state_manager.get_player(state) == 1:
-            best_edge = self.tree.get_outgoing_edges(
-                state,
-                sort_by_function=lambda edge: self.compute_uct(
-                    self.tree.get_sap_value(*edge),
-                    state_number_of_visits,
-                    self.tree.get_edge_number_of_visits(*edge),
-                    True,
-                ),
-            )[0]
-        else:
-            best_edge = self.tree.get_outgoing_edges(
-                state,
-                sort_by_function=lambda edge: self.compute_uct(
-                    self.tree.get_sap_value(*edge),
-                    state_number_of_visits,
-                    self.tree.get_edge_number_of_visits(*edge),
-                    False,
-                ),
-            )[-1]
-        parent, best_child = best_edge
-        self.tree.set_active_edge(parent, best_child, True)
-        return best_child
-
-    def epsilon_greedy_action_from_distribution(
-        self, distribution: np.ndarray, state: str, epsilon=0.2
-    ):
-        """
-        Chooses an epsilon greedy index from the distribution converting that index to an action
-        :param distribution: distribution from number of simulations per node
-        :param state: current state to calculate action
-        :param epsilon: the epsilon value to be used
-        :return: actionstring
-        """
-        if random.random() > epsilon:
-            chosen_index = int(np.argmax(distribution))
-        else:
-            # Choose random state from those with positive probability
-            # prob == 0 might be occupied cells on the board
-            chosen_index = random.choice(
-                [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
-            )
-        return self.state_manager.get_action_from_flattened_board_index(
-            chosen_index, state
-        )
-
-    @staticmethod
-    def get_end_state_reward(current_player: int) -> int:
-        """
-        We have chosen player 1 to be "us", giving a positive reward if player 1 wins.
-        :param current_player: current player for the state manager
-        :return: reward for end state
-        """
-        return -1 if current_player == 1 else 1
-
     def simulate(self, state: str):
         """
         Performs one roll-out using the actor net as policy
@@ -257,6 +122,146 @@ class MCTS:
         self.tree.set_active_edge(parent_state, state, False)
 
         self.backpropagate(parent_state, simulation_reward)
+
+    # HELPER METHODS
+
+    def tree_policy(self, state: str) -> str:
+        """
+        Using the uct score to determine the child state of a input state
+        :param state: input state
+        :return: child state
+        """
+        state_number_of_visits = self.tree.get_state_number_of_visits(state)
+        if self.state_manager.get_player(state) == 1:
+            best_edge = self.tree.get_outgoing_edges(
+                state,
+                sort_by_function=lambda edge: self.compute_uct(
+                    self.tree.get_sap_value(*edge),
+                    state_number_of_visits,
+                    self.tree.get_edge_number_of_visits(*edge),
+                    True,
+                ),
+            )[0]
+        else:
+            best_edge = self.tree.get_outgoing_edges(
+                state,
+                sort_by_function=lambda edge: self.compute_uct(
+                    self.tree.get_sap_value(*edge),
+                    state_number_of_visits,
+                    self.tree.get_edge_number_of_visits(*edge),
+                    False,
+                ),
+            )[-1]
+        parent, best_child = best_edge
+        self.tree.set_active_edge(parent, best_child, True)
+        return best_child
+
+    def compute_uct(
+            self,
+            sap_value: float,
+            number_of_visits_node: int,
+            number_of_visits_edge: int,
+            maximizing_player: bool,
+    ) -> float:
+        """
+        Computes the uct for the tree policy
+        :param sap_value: sap value for the edge
+        :param number_of_visits_node: number of visits for the parent state
+        :param number_of_visits_edge: number of visits for the edge between the two nodes
+        :param maximizing_player: if the current player is the maximizing player
+        :return: uct value
+        """
+        uct = sap_value
+        usa_term = self.c * math.sqrt(
+            math.log(number_of_visits_node) / (1 + number_of_visits_edge)
+        )
+        if maximizing_player:
+            uct += usa_term
+        else:
+            uct -= usa_term
+        return uct
+
+    def greedy_best_action(self, state: str) -> str:
+        sorted_list = self.tree.get_outgoing_edges(
+            state, sort_by_function=lambda edge: self.tree.get_sap_value(*edge)
+        )
+        if self.state_manager.get_player(state) == 1:
+            best_edge = sorted_list[0]
+        else:
+            best_edge = sorted_list[-1]
+        return self.state_manager.get_action(*best_edge)
+
+    def choose_random_child(self, parent_state: str, child_list: [str]) -> str:
+        """
+        Helper method choosing a random state from the child list and adding edge and node parameters
+        :param parent_state: parent state for the child list (to set edge parameters)
+        :param child_list: list of children from parent state
+        :return: chosen child
+        """
+        child = random.choice(child_list)
+        self.state_manager.check_difference_and_perform_action(child)
+        self.tree.set_end_state(child, self.state_manager.is_end_state())
+        self.tree.set_active_edge(parent_state, child, True)
+        return child
+
+
+    def epsilon_greedy_action_from_distribution(
+        self, distribution: np.ndarray, state: str, epsilon=0.2
+    ):
+        """
+        Chooses an epsilon greedy index from the distribution converting that index to an action
+        :param distribution: distribution from number of simulations per node
+        :param state: current state to calculate action
+        :param epsilon: the epsilon value to be used
+        :return: actionstring
+        """
+        if random.random() > epsilon:
+            chosen_index = int(np.argmax(distribution))
+        else:
+            # Choose random state from those with positive probability
+            # prob == 0 might be occupied cells on the board
+            chosen_index = random.choice(
+                [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
+            )
+        return self.state_manager.get_action_from_flattened_board_index(
+            chosen_index, state
+        )
+
+    @staticmethod
+    def get_end_state_reward(current_player: int) -> int:
+        """
+        We have chosen player 1 to be "us", giving a positive reward if player 1 wins.
+        :param current_player: current player for the state manager
+        :return: reward for end state
+        """
+        return -1 if current_player == 1 else 1
+
+    def get_distribution(self, state: str):
+        """
+        Returns the distribution of total visits for child nodes of input state
+        :param state: state to get distribution from
+        :return: a normalized list of length equal to the total number of positions on the board
+        """
+
+        parent_board, parent_player = StateManager.extract_state(state)
+        child_states = self.tree.get_child_states(state)
+        change_indices_dict = {}
+        total_visits = 0
+        for child in child_states:
+            child_board, child_player = StateManager.extract_state(child)
+            for i in range(len(child_board)):
+                if parent_board[i] != child_board[i]:
+                    child_number_of_visits = self.tree.get_state_number_of_visits(child)
+                    change_indices_dict[i] = child_number_of_visits
+                    total_visits += child_number_of_visits
+                    break
+
+        return [
+            change_indices_dict[index] / total_visits
+            if index in change_indices_dict
+            else 0
+            for index in range(self.state_manager.board_size ** 2)
+        ]
 
 
 class TreeConstants:
