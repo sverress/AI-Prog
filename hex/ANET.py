@@ -56,13 +56,18 @@ class ANET:
             board_nn_representation.append(int(cell_value == "2"))
         return board_nn_representation
 
-    def predict(self, state: str):
-        net_distribution = self.model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
+    @staticmethod
+    def predict_and_normalize(model: Sequential, state: str):
+        net_distribution = model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
         # Filter out taken cells in the board
         for index, share_of_distribution in np.ndenumerate(net_distribution):
             if StateManager.index_cell_is_occupied(index[0], state):
                 net_distribution[index] = 0
+        # Normalize
         return net_distribution/sum(net_distribution)
+
+    def predict(self, state):
+        return ANET.predict_and_normalize(self.model, state)
 
     def train(self):
         x, y = self._get_random_minibatch()

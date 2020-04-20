@@ -37,7 +37,7 @@ class TOPP:
                 current_player = self.state_manager.current_player()
                 model = player1 if current_player == 1 else player2
                 state = self.state_manager.get_state()
-                distribution = self.action_distribution(state, model)
+                distribution = ANET.predict_and_normalize(model, state)
                 argmax_distribution_index = int(np.argmax(distribution))  # Greedy best from distribution
                 action = self.state_manager.get_action_from_flattened_board_index(argmax_distribution_index, state)
                 self.state_manager.perform_action(action)
@@ -48,11 +48,3 @@ class TOPP:
             starting_player = 1 if starting_player == 2 else 2
 
         return wins_p1, wins_p2
-
-    def action_distribution(self, state: str, model):
-        net_distribution = model.predict(np.array([ANET.convert_state_to_network_format(state)]))[0]
-        # Filter out taken cells in the board
-        for index, share_of_distribution in np.ndenumerate(net_distribution):
-            if StateManager.index_cell_is_occupied(index[0], state):
-                net_distribution[index] = 0
-        return net_distribution/sum(net_distribution)
