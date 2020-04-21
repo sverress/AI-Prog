@@ -85,7 +85,7 @@ class ANET:
         self.model.fit(x, y, verbose=0)
 
     def save_model(self, episode_num):
-        self.model.save(f"saved_models/model_{episode_num}.h5")
+        self.model.save(f"trained_models/model_{episode_num}.h5")
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
         """
@@ -97,7 +97,7 @@ class ANET:
             batch = random.sample(self.replay_buffer, self.batch_size)
         x = []
         y = []
-        for case in self.replay_buffer:
+        for case in batch:
             x.append(case[0])  # Add state as x
             y.append(case[1])  # Add distribution as y
         return np.array(x), np.array(y)
