@@ -66,16 +66,18 @@ class ANET:
         return board_nn_representation
 
     @staticmethod
-    def predict_and_normalize(model: Sequential, state: str):
-        net_distribution = model.predict(
-            np.array([ANET.convert_state_to_network_format(state)])
-        )[0]
+    def predict_and_normalize(model: Sequential, state: str) -> np.array:
+        input_data = np.array([ANET.convert_state_to_network_format(state)])
+        net_distribution_tensor = model(input_data)[0]
+        net_distribution = []
         # Filter out taken cells in the board
-        for index, share_of_distribution in np.ndenumerate(net_distribution):
+        for index, share_of_distribution in np.ndenumerate(net_distribution_tensor):
             if StateManager.index_cell_is_occupied(index[0], state):
-                net_distribution[index] = 0
+                net_distribution.append(0.0)
+            else:
+                net_distribution.append(float(share_of_distribution))
         # Normalize
-        return net_distribution / sum(net_distribution)
+        return np.array(net_distribution) / sum(net_distribution)
 
     def predict(self, state):
         return ANET.predict_and_normalize(self.model, state)
