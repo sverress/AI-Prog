@@ -16,19 +16,21 @@ FONT_COLOR = "#FFF"
 
 
 class GameVisualizer:
-    def __init__(self, k, frame_rate=1000, initial_state=None, cartesian_cords=False):
-        self.k = k
+    def __init__(
+        self, board_size, frame_rate=1000, initial_state=None, cartesian_cords=False
+    ):
+        self.board_size = board_size
         self.frame_rate = frame_rate
         self.initial_state_given = initial_state is not None
         self.initial_state = initial_state
         self.master = Tk()
         self.master.title("HexGameVisualizer")
         self.start_pos = (60, 30)
-
+        self.master.protocol("WM_DELETE_WINDOW", self.quit_application)
         self.canvas = Canvas(
             self.master,
-            width=self.start_pos[0] + self.k * 55 + self.start_pos[0],
-            height=self.start_pos[1] + self.k * 33 + self.start_pos[1],
+            width=self.start_pos[0] + self.board_size * 55 + self.start_pos[0],
+            height=self.start_pos[1] + self.board_size * 33 + self.start_pos[1],
         )
         self.canvas.pack()
         self.counter = 0
@@ -39,6 +41,13 @@ class GameVisualizer:
         self.actions = []
         self.player_pieces = []
         self.cartesian_cords = cartesian_cords
+        self.state_manager = StateManager(board_size, 1)
+
+    def quit_application(self):
+        import sys
+
+        self.master.quit()
+        sys.exit()
 
     def add_action(self, action: str):
         self.actions.append(action)
@@ -48,8 +57,7 @@ class GameVisualizer:
         for action in self.actions:
             positions, player = action.split(":")
             x_pos, y_pos = positions.split(",")
-            # row and col are opposite of state manager
-            new_actions.append((int(y_pos), int(x_pos), int(player)))
+            new_actions.append((int(x_pos), int(y_pos), int(player)))
         return new_actions
 
     def run(self):
@@ -62,42 +70,52 @@ class GameVisualizer:
         mainloop()
 
     def draw_initial_state(self):
-        initial_board = self.initial_state[:-2]
-        for i, char in enumerate(initial_board):
-            new_piece_pos = (
-                i % self.k,
-                math.floor(i / self.k),
-            )
-            player = int(char)
-            if player:
-                self.player_pieces.append(
-                    Cell(
-                        self.canvas,
-                        self.board[self.get_board_pos(new_piece_pos)].top,
-                        player=player,
+        initial_board = self.state_manager.build_board(self.initial_state)
+        for row_index, row in enumerate(initial_board):
+            for col_index, player in enumerate(row):
+                if player:
+                    self.player_pieces.append(
+                        Cell(
+                            self.canvas,
+                            self.board[row_index][col_index].top,
+                            player=player,
+                        )
                     )
-                )
+
+    def get_canvas_position(self, position: (int, int)) -> (int, int):
+        x, y = self.start_pos
+        x += self.size * 2 * position[1] + self.size * position[0]
+        y += (self.size + self.size / 1.7) * position[0]
+        return x, y
 
     def build_and_draw_board(self):
-        starting_x, starting_y = self.start_pos
-        for i in range(self.k):
-            cell = Cell(
-                self.canvas, (starting_x + i * 40, starting_y), draw_on_init=False,
-            )
-            self.board.append(cell)
-            for j in range(self.k - 1):
-                cell = Cell(self.canvas, cell.right2, draw_on_init=False)
-                self.board.append(cell)
-        [
-            cell.set_cords(self.get_cords(board_pos))
-            for board_pos, cell in enumerate(self.board)
-        ]  # Set cartesian cords for cells
-        self.board_border = self.draw_board_border()
-        [cell.draw() for cell in self.board]  # Draw all board cells
+        for i in range(self.board_size):
+            row = []
+            for j in range(self.board_size):
+                row.append(
+                    Cell(
+                        self.canvas,
+                        self.get_canvas_position((i, j)),
+                        draw_on_init=False,
+                    )
+                )
+            self.board.append(row)
+        self.draw_board_border()
+        for row_index, row in enumerate(self.board):
+            for col_index, cell in enumerate(row):
+                self.board[row_index][col_index].draw()
+
+    def get_column(self, target_col_index: int):
+        column = []
+        for row_index, row in enumerate(self.board):
+            for col_index, cell in enumerate(row):
+                if target_col_index == col_index:
+                    column.append(cell)
+        return column
 
     def draw_board_border(self):
         borders = []
-        first_row = [self.board[self.get_board_pos((i, 0))] for i in range(self.k)]
+        first_row = self.board[0]
         borders.append(
             self.canvas.create_polygon(
                 first_row[0].left1[0],
@@ -125,7 +143,7 @@ class GameVisualizer:
             )
             for i, cell in enumerate(first_row)
         ]
-        first_column = [self.board[self.get_board_pos((0, i))] for i in range(self.k)]
+        first_column = self.get_column(0)
         borders.append(
             self.canvas.create_polygon(
                 first_column[0].left1[0],
@@ -153,9 +171,7 @@ class GameVisualizer:
             )
             for i, cell in enumerate(first_column)
         ]
-        last_row = [
-            self.board[self.get_board_pos((i, self.k - 1))] for i in range(self.k)
-        ]
+        last_row = self.board[-1]
         borders.append(
             self.canvas.create_polygon(
                 last_row[0].bottom[0],
@@ -183,9 +199,7 @@ class GameVisualizer:
             )
             for i, cell in enumerate(last_row)
         ]
-        last_column = [
-            self.board[self.get_board_pos((self.k - 1, i))] for i in range(self.k)
-        ]
+        last_column = self.get_column(self.board_size - 1)
         borders.append(
             # Bottom up
             self.canvas.create_polygon(
@@ -214,36 +228,36 @@ class GameVisualizer:
             )
             for i, cell in enumerate(last_column)
         ]
+
         return borders
 
     def get_board_pos(self, pos: (int, int)):
-        return self.k * pos[0] + pos[1]
+        return self.board_size * pos[0] + pos[1]
 
     def get_cords(self, board_pos: int):
-        return math.floor(board_pos / self.k), board_pos % self.k
-
-    def draw_player_cell(self, pos: (int, int), player: int):
-        return Cell(self.canvas, self.board[self.get_board_pos(pos)].top, player=player)
+        return math.floor(board_pos / self.board_size), board_pos % self.board_size
 
     def draw(self):
-        action = self.actions.pop(0)
-        new_piece_pos = action[:-1]
+        x_pos, y_pos, player = self.actions.pop(0)
         self.player_pieces.append(
-            Cell(
-                self.canvas,
-                self.board[self.get_board_pos(new_piece_pos)].top,
-                player=action[-1],
-            )
+            Cell(self.canvas, self.board[x_pos][y_pos].top, player=player,)
         )
         if len(self.actions) > 0:
             self.master.after(self.frame_rate, self.draw)
 
 
 class Cell:
-    def __init__(self, canvas, pos: tuple, player=None, size=20, draw_on_init=True):
+    def __init__(
+        self,
+        canvas,
+        pos: tuple,
+        player=None,
+        size=20,
+        draw_on_init=True,
+        divide_parameter=1.7,
+    ):
         # Player colors
-        self.is_player_cell = player is not None
-        if self.is_player_cell:
+        if player is not None:
             # Player one is blue. Player 2 red.
             self.color = PLAYER_ONE_COLOR if player == 1 else PLAYER_TWO_COLOR
         else:
@@ -253,7 +267,7 @@ class Cell:
 
         # Constants
         self.size = size
-        self.divide_by = 1.7
+        self.divide_by = divide_parameter
 
         self.object = None
         self.cords = (None, None)
@@ -307,7 +321,6 @@ class Cell:
         )
 
 
-
 # EXAMPLES OF USE
 def play_random_game():
     """
@@ -330,10 +343,9 @@ def play_random_game():
     game.run()
 
 
-
-def initial_state():
+def init_state():
     initial_state = "121000221:2"
-    game = GameVisualizer(3, initial_state=initial_state, cartesian_cords=True)
+    game = GameVisualizer(3, initial_state=initial_state)
     game.run()
 
 
