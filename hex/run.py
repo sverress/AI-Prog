@@ -4,7 +4,7 @@ from hex.TOPP import TOPP
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 30  # number of games in a batch
+G = 10  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
 M = 100  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
