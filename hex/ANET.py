@@ -106,11 +106,26 @@ class ANET:
         return np.array(x), np.array(y)
 
     def add_case(self, state, distribution_of_visit_counts):
-        self.replay_buffer.append(
-            (ANET.convert_state_to_network_format(state), distribution_of_visit_counts)
-        )
-        if len(self.replay_buffer) > self.max_size_buffer:
-            index = random.randint(
-                1, math.floor(self.max_size_buffer * self.replay_buffer_cutoff_rate)
+        generated_cases = self.gen_cases(state, distribution_of_visit_counts)
+        for case in generated_cases:
+            state = case[0]
+            distribution_of_visit_counts = case[1]
+            self.replay_buffer.append(
+                (ANET.convert_state_to_network_format(state), distribution_of_visit_counts)
             )
-            del self.replay_buffer[index]
+            if len(self.replay_buffer) > self.max_size_buffer:
+                index = random.randint(
+                    1, math.floor(self.max_size_buffer * self.replay_buffer_cutoff_rate)
+                )
+                del self.replay_buffer[index]
+
+    def gen_cases(self, state, distribution_of_visit_counts):
+
+        generated_cases = [(state, distribution_of_visit_counts)]
+
+        flipped_state = ''.join(reversed(state[:-2])) + state[-2:]
+        flipped_dist = distribution_of_visit_counts[::-1]
+
+        tuple = (flipped_state, flipped_dist)
+        generated_cases.append(tuple)
+        return generated_cases
