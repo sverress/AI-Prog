@@ -89,7 +89,8 @@ class ANET:
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
         """
-        :return: Random samlpe of the replay buffer
+        :return: Random sample of size self.batch_size from the the replay buffer.
+        If the replay buffer is smaller than the batch size it will return the whole replay buffer
         """
         if len(self.replay_buffer) < self.batch_size:
             batch = self.replay_buffer.copy()
