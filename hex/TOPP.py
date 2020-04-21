@@ -93,7 +93,10 @@ class TOPP:
         return list(players), list(episode_num_list)
 
     def display_result(self,score_matrix):
-
+        """
+        Displays the score_matrix as a table
+        :param score_matrix: np.array
+        """
         header = ['wins \ losses']
         for i in self.episode_num_list:
             header.append(i)

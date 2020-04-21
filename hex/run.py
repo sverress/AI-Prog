@@ -12,7 +12,7 @@ max_tree_height = 16
 c = 1
 
 # SETTINGS FOR HEX
-k = 4  # board size kxk, 3 <= k <= 10
+k = 3  # board size kxk, 3 <= k <= 10
 
 # TRAIN AGAINST SELF
 game = GameSimulator(G, P, M, verbose, max_tree_height, c, k)
