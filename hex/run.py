@@ -16,7 +16,7 @@ k = 4  # board size kxk, 3 <= k <= 10
 
 # TRAIN AGAINST SELF
 game = GameSimulator(G, P, M, verbose, max_tree_height, c, k)
-#game.run()
+game.run()
 
 """
 TOPP parameters

@@ -81,27 +81,27 @@ class ANET:
         return ANET.predict_and_normalize(self.model, state)
 
     def train(self):
-        x, y = self._get_random_minibatch()
+        x, y = self._get_random_mini_batch()
         self.model.fit(x, y, verbose=0)
 
     def save_model(self, episode_num):
         self.model.save(f"trained_models/model_{episode_num}.h5")
 
-    def _get_random_minibatch(self):
-        # random.shuffle(self.replay_buffer)
-        # try:
-        #    batch = random.sample(self.replay_buffer, self.batch_size)
-        # except ValueError:
-        #    raise ValueError(
-        #        "Batch size is bigger than replay buffer. Increase number of simulations or lower batch size"
-        #    )
-
+    def _get_random_mini_batch(self) -> (np.array, np.array):
+        """
+        :return: Random sample of size self.batch_size from the the replay buffer.
+        If the replay buffer is smaller than the batch size it will return the whole replay buffer
+        """
+        if len(self.replay_buffer) < self.batch_size:
+            batch = self.replay_buffer.copy()
+        else:
+            batch = random.sample(self.replay_buffer, self.batch_size)
         x = []
         y = []
-        for case in self.replay_buffer:
+        for case in batch:
             x.append(case[0])  # Add state as x
             y.append(case[1])  # Add distribution as y
-        return (np.array(x), np.array(y))
+        return np.array(x), np.array(y)
 
     def add_case(self, state, distribution_of_visit_counts):
         self.replay_buffer.append(
