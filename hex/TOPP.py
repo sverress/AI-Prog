@@ -2,9 +2,9 @@ import glob
 from tensorflow.keras.models import load_model
 import re
 import numpy as np
-
 from hex.StateManager import StateManager
 from hex.ANET import ANET
+from prettytable import PrettyTable
 
 
 class TOPP:
@@ -22,7 +22,7 @@ class TOPP:
         """
         # Each row represents how many wins model_{row_index} has won against each model_{col_index}.
         # Hence each col represents how many losses model_{col_index} has against each model_{row_index}
-        score_matrix = np.zeros((len(self.models), len(self.models)))
+        score_matrix = np.zeros((len(self.models), len(self.models)), dtype=int)
         for index1, player1 in enumerate(self.models):
             for index2, player2 in enumerate(self.models[index1 + 1 :]):
                 wins_p1, wins_p2 = self.play_match(
@@ -44,7 +44,7 @@ class TOPP:
         wins_p1 = 0
         wins_p2 = 0
         starting_player = 1
-        for i in range(0,num_games_per_match):
+        for i in range(0, num_games_per_match):
             self.state_manager = StateManager(
                 board_size=self.board_size, starting_player=starting_player
             )
@@ -93,5 +93,14 @@ class TOPP:
         return list(players), list(episode_num_list)
 
     def display_result(self,score_matrix):
-        print(self.episode_num_list)
-        print(score_matrix)
+
+        header = ['wins \ losses']
+        for i in self.episode_num_list:
+            header.append(i)
+        t = PrettyTable(header)
+        for index, row in enumerate(score_matrix):
+            line = [self.episode_num_list[index]]
+            for cell in row:
+                line.append(cell)
+            t.add_row(line)
+        print(t)
