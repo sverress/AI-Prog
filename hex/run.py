@@ -4,9 +4,9 @@ from hex.TOPP import TOPP
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 5  # number of games in a batch
+G = 30  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 50  # number of simulations (and hence rollouts) per actual game move.
+M = 500  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
 max_tree_height = 16
 c = 1
@@ -21,7 +21,7 @@ game.run()
 """
 TOPP parameters
 """
-num_games_per_match = 5
+num_games_per_match = 10
 
 # TOPP
 turnament = TOPP(board_size=k)

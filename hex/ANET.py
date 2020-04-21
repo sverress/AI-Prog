@@ -85,7 +85,7 @@ class ANET:
         self.model.fit(x, y, verbose=0)
 
     def save_model(self, episode_num):
-        self.model.save(f"saved_models/model_{episode_num}.h5")
+        self.model.save(f"trained_models/model_{episode_num}.h5")
 
     def _get_random_minibatch(self):
         # random.shuffle(self.replay_buffer)
