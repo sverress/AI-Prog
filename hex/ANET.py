@@ -12,7 +12,7 @@ class ANET:
     def __init__(
         self,
         size_of_board,
-        batch_size=10,
+        batch_size=100,
         max_size_buffer=1000,
         replay_buffer_cutoff_rate=0.3,
     ):
