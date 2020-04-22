@@ -182,13 +182,9 @@ class MCTS:
 
     def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(
-            state, sort_by_function=lambda edge: self.tree.get_sap_value(*edge)
+            state, sort_by_function=lambda edge: self.tree.get_edge_number_of_visits(*edge)
         )
-        if self.state_manager.get_player(state) == 1:
-            best_edge = sorted_list[0]
-        else:
-            best_edge = sorted_list[-1]
-        return self.state_manager.get_action(*best_edge)
+        return self.state_manager.get_action(*sorted_list[0])
 
     def choose_random_child(self, parent_state: str, child_list: [str]) -> str:
         """
