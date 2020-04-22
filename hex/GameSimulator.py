@@ -41,7 +41,6 @@ class GameSimulator:
         print("k:", self.k)
         print("===================================")
 
-
     def print_start_state(self, i):
         if self.verbose:
             print(f"--- Starting game {i} ---")
