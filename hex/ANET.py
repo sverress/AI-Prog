@@ -4,6 +4,7 @@ from tensorflow.keras import optimizers
 import numpy as np
 import random
 import math
+import os
 
 from hex.StateManager import StateManager
 
@@ -91,6 +92,8 @@ class ANET:
         self.model.fit(x, y, batch_size=self.batch_size, epochs=self.epochs, verbose=self.verbose)
 
     def save_model(self, episode_num):
+        if not os.path.exists("trained_models"):
+            os.mkdir("trained_models")
         self.model.save(f"trained_models/model_{episode_num}.h5")
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
