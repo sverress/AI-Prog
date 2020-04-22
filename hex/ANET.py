@@ -12,13 +12,17 @@ class ANET:
     def __init__(
         self,
         size_of_board,
-        batch_size=10,
+        batch_size=300,
         max_size_buffer=1000,
         replay_buffer_cutoff_rate=0.3,
+        epochs = 5,
+        verbose = 2 # one line per epoch
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
         self.batch_size = batch_size
+        self.epochs = epochs
+        self.verbose = verbose
         self.replay_buffer = []
         self.replay_buffer_cutoff_rate = replay_buffer_cutoff_rate
         # Input shape: Adding one to give information of current player. Multiply by two to get binary data
@@ -53,7 +57,7 @@ class ANET:
         self.model.compile(
             loss="categorical_crossentropy",
             optimizer=optimizers.Adam(),
-            metrics=["accuracy"],
+            metrics=["mse"],
         )
 
     @staticmethod
@@ -84,7 +88,7 @@ class ANET:
 
     def train(self):
         x, y = self._get_random_mini_batch()
-        self.model.fit(x, y, verbose=0)
+        self.model.fit(x, y, batch_size=self.batch_size, epochs=self.epochs, verbose=self.verbose)
 
     def save_model(self, episode_num):
         self.model.save(f"trained_models/model_{episode_num}.h5")
@@ -120,9 +124,14 @@ class ANET:
                 del self.replay_buffer[index]
 
     def gen_cases(self, state, distribution_of_visit_counts):
-
+        """
+        Flips the board 180 deg to create another training case.
+        :param state:
+        :param distribution_of_visit_counts:
+        :return:
+        """
         generated_cases = [(state, distribution_of_visit_counts)]
-
+        # reverse both board rep of state string and distribution
         flipped_state = ''.join(reversed(state[:-2])) + state[-2:]
         flipped_dist = distribution_of_visit_counts[::-1]
 
