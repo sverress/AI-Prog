@@ -11,6 +11,7 @@ M = 3  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
 max_tree_height = 16
 c = 1
+save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
 k = 5  # board size kxk, 3 <= k <= 10
@@ -20,7 +21,7 @@ TOPP.delete_models()
 training_timer = Timer(start=True)
 
 # TRAIN AGAINST SELF
-game = GameSimulator(G, P, M, verbose, max_tree_height, c, k, print_parameters=True)
+game = GameSimulator(G, P, M, verbose, max_tree_height, c, k, print_parameters=True, save_interval=10)
 game.run()
 
 training_timer.stop()
