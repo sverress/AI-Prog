@@ -87,9 +87,12 @@ class TOPP:
             models.append((model, episode_num))
             # Sort for increasing num ep trained models
             models = sorted(models, key=lambda tup: tup[1])
-        # Split into two lists
-        players, episode_num_list = zip(*models)
-        return list(players), list(episode_num_list)
+        if len(models):
+            # Split into two lists
+            players, episode_num_list = zip(*models)
+            return list(players), list(episode_num_list)
+        else:
+            return [], []
 
     @staticmethod
     def delete_models():
