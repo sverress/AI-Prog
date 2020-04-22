@@ -6,9 +6,10 @@ from hex.StateManager import StateManager
 from hex.ANET import ANET
 from prettytable import PrettyTable
 
+MODELS_PATH = r"trained_models"
+
 
 class TOPP:
-
     def __init__(self, board_size):
 
         self.models, self.episode_num_list = self.load_models()
@@ -28,8 +29,8 @@ class TOPP:
                 wins_p1, wins_p2 = self.play_match(
                     num_games_per_match, player1, player2
                 )
-                score_matrix[index1, index2+index1+1] += wins_p1
-                score_matrix[index2+index1+1, index1] += wins_p2
+                score_matrix[index1, index2 + index1 + 1] += wins_p1
+                score_matrix[index2 + index1 + 1, index1] += wins_p2
         self.display_result(score_matrix)
 
     def play_match(self, num_games_per_match, player1, player2):
@@ -73,31 +74,39 @@ class TOPP:
         Fetches all file paths in the trained_models folder. Loads all models and appends to list
         :return: list of player objects, list of the number of episodes trained for each model: [obj], [int]
         """
-        path = r"trained_models"
         # Get list of paths to all saved models
-        all_models = glob.glob(path + "/*.h5")
+        all_models = glob.glob(MODELS_PATH + "/*.h5")
         models = []
 
         for model_path in all_models:
             # Fetch episode number from model file name
             episode_num = int(
-                re.search("trained_models/model_(.*?).h5", model_path).group(1)
+                re.search(f"{MODELS_PATH}/model_(.*?).h5", model_path).group(1)
             )
             model = load_model(model_path)
-            tuple = (model, episode_num)
-            models.append(tuple)
+            models.append((model, episode_num))
             # Sort for increasing num ep trained models
             models = sorted(models, key=lambda tup: tup[1])
-            # Split into two lists
-            players, episode_num_list = zip(*models)
+        # Split into two lists
+        players, episode_num_list = zip(*models)
         return list(players), list(episode_num_list)
 
-    def display_result(self,score_matrix):
+    @staticmethod
+    def delete_models():
+        import os
+
+        # Get list of paths to all saved models
+        all_models = glob.glob(f"{MODELS_PATH}/*.h5")
+        for path_to_model in all_models:
+            # Remove file
+            os.remove(path_to_model)
+
+    def display_result(self, score_matrix):
         """
         Displays the score_matrix as a table
         :param score_matrix: np.array
         """
-        header = ['wins \ losses']
+        header = ["wins \ losses"]
         for i in self.episode_num_list:
             header.append(i)
         t = PrettyTable(header)
@@ -107,3 +116,6 @@ class TOPP:
                 line.append(cell)
             t.add_row(line)
         print(t)
+
+
+TOPP.delete_models()
