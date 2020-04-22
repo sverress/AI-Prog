@@ -12,7 +12,7 @@ class StartingPlayerOptions(enum.Enum):
 
 
 class GameSimulator:
-    def __init__(self, g, p: StartingPlayerOptions, m, verbose, max_tree_height, c, k):
+    def __init__(self, g, p: StartingPlayerOptions, m, verbose, max_tree_height, c, k, print_parameters=False):
         self.g = g
         self.p = p
         self.m = m
@@ -25,6 +25,22 @@ class GameSimulator:
         self.current_state = None
         self.number_of_wins = 0
         self.actor_network = ANET(k)
+        if print_parameters:
+            self.print_parameters()
+
+    def print_parameters(self):
+        print("===================================")
+        print("            PARAMETERS             ")
+        print("===================================")
+        print("number of games in a batch:", self.g)
+        print("starting-player option:", self.p)
+        print("number of simulations (and hence roll-outs) per actual game move:", self.m)
+        print("Verbose:", self.verbose)
+        print("Max tree height:", self.max_tree_height)
+        print("c:", self.c)
+        print("k:", self.k)
+        print("===================================")
+
 
     def print_start_state(self, i):
         if self.verbose:
