@@ -86,7 +86,3 @@ class TimerManager:
     def stop_timer(self, timer_id: str):
         timer = self.get_timer(timer_id)
         timer.stop()
-
-timer = Timer(start=True)
-timer.stop()
-print(timer.time_str())
