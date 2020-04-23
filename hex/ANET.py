@@ -27,7 +27,7 @@ class ANET:
         self.replay_buffer = []
         self.replay_buffer_cutoff_rate = replay_buffer_cutoff_rate
         # Input shape: Adding one to give information of current player. Multiply by two to get binary data
-        self.input_shape = ((self.size_of_board ** 2) * 2 + 2,)
+        self.input_shape = ((self.size_of_board ** 2) * 2 + 10,)
 
         # Building model
         self.model = Sequential()
@@ -64,7 +64,7 @@ class ANET:
     @staticmethod
     def convert_state_to_network_format(state: str):
         board_str, player_str = StateManager.extract_state(state)
-        board_nn_representation = [int(player_str == "1"), int(player_str == "2")]
+        board_nn_representation = [int(player_str == "1")]*5+[int(player_str == "2")]*5
         for cell_value in board_str:
             board_nn_representation.append(int(cell_value == "1"))
             board_nn_representation.append(int(cell_value == "2"))

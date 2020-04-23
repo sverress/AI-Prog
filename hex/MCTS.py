@@ -8,7 +8,14 @@ from hex.StateManager import StateManager
 
 
 class MCTS:
-    def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1, number_of_simulations=10):
+    def __init__(
+        self,
+        state_manager: StateManager,
+        actor_net,
+        max_tree_height=5,
+        c=1,
+        number_of_simulations=10,
+    ):
         self.state_manager = StateManager(
             state_manager.board_size, state_manager.current_player()
         )
@@ -37,7 +44,12 @@ class MCTS:
             self.state_manager.set_state_manager(self.tree.root_state)
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
-        return self.greedy_best_action(self.tree.root_state)
+        best_action = self.epsilon_greedy_action_from_distribution(
+            np.array(distribution), self.tree.root_state, epsilon=0.0
+        )
+        print("distribution", distribution)
+        print("best_action", best_action)
+        return best_action
 
     # MAIN ALGORITHM METHODS
 
@@ -66,7 +78,9 @@ class MCTS:
         :return: list of all child states
         """
         children = StateManager.generate_child_states(state)
-        end_state_checker = StateManager(self.state_manager.board_size, self.state_manager.current_player())
+        end_state_checker = StateManager(
+            self.state_manager.board_size, self.state_manager.current_player()
+        )
         for child in children:
             if child not in self.tree.get_nodes():
                 end_state_checker.set_state_manager(child)
@@ -80,7 +94,9 @@ class MCTS:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         if self.state_manager.get_state() != state:
-            raise ValueError("The state manager is not set to the start of the simulation")
+            raise ValueError(
+                "The state manager is not set to the start of the simulation"
+            )
         while not self.state_manager.is_end_state():
             distribution = self.actor_net.predict(self.state_manager.get_state())
             chosen_action = self.epsilon_greedy_action_from_distribution(
@@ -174,7 +190,8 @@ class MCTS:
 
     def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(
-            state, sort_by_function=lambda edge: self.tree.get_edge_number_of_visits(*edge)
+            state,
+            sort_by_function=lambda edge: self.tree.get_edge_number_of_visits(*edge),
         )
         return self.state_manager.get_action(*sorted_list[0])
 
@@ -238,7 +255,9 @@ class MCTS:
             child_board, child_player = StateManager.extract_state(child)
             for i in range(len(child_board)):
                 if parent_board[i] != child_board[i]:
-                    child_number_of_visits = self.tree.get_edge_number_of_visits(state, child)
+                    child_number_of_visits = self.tree.get_edge_number_of_visits(
+                        state, child
+                    )
                     change_indices_dict[i] = child_number_of_visits
                     total_visits += child_number_of_visits
                     break
@@ -410,7 +429,9 @@ class StateTree:
         blue_player_nodes = []
         red_player_nodes = []
         labels = {}
-        state_manager = StateManager(state_manager.board_size, state_manager.current_player())
+        state_manager = StateManager(
+            state_manager.board_size, state_manager.current_player()
+        )
         for state in self.graph.nodes:
             state_manager.set_state_manager(state)
             labels[state] = state_manager.pretty_state_string()
