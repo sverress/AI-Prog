@@ -418,9 +418,11 @@ class StateTree:
         blue_player_nodes = []
         red_player_nodes = []
         labels = {}
+        state_manager = StateManager(state_manager.board_size, state_manager.current_player())
         for state in self.graph.nodes:
-            labels[state] = state_manager.graph_label(state)
-            if state_manager.get_player(state) == 1:
+            state_manager.set_state_manager(state)
+            labels[state] = state_manager.pretty_state_string()
+            if StateManager.get_player(state) == 1:
                 blue_player_nodes.append(state)
             else:
                 red_player_nodes.append(state)

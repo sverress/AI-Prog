@@ -53,6 +53,7 @@ class GameSimulator:
         print("Max tree height:", self.max_tree_height)
         print("c:", self.c)
         print("k:", self.k)
+        print("save interval:", self.save_interval)
         print("===================================")
 
     def print_start_state(self, i):
