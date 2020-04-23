@@ -5,15 +5,15 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 30  # number of games in a batch
+G = 60  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 3  # number of simulations (and hence rollouts) per actual game move.
+M = 1500  # number of simulations (and hence rollouts) per actual game move.
 verbose = True
-max_tree_height = 16
-c = 1
+max_tree_height = 6
+c = 1.2
 
 # SETTINGS FOR HEX
-k = 5  # board size kxk, 3 <= k <= 10
+k = 4  # board size kxk, 3 <= k <= 10
 
 TOPP.delete_models()
 
@@ -29,7 +29,7 @@ print(f"Training time elapsed: {training_timer.time_str()}")
 """
 TOPP parameters
 """
-num_games_per_match = 25
+num_games_per_match = 30
 
 # TOPP
 turnament = TOPP(board_size=k)

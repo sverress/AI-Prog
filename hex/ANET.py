@@ -13,10 +13,10 @@ class ANET:
     def __init__(
         self,
         size_of_board,
-        batch_size=300,
+        batch_size=350,
         max_size_buffer=1000,
         replay_buffer_cutoff_rate=0.3,
-        epochs = 5,
+        epochs = 3,
         verbose = 2 # one line per epoch
     ):
         self.size_of_board = size_of_board
@@ -140,4 +140,5 @@ class ANET:
 
         tuple = (flipped_state, flipped_dist)
         generated_cases.append(tuple)
+        print(generated_cases)
         return generated_cases
