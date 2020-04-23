@@ -14,7 +14,7 @@ class MCTS:
         )
         self.tree = StateTree(self.state_manager.get_state())
         self.tree.add_state_node(
-            self.tree.root_state, is_end_state=self.state_manager.is_end_state()
+            self.tree.root_state, self.state_manager.is_end_state()
         )
         self.c = c
         self.max_tree_height = max_tree_height
@@ -54,17 +54,6 @@ class MCTS:
         elif not self.tree.get_outgoing_edges(state):
             children = self.expand(state)
             return self.choose_random_child(state, children)
-        # If the current state still has unvisited children: chose one at random and simulate from it
-        elif self.tree.get_outgoing_edges(state, only_unvisited=True):
-            return self.choose_random_child(
-                state,
-                [
-                    child
-                    for (parent, child) in self.tree.get_outgoing_edges(
-                        state, only_unvisited=True
-                    )
-                ],
-            )
         else:
             child = self.tree_policy(state)
             self.state_manager.check_difference_and_perform_action(child)
@@ -77,9 +66,11 @@ class MCTS:
         :return: list of all child states
         """
         children = StateManager.generate_child_states(state)
+        end_state_checker = StateManager(self.state_manager.board_size, self.state_manager.current_player())
         for child in children:
             if child not in self.tree.get_nodes():
-                self.tree.add_state_node(child)
+                end_state_checker.set_state_manager(child)
+                self.tree.add_state_node(child, end_state_checker.is_end_state())
             self.tree.add_edge(state, child)
         return children
 
@@ -151,6 +142,7 @@ class MCTS:
                     False,
                 ),
             )[-1]
+        # TODO: Return outgoing edges with uct value attached. Should randomly pick from those with same uct value
         parent, best_child = best_edge
         self.tree.set_active_edge(parent, best_child, True)
         return best_child
@@ -246,7 +238,7 @@ class MCTS:
             child_board, child_player = StateManager.extract_state(child)
             for i in range(len(child_board)):
                 if parent_board[i] != child_board[i]:
-                    child_number_of_visits = self.tree.get_state_number_of_visits(child)
+                    child_number_of_visits = self.tree.get_edge_number_of_visits(state, child)
                     change_indices_dict[i] = child_number_of_visits
                     total_visits += child_number_of_visits
                     break
@@ -286,7 +278,7 @@ class StateTree:
     def get_nodes(self):
         return self.graph.nodes
 
-    def add_state_node(self, state: str, is_end_state=False):
+    def add_state_node(self, state: str, is_end_state: bool):
         """
         Adds node to the DiGraph G with initial number of encounters to zero
         :param state: string representation of state

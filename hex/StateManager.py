@@ -376,3 +376,15 @@ class StateManager(Board):
         :return: true if it is occupied, false otherwise
         """
         return state[index] == "1" or state[index] == "2"
+
+    def visualize_state(self, state=None):
+        """
+        Use the GameVisualizer to view the input game state
+        :param state:
+        :return:
+        """
+        from hex.GameVisualizer import GameVisualizer
+        if not state:
+            state = self.get_state()
+        game = GameVisualizer(self.board_size, initial_state=state)
+        game.run()

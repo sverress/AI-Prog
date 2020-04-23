@@ -344,8 +344,8 @@ def play_random_game():
 
 
 def init_state():
-    initial_state = "121000221:2"
-    game = GameVisualizer(3, initial_state=initial_state)
+    initial_state = "1221012101221200:2"
+    game = GameVisualizer(4, initial_state=initial_state)
     game.run()
 
 
