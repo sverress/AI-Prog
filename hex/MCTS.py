@@ -66,9 +66,22 @@ class MCTS:
         elif not self.tree.get_outgoing_edges(state):
             children = self.expand(state)
             return self.choose_random_child(state, children)
+        # If the current state still has unvisited children: chose one at random and simulate from it
+        # elif self.tree.get_outgoing_edges(state, only_unvisited=True):
+        #     return self.choose_random_child(
+        #         state,
+        #         [
+        #             child
+        #             for (parent, child) in self.tree.get_outgoing_edges(
+        #                 state, only_unvisited=True
+        #             )
+        #         ],
+        #     )
         else:
             child = self.tree_policy(state)
             self.state_manager.check_difference_and_perform_action(child)
+            if self.tree.get_state_number_of_visits(child) == 0:
+                self.tree.set_end_state(child, self.state_manager.is_end_state())
             return self.traverse_tree(child, depth + 1)
 
     def expand(self, state) -> [str]:
@@ -83,8 +96,7 @@ class MCTS:
         )
         for child in children:
             if child not in self.tree.get_nodes():
-                end_state_checker.set_state_manager(child)
-                self.tree.add_state_node(child, end_state_checker.is_end_state())
+                self.tree.add_state_node(child, is_end_state=None)
             self.tree.add_edge(state, child)
         return children
 
