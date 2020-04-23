@@ -12,7 +12,18 @@ class StartingPlayerOptions(enum.Enum):
 
 
 class GameSimulator:
-    def __init__(self, g, p: StartingPlayerOptions, m, verbose, max_tree_height, c, k, print_parameters=False):
+    def __init__(
+        self,
+        g,
+        p: StartingPlayerOptions,
+        m,
+        verbose,
+        max_tree_height,
+        c,
+        k,
+        print_parameters=False,
+        save_interval=10,
+    ):
         self.g = g
         self.p = p
         self.m = m
@@ -25,6 +36,7 @@ class GameSimulator:
         self.current_state = None
         self.number_of_wins = 0
         self.actor_network = ANET(k)
+        self.save_interval = save_interval
         if print_parameters:
             self.print_parameters()
 
@@ -34,11 +46,14 @@ class GameSimulator:
         print("===================================")
         print("number of games in a batch:", self.g)
         print("starting-player option:", self.p)
-        print("number of simulations (and hence roll-outs) per actual game move:", self.m)
+        print(
+            "number of simulations (and hence roll-outs) per actual game move:", self.m
+        )
         print("Verbose:", self.verbose)
         print("Max tree height:", self.max_tree_height)
         print("c:", self.c)
         print("k:", self.k)
+        print("save interval:", self.save_interval)
         print("===================================")
 
     def print_start_state(self, i):
@@ -93,6 +108,6 @@ class GameSimulator:
             self.update_winner_stats()
             self.actor_network.train()
             self.print_winner_of_batch_game()
-            if i % 15 == 0:
+            if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_num=i)
         self.print_run_summary()
