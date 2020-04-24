@@ -66,17 +66,6 @@ class MCTS:
         elif not self.tree.get_outgoing_edges(state):
             children = self.expand(state)
             return self.choose_random_child(state, children)
-        # If the current state still has unvisited children: chose one at random and simulate from it
-        # elif self.tree.get_outgoing_edges(state, only_unvisited=True):
-        #     return self.choose_random_child(
-        #         state,
-        #         [
-        #             child
-        #             for (parent, child) in self.tree.get_outgoing_edges(
-        #                 state, only_unvisited=True
-        #             )
-        #         ],
-        #     )
         else:
             child = self.tree_policy(state)
             self.state_manager.check_difference_and_perform_action(child)
@@ -91,12 +80,9 @@ class MCTS:
         :return: list of all child states
         """
         children = StateManager.generate_child_states(state)
-        end_state_checker = StateManager(
-            self.state_manager.board_size, self.state_manager.current_player()
-        )
         for child in children:
             if child not in self.tree.get_nodes():
-                self.tree.add_state_node(child, is_end_state=None)
+                self.tree.add_state_node(child)
             self.tree.add_edge(state, child)
         return children
 
@@ -309,7 +295,7 @@ class StateTree:
     def get_nodes(self):
         return self.graph.nodes
 
-    def add_state_node(self, state: str, is_end_state: bool):
+    def add_state_node(self, state: str, is_end_state=False):
         """
         Adds node to the DiGraph G with initial number of encounters to zero
         :param state: string representation of state
