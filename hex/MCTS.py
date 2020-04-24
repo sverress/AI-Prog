@@ -15,6 +15,8 @@ class MCTS:
         max_tree_height=5,
         c=1,
         number_of_simulations=10,
+        verbose=False,
+        random_simulation_rate=0.2,
     ):
         self.state_manager = StateManager(
             state_manager.board_size, state_manager.current_player()
@@ -27,6 +29,8 @@ class MCTS:
         self.max_tree_height = max_tree_height
         self.actor_net = actor_net
         self.number_of_simulations = number_of_simulations
+        self.verbose = verbose
+        self.random_simulation_rate = random_simulation_rate
 
     def run(self, root_state: str):
         """
@@ -42,13 +46,15 @@ class MCTS:
             simulation_reward = self.simulate(rollout_state)
             self.backpropagate(rollout_state, simulation_reward)
             self.state_manager.set_state_manager(self.tree.root_state)
+
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
         best_action = self.epsilon_greedy_action_from_distribution(
             np.array(distribution), self.tree.root_state, epsilon=0.0
         )
-        print("distribution", distribution)
-        print("best_action", best_action)
+        if self.verbose:
+            print("distribution", distribution)
+            print("best_action", best_action)
         return best_action
 
     # MAIN ALGORITHM METHODS
@@ -96,10 +102,17 @@ class MCTS:
                 "The state manager is not set to the start of the simulation"
             )
         while not self.state_manager.is_end_state():
-            distribution = self.actor_net.predict(self.state_manager.get_state())
-            chosen_action = self.epsilon_greedy_action_from_distribution(
-                distribution, self.state_manager.get_state()
-            )
+            if random.random() < self.random_simulation_rate:
+                distribution = self.actor_net.predict(self.state_manager.get_state())
+                chosen_action = self.epsilon_greedy_action_from_distribution(
+                    distribution, self.state_manager.get_state()
+                )
+            else:
+                chosen_action = random.choice(
+                    self.state_manager.generate_possible_actions(
+                        self.state_manager.get_state()
+                    )
+                )
             self.state_manager.perform_action(chosen_action)
         return MCTS.get_end_state_reward(self.state_manager.current_player())
 
@@ -156,7 +169,6 @@ class MCTS:
                     False,
                 ),
             )[-1]
-        # TODO: Return outgoing edges with uct value attached. Should randomly pick from those with same uct value
         parent, best_child = best_edge
         self.tree.set_active_edge(parent, best_child, True)
         return best_child
@@ -266,6 +278,9 @@ class MCTS:
             else 0
             for index in range(self.state_manager.board_size ** 2)
         ]
+
+    def set_random_simulation_rate(self, new_rate: float):
+        self.random_simulation_rate = new_rate
 
 
 class TreeConstants:

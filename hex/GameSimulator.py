@@ -1,4 +1,5 @@
 import enum
+import math
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -35,7 +36,7 @@ class GameSimulator:
         self.state_manager = None
         self.current_state = None
         self.number_of_wins = 0
-        self.actor_network = ANET(k)
+        self.actor_network = ANET(k, verbose=2 if verbose else 0)
         self.save_interval = save_interval
         if print_parameters:
             self.print_parameters()
@@ -100,6 +101,8 @@ class GameSimulator:
                 max_tree_height=self.max_tree_height,
                 c=self.c,
                 number_of_simulations=self.m,
+                verbose=self.verbose,
+                random_simulation_rate=math.tanh(i/self.g)*1.2
             )
             while not self.state_manager.is_end_state():
                 action = mcts.run(self.state_manager.get_state())

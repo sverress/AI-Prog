@@ -206,5 +206,6 @@ class ANET:
 
         tuple = (flipped_state, flipped_dist)
         generated_cases.append(tuple)
-        print(generated_cases)
+        if self.verbose:
+            print(generated_cases)
         return generated_cases

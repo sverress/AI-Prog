@@ -7,14 +7,14 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 30  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 2  # number of simulations (and hence rollouts) per actual game move.
+M = 500  # number of simulations (and hence rollouts) per actual game move.
 verbose = False
 max_tree_height = 10
-c = 1
+c = 1.5
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 3  # board size kxk, 3 <= k <= 10
+k = 4  # board size kxk, 3 <= k <= 10
 
 training_timer = Timer(start=True)
 
