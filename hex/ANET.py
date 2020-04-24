@@ -16,7 +16,7 @@ class ANET:
         batch_size=350,
         max_size_buffer=1000,
         replay_buffer_cutoff_rate=0.3,
-        epochs = 3,
+        epochs = 100,
         verbose = 2 # one line per epoch
     ):
         self.size_of_board = size_of_board
@@ -126,19 +126,45 @@ class ANET:
                 )
                 del self.replay_buffer[index]
 
-    def gen_cases(self, state, distribution_of_visit_counts):
+    def gen_cases(self, state, dist):
         """
         Flips the board 180 deg to create another training case.
         :param state:
         :param distribution_of_visit_counts:
         :return:
         """
-        generated_cases = [(state, distribution_of_visit_counts)]
-        # reverse both board rep of state string and distribution
-        flipped_state = ''.join(reversed(state[:-2])) + state[-2:]
-        flipped_dist = distribution_of_visit_counts[::-1]
+        generated_cases = [(state, dist)]
 
-        tuple = (flipped_state, flipped_dist)
+        # reverse both board rep of state string and distribution
+        state_180 = ''.join(reversed(state[:-2])) + state[-2:]
+        dist_180 = dist[::-1]
+        tuple = (state_180, dist_180)
         generated_cases.append(tuple)
+
+        # swith row and cols for case rot 90
+        board_90 = np.zeros(self.size_of_board ** 2, dtype=int)
+        dist_90 = np.zeros(self.size_of_board ** 2)
+        for row in range(0, self.size_of_board):
+            for col in range(0, self.size_of_board):
+                flatten_position_board = row * self.size_of_board + col
+                flatten_position_new_board = col * self.size_of_board + row
+                if state[flatten_position_board] == '0':
+                    board_90[flatten_position_new_board] = state[flatten_position_board]
+                else:
+                    board_90[flatten_position_new_board] = '1' if state[flatten_position_board] == '2' else '2'
+                dist_90[flatten_position_new_board] = dist[flatten_position_board]
+
+        player_str = '1' if state[-1] == '2' else '2'
+        state_90 = ''.join(board_90.astype(str)) + ':' + player_str
+
+        tuple = (state_90, list(dist_90))
+        generated_cases.append(tuple)
+
+        # reverse both board rep of state string and distribution for the state_90
+        state_270 = ''.join(reversed(state_90[:-2])) + state_90[-2:]
+        dist_270 = dist_90[::-1]
+        tuple = (state_270, list(dist_270))
+        generated_cases.append(tuple)
+
         print(generated_cases)
         return generated_cases
