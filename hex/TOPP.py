@@ -1,18 +1,13 @@
-import glob
-from tensorflow.keras.models import load_model
-import re
 import numpy as np
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from prettytable import PrettyTable
 
-MODELS_PATH = r"trained_models"
-
 
 class TOPP:
-    def __init__(self, board_size):
+    def __init__(self, board_size, actor_network: ANET):
 
-        self.models, self.episode_num_list = self.load_models()
+        self.models = actor_network.load_models()
         self.state_manager = None
         self.board_size = board_size
 
@@ -53,7 +48,7 @@ class TOPP:
                 current_player = self.state_manager.current_player()
                 model = player1 if current_player == 1 else player2
                 state = self.state_manager.get_state()
-                distribution = ANET.predict_and_normalize(model, state)
+                distribution = model.predict(state)
                 argmax_distribution_index = int(
                     np.argmax(distribution)
                 )  # Greedy best from distribution
@@ -69,56 +64,18 @@ class TOPP:
 
         return wins_p1, wins_p2
 
-    def load_models(self):
-        """
-        Fetches all file paths in the trained_models folder. Loads all models and appends to list
-        :return: list of player objects, list of the number of episodes trained for each model: [obj], [int]
-        """
-        # Get list of paths to all saved models
-        all_models = glob.glob(MODELS_PATH + "/*.h5")
-        models = []
-
-        for model_path in all_models:
-            # Fetch episode number from model file name
-            episode_num = int(
-                re.search(f"{MODELS_PATH}/model_(.*?).h5", model_path).group(1)
-            )
-            model = load_model(model_path)
-            models.append((model, episode_num))
-            # Sort for increasing num ep trained models
-            models = sorted(models, key=lambda tup: tup[1])
-        if len(models):
-            # Split into two lists
-            players, episode_num_list = zip(*models)
-            return list(players), list(episode_num_list)
-        else:
-            return [], []
-
-    @staticmethod
-    def delete_models():
-        import os
-
-        # Get list of paths to all saved models
-        all_models = glob.glob(f"{MODELS_PATH}/*.h5")
-        for path_to_model in all_models:
-            # Remove file
-            os.remove(path_to_model)
-
     def display_result(self, score_matrix):
         """
         Displays the score_matrix as a table
         :param score_matrix: np.array
         """
         header = ["wins \ losses"]
-        for i in self.episode_num_list:
-            header.append(i)
+        for model in self.models:
+            header.append(model.episode_number)
         t = PrettyTable(header)
         for index, row in enumerate(score_matrix):
-            line = [self.episode_num_list[index]]
+            line = [self.models[index].episode_number]
             for cell in row:
                 line.append(cell)
             t.add_row(line)
         print(t)
-
-
-TOPP.delete_models()

@@ -7,16 +7,14 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 30  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 2000  # number of simulations (and hence rollouts) per actual game move.
-verbose = True
+M = 2  # number of simulations (and hence rollouts) per actual game move.
+verbose = False
 max_tree_height = 10
-c = 4
+c = 1
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 4  # board size kxk, 3 <= k <= 10
-
-TOPP.delete_models()
+k = 3  # board size kxk, 3 <= k <= 10
 
 training_timer = Timer(start=True)
 
@@ -33,5 +31,5 @@ TOPP parameters
 num_games_per_match = 20
 
 # TOPP
-turnament = TOPP(board_size=k)
+turnament = TOPP(k, game.actor_network)
 turnament.play(num_games_per_match)
