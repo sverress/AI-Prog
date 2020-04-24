@@ -92,8 +92,9 @@ class GameSimulator:
             self.number_of_wins += 1
 
     def run(self):
+        starting_player = self.p
         for i in range(1, self.g + 1):
-            self.state_manager = StateManager(self.k, self.p)
+            self.state_manager = StateManager(self.k, starting_player)
             self.print_start_state(i)
             mcts = MCTS(
                 self.state_manager,
@@ -111,6 +112,7 @@ class GameSimulator:
             self.update_winner_stats()
             self.actor_network.train()
             self.print_winner_of_batch_game()
+            starting_player = StateManager.get_opposite_player(starting_player)
             if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_number=i)
         self.print_run_summary()

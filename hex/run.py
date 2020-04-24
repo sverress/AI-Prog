@@ -5,13 +5,13 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 30  # number of games in a batch
+G = 300  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 500  # number of simulations (and hence rollouts) per actual game move.
-verbose = False
+M = 4000  # number of simulations (and hence rollouts) per actual game move.
+verbose = True
 max_tree_height = 10
 c = 1.5
-save_interval = 10  # number of games between each time we save a model
+save_interval = 30  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
 k = 4  # board size kxk, 3 <= k <= 10
