@@ -25,6 +25,7 @@ class ANET:
         model=None,
         episode_number=0,
         save_directory="trained_models",
+        hidden_layers_structure=None,
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
@@ -48,20 +49,30 @@ class ANET:
             # Adding first layer with input size depending on board sizes
             self.model.add(
                 Dense(
-                    units=size_of_board,
+                    units=self.input_shape[0],
                     activation="relu",
                     input_shape=self.input_shape,
                     kernel_initializer="random_uniform",
                 )
             )
-            for i in range(1, 3):
-                self.model.add(
-                    Dense(
-                        units=size_of_board ** 2,
-                        activation="relu",
-                        kernel_initializer="random_uniform",
+            if hidden_layers_structure:
+                for layer_units in hidden_layers_structure:
+                    self.model.add(
+                        Dense(
+                            units=layer_units,
+                            activation="relu",
+                            kernel_initializer="random_uniform",
+                        )
                     )
-                )
+            else:
+                for i in range(1, 3):
+                    self.model.add(
+                        Dense(
+                            units=self.input_shape[0],
+                            activation="relu",
+                            kernel_initializer="random_uniform",
+                        )
+                    )
             self.model.add(
                 Dense(
                     units=size_of_board ** 2,
@@ -107,6 +118,8 @@ class ANET:
 
     def train(self):
         x, y = self._get_random_mini_batch()
+        if self.verbose:
+            print("Size of replay buffer:", len(self.replay_buffer))
         self.model.fit(
             x, y, batch_size=self.batch_size, epochs=self.epochs, verbose=self.verbose
         )
