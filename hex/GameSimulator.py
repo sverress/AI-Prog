@@ -24,7 +24,7 @@ class GameSimulator:
         k,
         print_parameters=False,
         save_interval=10,
-        actor_net_parameters=None
+        actor_net_parameters=None,
     ):
         self.g = g
         self.p = p
@@ -38,6 +38,7 @@ class GameSimulator:
         self.current_state = None
         self.number_of_wins = 0
         if actor_net_parameters:
+            self.actor_net_parameters = actor_net_parameters
             self.actor_network = ANET(k, **actor_net_parameters)
         else:
             self.actor_network = ANET(k)
@@ -60,6 +61,15 @@ class GameSimulator:
         print("k:", self.k)
         print("save interval:", self.save_interval)
         print("===================================")
+        string_list = [
+            f"{key}: {self.actor_net_parameters[key]} \n"
+            for key in self.actor_net_parameters.keys()
+        ]
+        if self.actor_net_parameters:
+            print("          ANET-PARAMETERS          ")
+            print("===================================")
+            print("".join(string_list))
+            print("===================================")
 
     def print_start_state(self, i):
         if self.verbose:
@@ -107,7 +117,7 @@ class GameSimulator:
                 c=self.c,
                 number_of_simulations=self.m,
                 verbose=self.verbose,
-                random_simulation_rate=math.tanh(i/self.g)*1.2
+                random_simulation_rate=math.tanh(i / self.g) * 1.2,
             )
             while not self.state_manager.is_end_state():
                 action = mcts.run(self.state_manager.get_state())

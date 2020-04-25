@@ -40,7 +40,7 @@ game = GameSimulator(
     k,
     print_parameters=True,
     save_interval=save_interval,
-    actor_net_parameters=None
+    actor_net_parameters=actor_net_parameters
 )
 game.run()
 
