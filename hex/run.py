@@ -7,11 +7,22 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 300  # number of games in a batch
 P = StartingPlayerOptions.P2  # starting-player option
-M = 4000  # number of simulations (and hence rollouts) per actual game move.
-verbose = True
+M = 400  # number of simulations (and hence rollouts) per actual game move.
+verbose = False
 max_tree_height = 10
 c = 1.5
 save_interval = 30  # number of games between each time we save a model
+
+actor_net_parameters = {
+    "batch_size": 350,
+    "max_size_buffer": 2000,
+    "replay_buffer_cutoff_rate": 0.3,
+    "epochs": 5,
+    "verbose": 2,  # one line per epoch
+    "model": None,
+    "episode_number": 0,
+    "save_directory": "trained_models",
+}
 
 # SETTINGS FOR HEX
 k = 4  # board size kxk, 3 <= k <= 10
@@ -19,7 +30,18 @@ k = 4  # board size kxk, 3 <= k <= 10
 training_timer = Timer(start=True)
 
 # TRAIN AGAINST SELF
-game = GameSimulator(G, P, M, verbose, max_tree_height, c, k, print_parameters=True, save_interval=save_interval)
+game = GameSimulator(
+    G,
+    P,
+    M,
+    verbose,
+    max_tree_height,
+    c,
+    k,
+    print_parameters=True,
+    save_interval=save_interval,
+    actor_net_parameters=None
+)
 game.run()
 
 training_timer.stop()

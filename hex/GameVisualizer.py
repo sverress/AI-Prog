@@ -1,6 +1,7 @@
 from tkinter import *
 import math
 import numpy as np
+import random
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -27,11 +28,13 @@ class GameVisualizer:
         initial_state=None,
         cartesian_cords=True,
         starting_player=1,
+        model_first_move=False,
     ):
         self.board_size = board_size
         self.frame_rate = frame_rate
         self.initial_state_given = initial_state is not None
         self.initial_state = initial_state
+        self.model_first_move = model_first_move
         if model_path:
             model = ANET.load_model(model_path)
         self.model = model
@@ -46,9 +49,11 @@ class GameVisualizer:
         )
         self.canvas.pack()
         self.action_input = Entry(self.master)
-        self.action_input.bind('<Return>', lambda event: self.button_clicked())
+        self.action_input.bind("<Return>", lambda event: self.button_clicked())
         self.action_input.pack()
-        self.perform_action_button = Button(self.master, text="perform move", command=self.button_clicked)
+        self.perform_action_button = Button(
+            self.master, text="perform move", command=self.button_clicked
+        )
         self.perform_action_button.pack()
         self.label = Label(self.master)
         self.label.pack()
@@ -91,24 +96,35 @@ class GameVisualizer:
             self.draw_initial_state()
         if len(self.actions):
             self.master.after(self.frame_rate, self.draw)
+        if self.model and self.model_first_move:
+            self.model_perform_action()
         mainloop()
+
+    def model_perform_action(self):
+        print(self.state_manager.get_state())
+        distribution = self.model.predict(self.state_manager.get_state())
+        print(distribution)
+        argmax_distribution_index = int(
+            np.argmax(distribution)
+        )  # Greedy best from distribution
+        action = self.state_manager.get_action_from_flattened_board_index(
+            argmax_distribution_index, self.state_manager.get_state()
+        )
+        self.perform_action(GameVisualizer.preprocess_action(action))
 
     def button_clicked(self):
         try:
             input_action = (
                 f"{self.action_input.get()}:{self.state_manager.current_player()}"
             )
+            input_action = random.choice(self.state_manager.generate_possible_actions(
+                self.state_manager.get_state()
+            ))
             self.perform_action(GameVisualizer.preprocess_action(input_action))
-            self.action_input.delete(0, 'end')
+            self.action_input.delete(0, "end")
             if self.model and not self.state_manager.is_end_state():
-                distribution = self.model.predict(self.state_manager.get_state())
-                argmax_distribution_index = int(
-                    np.argmax(distribution)
-                )  # Greedy best from distribution
-                action = self.state_manager.get_action_from_flattened_board_index(
-                    argmax_distribution_index, self.state_manager.get_state()
-                )
-                self.perform_action(GameVisualizer.preprocess_action(action))
+                self.model_perform_action()
+
         except ValueError:
             self.label["text"] = "Something went wrong"
         if self.state_manager.is_end_state():
@@ -288,6 +304,7 @@ class GameVisualizer:
             self.master.after(self.frame_rate, self.draw)
 
     def perform_action(self, action: (int, int, int)):
+        print(action)
         x_pos, y_pos, player = action
         self.player_pieces.append(
             Cell(self.canvas, self.board[x_pos][y_pos].top, player=player,)
@@ -412,5 +429,7 @@ def test():
 
 
 def play_game():
-    game = GameVisualizer(3, model_path="trained_models/model_30.h5")
+    game = GameVisualizer(
+        4, model_path="../runs/run1/trained_models/model_300.h5", model_first_move=True
+    )
     game.run()

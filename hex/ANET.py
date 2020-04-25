@@ -20,7 +20,7 @@ class ANET:
         batch_size=350,
         max_size_buffer=2000,
         replay_buffer_cutoff_rate=0.3,
-        epochs=50,
+        epochs=5,
         verbose=2,  # one line per epoch
         model=None,
         episode_number=0,
