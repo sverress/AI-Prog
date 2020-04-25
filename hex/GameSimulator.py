@@ -1,5 +1,7 @@
 import random
 import math
+from prettytable import PrettyTable
+import numpy as np
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -44,7 +46,7 @@ class GameSimulator:
         self.c = c
         self.state_manager = None
         self.current_state = None
-        self.number_of_wins = 0
+        self.winner_stats = np.zeros((2, 2))
         if actor_net_parameters:
             self.actor_net_parameters = actor_net_parameters
             self.actor_network = ANET(k, **actor_net_parameters)
@@ -72,10 +74,14 @@ class GameSimulator:
         if self.actor_net_parameters:
             print("          ANET-PARAMETERS          ")
             print("===================================")
-            print("".join([
-                f"{key}: {self.actor_net_parameters[key]} \n"
-                for key in self.actor_net_parameters.keys()
-            ]))
+            print(
+                "".join(
+                    [
+                        f"{key}: {self.actor_net_parameters[key]} \n"
+                        for key in self.actor_net_parameters.keys()
+                    ]
+                )
+            )
             print("===================================")
 
     def print_start_state(self, i):
@@ -103,17 +109,25 @@ class GameSimulator:
 
     def print_run_summary(self):
         print("\n------------- SUMMARY -------------")
-        print(
-            f"Player 1 wins {self.number_of_wins} games out of {self.number_of_episodes_to_play}."
-            f" ({round((self.number_of_wins / self.number_of_episodes_to_play) * 100)}%)"
-        )
+        header = ["winning player \ starting player", "1", "2"]
+        t = PrettyTable(header)
+        for index, row in enumerate(self.winner_stats):
+            line = [str(index + 1)]
+            for cell in row:
+                line.append(cell)
+            t.add_row(line)
+        print(t)
 
-    def update_winner_stats(self):
-        if not self.state_manager.current_player() == 1:
-            self.number_of_wins += 1
+    def update_winner_stats(self, starting_player: int) -> None:
+        second_index = starting_player - 1
+        winning_player = 1 if self.state_manager.current_player() == 2 else 2
+        first_index = winning_player - 1
+        self.winner_stats[first_index][second_index] += 1
 
     def run(self):
-        starting_player = StartingPlayerOptions.get_starting_player(self.starting_player_option)
+        starting_player = StartingPlayerOptions.get_starting_player(
+            self.starting_player_option
+        )
         for i in range(1, self.number_of_episodes_to_play + 1):
             self.state_manager = StateManager(self.k, starting_player)
             self.print_start_state(i)
@@ -124,13 +138,14 @@ class GameSimulator:
                 c=self.c,
                 number_of_simulations=self.m,
                 verbose=self.verbose,
-                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play) * 1.2,
+                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play)
+                * 1.2,
             )
             while not self.state_manager.is_end_state():
                 action = mcts.run(self.state_manager.get_state())
                 self.state_manager.perform_action(action)
                 self.print_action(action)
-            self.update_winner_stats()
+            self.update_winner_stats(starting_player)
             self.actor_network.train()
             self.print_winner_of_batch_game()
             if self.starting_player_option == StartingPlayerOptions.ALTERNATING:

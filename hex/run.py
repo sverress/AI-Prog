@@ -5,10 +5,10 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 300  # number of games in a batch
+G = 4  # number of games in a batch
 P = StartingPlayerOptions.ALTERNATING  # starting-player option
-M = 40  # number of simulations (and hence rollouts) per actual game move.
-verbose = False
+M = 1  # number of simulations (and hence rollouts) per actual game move.
+verbose = True
 max_tree_height = 10
 c = 1.5
 save_interval = 30  # number of games between each time we save a model
@@ -20,10 +20,8 @@ actor_net_parameters = {
     "batch_size": 350,
     "max_size_buffer": 2000,
     "replay_buffer_cutoff_rate": 0.3,
-    "epochs": 5,
+    "epochs": 10,
     "verbose": 2 if verbose else 0,  # 2: one line per epoch
-    "model": None,
-    "episode_number": 0,
     "save_directory": "trained_models",
     "hidden_layers_structure": [],
 }
@@ -51,7 +49,7 @@ print(f"Training time elapsed: {training_timer.time_str()}")
 """
 TOPP parameters
 """
-num_games_per_match = 20
+num_games_per_match = 30
 
 # TOPP
 turnament = TOPP(k, game.actor_network)
