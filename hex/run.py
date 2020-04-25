@@ -6,7 +6,7 @@ from libs.helpers import Timer
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
 G = 300  # number of games in a batch
-P = StartingPlayerOptions.P2  # starting-player option
+P = StartingPlayerOptions.ALTERNATING  # starting-player option
 M = 40  # number of simulations (and hence rollouts) per actual game move.
 verbose = False
 max_tree_height = 10
