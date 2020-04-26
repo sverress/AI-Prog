@@ -26,6 +26,7 @@ class ANET:
         episode_number=0,
         save_directory="trained_models",
         hidden_layers_structure=None,
+        learning_rate=0.01
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
@@ -82,7 +83,7 @@ class ANET:
             )
             self.model.compile(
                 loss="categorical_crossentropy",
-                optimizer=optimizers.Adam(),
+                optimizer=optimizers.Adam(learning_rate=learning_rate),
                 metrics=["mse"],
             )
         else:

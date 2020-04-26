@@ -5,10 +5,10 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 4  # number of games in a batch
+G = 300  # number of games in a batch
 P = StartingPlayerOptions.ALTERNATING  # starting-player option
-M = 1  # number of simulations (and hence rollouts) per actual game move.
-verbose = True
+M = 4000  # number of simulations (and hence rollouts) per actual game move.
+verbose = False
 max_tree_height = 10
 c = 1.5
 save_interval = 30  # number of games between each time we save a model
@@ -20,10 +20,11 @@ actor_net_parameters = {
     "batch_size": 350,
     "max_size_buffer": 2000,
     "replay_buffer_cutoff_rate": 0.3,
-    "epochs": 10,
+    "epochs": 30,
     "verbose": 2 if verbose else 0,  # 2: one line per epoch
     "save_directory": "trained_models",
-    "hidden_layers_structure": [],
+    "hidden_layers_structure": [(k**2+5)*4, (k**2+5)*8, (k**2+5)*4],
+    "learning_rate": 0.001,
 }
 
 training_timer = Timer(start=True)
