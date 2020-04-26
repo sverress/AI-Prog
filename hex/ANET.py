@@ -249,3 +249,14 @@ class ANET:
         if self.verbose:
             print(generated_cases)
         return generated_cases
+
+    @staticmethod
+    def save_buffer_to_file(num_episodes, k, ANET):
+        x = []
+        y = []
+        for case in ANET.replay_buffer:
+            x.append(case[0])  # Add state as x
+            y.append(case[1])  # Add distribution as y
+
+        np.save(f"cases/x_{k}x{k}_{num_episodes}", np.array(x))
+        np.save(f"cases/y_{k}x{k}_{num_episodes}", np.array(y))

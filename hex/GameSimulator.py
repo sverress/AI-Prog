@@ -145,3 +145,4 @@ class GameSimulator:
             if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_number=i)
         self.print_run_summary()
+        ANET.save_buffer_to_file(self.number_of_episodes_to_play, self.k, self.actor_network)
