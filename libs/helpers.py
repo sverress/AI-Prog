@@ -35,6 +35,7 @@ class Timer:
         self.end_time = None
         if start:
             self.start()
+        self.cumulative = 0
 
     def __str__(self):
         return f"{self.id}: {self.time()}"
@@ -42,8 +43,10 @@ class Timer:
     def start(self):
         self.start_time = time.time()
 
-    def stop(self):
+    def stop(self, add=False):
         self.end_time = time.time()
+        if add:
+            self.cumulative += self.time()
 
     def time(self):
         return self.end_time - self.start_time

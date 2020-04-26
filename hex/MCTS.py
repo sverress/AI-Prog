@@ -8,7 +8,16 @@ from hex.StateManager import StateManager
 
 
 class MCTS:
-    def __init__(self, state_manager: StateManager, actor_net, max_tree_height=5, c=1, number_of_simulations=10):
+    def __init__(
+        self,
+        state_manager: StateManager,
+        actor_net,
+        max_tree_height=5,
+        c=1,
+        number_of_simulations=10,
+        verbose=False,
+        random_simulation_rate=0.2,
+    ):
         self.state_manager = StateManager(
             state_manager.board_size, state_manager.current_player()
         )
@@ -20,6 +29,8 @@ class MCTS:
         self.max_tree_height = max_tree_height
         self.actor_net = actor_net
         self.number_of_simulations = number_of_simulations
+        self.verbose = verbose
+        self.random_simulation_rate = random_simulation_rate
 
     def run(self, root_state: str):
         """
@@ -35,9 +46,16 @@ class MCTS:
             simulation_reward = self.simulate(rollout_state)
             self.backpropagate(rollout_state, simulation_reward)
             self.state_manager.set_state_manager(self.tree.root_state)
+
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
-        return self.greedy_best_action(self.tree.root_state)
+        best_action = self.epsilon_greedy_action_from_distribution(
+            np.array(distribution), self.tree.root_state, epsilon=0.0
+        )
+        if self.verbose:
+            print("distribution", distribution)
+            print("best_action", best_action)
+        return best_action
 
     # MAIN ALGORITHM METHODS
 
@@ -54,17 +72,6 @@ class MCTS:
         elif not self.tree.get_outgoing_edges(state):
             children = self.expand(state)
             return self.choose_random_child(state, children)
-        # If the current state still has unvisited children: chose one at random and simulate from it
-        # elif self.tree.get_outgoing_edges(state, only_unvisited=True):
-        #     return self.choose_random_child(
-        #         state,
-        #         [
-        #             child
-        #             for (parent, child) in self.tree.get_outgoing_edges(
-        #                 state, only_unvisited=True
-        #             )
-        #         ],
-        #     )
         else:
             child = self.tree_policy(state)
             self.state_manager.check_difference_and_perform_action(child)
@@ -79,10 +86,9 @@ class MCTS:
         :return: list of all child states
         """
         children = StateManager.generate_child_states(state)
-        end_state_checker = StateManager(self.state_manager.board_size, self.state_manager.current_player())
         for child in children:
             if child not in self.tree.get_nodes():
-                self.tree.add_state_node(child, is_end_state=None)
+                self.tree.add_state_node(child)
             self.tree.add_edge(state, child)
         return children
 
@@ -92,12 +98,21 @@ class MCTS:
         :return: return 1 if the simulation ends in player "true" winning, -1 otherwise
         """
         if self.state_manager.get_state() != state:
-            raise ValueError("The state manager is not set to the start of the simulation")
-        while not self.state_manager.is_end_state():
-            distribution = self.actor_net.predict(self.state_manager.get_state())
-            chosen_action = self.epsilon_greedy_action_from_distribution(
-                distribution, self.state_manager.get_state()
+            raise ValueError(
+                "The state manager is not set to the start of the simulation"
             )
+        while not self.state_manager.is_end_state():
+            if random.random() < self.random_simulation_rate:
+                distribution = self.actor_net.predict(self.state_manager.get_state())
+                chosen_action = self.epsilon_greedy_action_from_distribution(
+                    distribution, self.state_manager.get_state()
+                )
+            else:
+                chosen_action = random.choice(
+                    self.state_manager.generate_possible_actions(
+                        self.state_manager.get_state()
+                    )
+                )
             self.state_manager.perform_action(chosen_action)
         return MCTS.get_end_state_reward(self.state_manager.current_player())
 
@@ -154,7 +169,6 @@ class MCTS:
                     False,
                 ),
             )[-1]
-        # TODO: Return outgoing edges with uct value attached. Should randomly pick from those with same uct value
         parent, best_child = best_edge
         self.tree.set_active_edge(parent, best_child, True)
         return best_child
@@ -186,7 +200,8 @@ class MCTS:
 
     def greedy_best_action(self, state: str) -> str:
         sorted_list = self.tree.get_outgoing_edges(
-            state, sort_by_function=lambda edge: self.tree.get_edge_number_of_visits(*edge)
+            state,
+            sort_by_function=lambda edge: self.tree.get_edge_number_of_visits(*edge),
         )
         return self.state_manager.get_action(*sorted_list[0])
 
@@ -253,7 +268,9 @@ class MCTS:
             child_board, child_player = StateManager.extract_state(child)
             for i in range(len(child_board)):
                 if parent_board[i] != child_board[i]:
-                    child_number_of_visits = self.tree.get_edge_number_of_visits(state, child)
+                    child_number_of_visits = self.tree.get_edge_number_of_visits(
+                        state, child
+                    )
                     change_indices_dict[i] = child_number_of_visits
                     total_visits += child_number_of_visits
                     break
@@ -264,6 +281,9 @@ class MCTS:
             else 0
             for index in range(self.state_manager.board_size ** 2)
         ]
+
+    def set_random_simulation_rate(self, new_rate: float):
+        self.random_simulation_rate = new_rate
 
 
 class TreeConstants:
@@ -293,7 +313,7 @@ class StateTree:
     def get_nodes(self):
         return self.graph.nodes
 
-    def add_state_node(self, state: str, is_end_state: bool):
+    def add_state_node(self, state: str, is_end_state=False):
         """
         Adds node to the DiGraph G with initial number of encounters to zero
         :param state: string representation of state
@@ -425,7 +445,9 @@ class StateTree:
         blue_player_nodes = []
         red_player_nodes = []
         labels = {}
-        state_manager = StateManager(state_manager.board_size, state_manager.current_player())
+        state_manager = StateManager(
+            state_manager.board_size, state_manager.current_player()
+        )
         for state in self.graph.nodes:
             state_manager.set_state_manager(state)
             labels[state] = state_manager.pretty_state_string()

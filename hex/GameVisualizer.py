@@ -1,7 +1,10 @@
 from tkinter import *
 import math
+import numpy as np
+import random
 
 from hex.StateManager import StateManager
+from hex.ANET import ANET
 
 # COLORS
 PLAYER_ONE_COLOR = "#3232ff"  # Blue
@@ -17,12 +20,24 @@ FONT_COLOR = "#FFF"
 
 class GameVisualizer:
     def __init__(
-        self, board_size, frame_rate=1000, initial_state=None, cartesian_cords=False
+        self,
+        board_size,
+        model=None,
+        model_path=None,
+        frame_rate=1000,
+        initial_state=None,
+        cartesian_cords=True,
+        starting_player=1,
+        model_first_move=False,
     ):
         self.board_size = board_size
         self.frame_rate = frame_rate
         self.initial_state_given = initial_state is not None
         self.initial_state = initial_state
+        self.model_first_move = model_first_move
+        if model_path:
+            model = ANET.load_model(model_path)
+        self.model = model
         self.master = Tk()
         self.master.title("HexGameVisualizer")
         self.start_pos = (60, 30)
@@ -33,6 +48,15 @@ class GameVisualizer:
             height=self.start_pos[1] + self.board_size * 33 + self.start_pos[1],
         )
         self.canvas.pack()
+        self.action_input = Entry(self.master)
+        self.action_input.bind("<Return>", lambda event: self.button_clicked())
+        self.action_input.pack()
+        self.perform_action_button = Button(
+            self.master, text="perform move", command=self.button_clicked
+        )
+        self.perform_action_button.pack()
+        self.label = Label(self.master)
+        self.label.pack()
         self.counter = 0
         self.board = []
         self.board_border = []
@@ -41,7 +65,7 @@ class GameVisualizer:
         self.actions = []
         self.player_pieces = []
         self.cartesian_cords = cartesian_cords
-        self.state_manager = StateManager(board_size, 1)
+        self.state_manager = StateManager(board_size, starting_player)
 
     def quit_application(self):
         import sys
@@ -55,19 +79,56 @@ class GameVisualizer:
     def preprocess_actions(self):
         new_actions = []
         for action in self.actions:
-            positions, player = action.split(":")
-            x_pos, y_pos = positions.split(",")
-            new_actions.append((int(x_pos), int(y_pos), int(player)))
+            new_actions.append(GameVisualizer.preprocess_action(action))
         return new_actions
+
+    @staticmethod
+    def preprocess_action(action: str):
+        positions, player = action.split(":")
+        x_pos, y_pos = positions.split(",")
+        return int(x_pos), int(y_pos), int(player)
 
     def run(self):
         self.actions = self.preprocess_actions()
         self.build_and_draw_board()
         if self.initial_state_given:
+            self.state_manager.set_state_manager(self.initial_state)
             self.draw_initial_state()
         if len(self.actions):
             self.master.after(self.frame_rate, self.draw)
+        if self.model and self.model_first_move:
+            self.model_perform_action()
         mainloop()
+
+    def model_perform_action(self):
+        print(self.state_manager.get_state())
+        distribution = self.model.predict(self.state_manager.get_state())
+        print(distribution)
+        argmax_distribution_index = int(
+            np.argmax(distribution)
+        )  # Greedy best from distribution
+        action = self.state_manager.get_action_from_flattened_board_index(
+            argmax_distribution_index, self.state_manager.get_state()
+        )
+        self.perform_action(GameVisualizer.preprocess_action(action))
+
+    def button_clicked(self):
+        try:
+            input_action = (
+                f"{self.action_input.get()}:{self.state_manager.current_player()}"
+            )
+            input_action = random.choice(self.state_manager.generate_possible_actions(
+                self.state_manager.get_state()
+            ))
+            self.perform_action(GameVisualizer.preprocess_action(input_action))
+            self.action_input.delete(0, "end")
+            if self.model and not self.state_manager.is_end_state():
+                self.model_perform_action()
+
+        except ValueError:
+            self.label["text"] = "Something went wrong"
+        if self.state_manager.is_end_state():
+            self.label["text"] = "Game over"
 
     def draw_initial_state(self):
         initial_board = self.state_manager.build_board(self.initial_state)
@@ -238,12 +299,17 @@ class GameVisualizer:
         return math.floor(board_pos / self.board_size), board_pos % self.board_size
 
     def draw(self):
-        x_pos, y_pos, player = self.actions.pop(0)
+        self.perform_action(self.actions.pop(0))
+        if len(self.actions) > 0:
+            self.master.after(self.frame_rate, self.draw)
+
+    def perform_action(self, action: (int, int, int)):
+        print(action)
+        x_pos, y_pos, player = action
         self.player_pieces.append(
             Cell(self.canvas, self.board[x_pos][y_pos].top, player=player,)
         )
-        if len(self.actions) > 0:
-            self.master.after(self.frame_rate, self.draw)
+        self.state_manager.perform_action(f"{x_pos},{y_pos}:{player}")
 
 
 class Cell:
@@ -359,4 +425,11 @@ def test():
         state_manager.perform_action(action)
         game.add_action(action)
     print(state_manager.pretty_state_string())
+    game.run()
+
+
+def play_game():
+    game = GameVisualizer(
+        4, model_path="../runs/run1/trained_models/model_300.h5", model_first_move=True
+    )
     game.run()

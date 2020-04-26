@@ -218,10 +218,7 @@ class StateManager(Board):
         board, player = StateManager.extract_state(state)
         for index, cell_value in enumerate(board):
             if cell_value == "0":
-                x_pos, y_pos = (
-                    math.floor(index / self.board_size),
-                    index % self.board_size,
-                )
+                x_pos, y_pos = self.convert_flattened_index_to_cords(index)
                 output.append(f"{x_pos},{y_pos}:{player}")
         return output
 
