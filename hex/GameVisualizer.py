@@ -117,9 +117,11 @@ class GameVisualizer:
             input_action = (
                 f"{self.action_input.get()}:{self.state_manager.current_player()}"
             )
-            input_action = random.choice(self.state_manager.generate_possible_actions(
-                self.state_manager.get_state()
-            ))
+            input_action = random.choice(
+                self.state_manager.generate_possible_actions(
+                    self.state_manager.get_state()
+                )
+            )
             self.perform_action(GameVisualizer.preprocess_action(input_action))
             self.action_input.delete(0, "end")
             if self.model and not self.state_manager.is_end_state():
