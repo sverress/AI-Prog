@@ -1,7 +1,7 @@
 import random
-import math
 from prettytable import PrettyTable
 import numpy as np
+import math
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -28,25 +28,21 @@ class GameSimulator:
         self,
         g,
         p,
-        m,
         verbose,
-        max_tree_height,
-        c,
         k,
         print_parameters=False,
         save_interval=10,
         actor_net_parameters=None,
+        mcts_parameters=None,
     ):
         self.number_of_episodes_to_play = g
         self.starting_player_option = p
-        self.m = m
         self.k = k
         self.verbose = verbose
-        self.max_tree_height = max_tree_height
-        self.c = c
         self.state_manager = None
         self.current_state = None
         self.winner_stats = np.zeros((2, 2))
+        self.mcts_parameters = mcts_parameters if mcts_parameters else {}
         if actor_net_parameters:
             self.actor_net_parameters = actor_net_parameters
             self.actor_network = ANET(k, **actor_net_parameters)
@@ -54,31 +50,31 @@ class GameSimulator:
             self.actor_network = ANET(k)
         self.save_interval = save_interval
         if print_parameters:
-            self.print_parameters()
+            self.print_all_parameters()
 
-    def print_parameters(self):
+    def print_all_parameters(self):
         print("===================================")
         print("            PARAMETERS             ")
         print("===================================")
         print("number of games in a batch:", self.number_of_episodes_to_play)
         print("starting-player option:", self.starting_player_option)
-        print(
-            "number of simulations (and hence roll-outs) per actual game move:", self.m
-        )
         print("Verbose:", self.verbose)
-        print("Max tree height:", self.max_tree_height)
-        print("c:", self.c)
         print("k:", self.k)
         print("save interval:", self.save_interval)
         print("===================================")
-        if self.actor_net_parameters:
-            print("          ANET-PARAMETERS          ")
+        self.print_parameters(self.actor_net_parameters, "          ANET-PARAMETERS          ")
+        self.print_parameters(self.mcts_parameters, "          MCTS-PARAMETERS          ")
+
+    @staticmethod
+    def print_parameters(parameters, header):
+        if parameters:
+            print(header)
             print("===================================")
             print(
                 "".join(
                     [
-                        f"{key}: {self.actor_net_parameters[key]} \n"
-                        for key in self.actor_net_parameters.keys()
+                        f"{key}: {parameters[key]} \n"
+                        for key in parameters.keys()
                     ]
                 )
             )
@@ -134,12 +130,8 @@ class GameSimulator:
             mcts = MCTS(
                 self.state_manager,
                 self.actor_network,
-                max_tree_height=self.max_tree_height,
-                c=self.c,
-                number_of_simulations=self.m,
-                verbose=self.verbose,
-                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play)
-                * 1.2,
+                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play) * 1.2,
+                **self.mcts_parameters,
             )
             while not self.state_manager.is_end_state():
                 action = mcts.run(self.state_manager.get_state())
