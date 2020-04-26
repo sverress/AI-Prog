@@ -26,6 +26,8 @@ class TOPP:
         score_matrix = np.zeros((len(self.models), len(self.models)), dtype=int)
         for index1, player1 in enumerate(self.models):
             for index2, player2 in enumerate(self.models[index1 + 1 :]):
+                print(self.episode_num_list[index1])
+                print(self.episode_num_list[index2 + index1 + 1])
                 wins_p1, wins_p2 = self.play_match(
                     num_games_per_match, player1, player2
                 )
@@ -53,7 +55,10 @@ class TOPP:
                 current_player = self.state_manager.current_player()
                 model = player1 if current_player == 1 else player2
                 state = self.state_manager.get_state()
+                print(self.state_manager.pretty_state_string())
                 distribution = ANET.predict_and_normalize(model, state)
+                for i in range(0,self.board_size):
+                    print([distribution[j] for j in range(self.board_size*i, self.board_size*i + self.board_size)])
                 argmax_distribution_index = int(
                     np.argmax(distribution)
                 )  # Greedy best from distribution

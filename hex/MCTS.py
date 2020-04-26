@@ -219,9 +219,12 @@ class MCTS:
         else:
             # Choose random state from those with positive probability
             # prob == 0 might be occupied cells on the board
-            chosen_index = random.choice(
+            if not [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]:
+                chosen_index = int(np.argmax(distribution))
+            else:
+                chosen_index = random.choice(
                 [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
-            )
+                )
         return self.state_manager.get_action_from_flattened_board_index(
             chosen_index, state
         )

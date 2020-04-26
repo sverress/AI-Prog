@@ -16,7 +16,7 @@ class ANET:
         batch_size=350,
         max_size_buffer=1000,
         replay_buffer_cutoff_rate=0.3,
-        epochs = 100,
+        epochs = 10,
         verbose = 2 # one line per epoch
     ):
         self.size_of_board = size_of_board
