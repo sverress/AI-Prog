@@ -17,7 +17,7 @@ actor_net_parameters = {
     "batch_size": 350,
     "max_size_buffer": 2000,
     "replay_buffer_cutoff_rate": 0.3,
-    "epochs": 60,
+    "epochs": 100,
     "verbose": 2 if verbose else 0,  # 2: one line per epoch
     "save_directory": "trained_models",
     "hidden_layers_structure": [(k ** 2 + 5) * 4, (k ** 2 + 5) * 8, (k ** 2 + 5) * 4],
@@ -26,7 +26,7 @@ actor_net_parameters = {
 mcts_parameters = {
     "max_tree_height": 10,
     "c": 1.5,  # Exploration constant
-    "number_of_simulations": 4000,  # number of simulations (and hence roll-outs) per actual game move
+    "number_of_simulations": 2000,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 
