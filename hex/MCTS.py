@@ -104,7 +104,7 @@ class MCTS:
         while not self.state_manager.is_end_state():
             if random.random() < self.random_simulation_rate:
                 distribution = self.actor_net.predict(self.state_manager.get_state())
-                chosen_action = self.epsilon_greedy_action_from_distribution(
+                chosen_action = self.choose_action_stochastically(
                     distribution, self.state_manager.get_state()
                 )
             else:

@@ -6,7 +6,7 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 100  # number of games in a batch
+G = 300  # number of games in a batch
 P = StartingPlayerOptions.P1  # starting-player option
 verbose = False
 save_interval = 50  # number of games between each time we save a model
@@ -21,13 +21,13 @@ actor_net_parameters = {
     "epochs": 100,
     "verbose": 2 if verbose else 0,  # 2: one line per epoch
     "save_directory": "trained_models",
-    "hidden_layers_structure": [(k ** 2 + 10) * 2, int((k ** 2 + 10) * 0.8), int((k ** 2 + 10) * 0.6)],
-    "learning_rate": 0.001,
+    "hidden_layers_structure": [int((k ** 2 + 10) * 0.8), int((k ** 2 + 10) * 0.6)],
+    "learning_rate": 0.01,
 }
 mcts_parameters = {
     "max_tree_height": 8,
     "c": 1.5,  # Exploration constant
-    "number_of_simulations": 20,  # number of simulations (and hence roll-outs) per actual game move
+    "number_of_simulations": 200,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 

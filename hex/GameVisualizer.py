@@ -25,6 +25,7 @@ class GameVisualizer:
         player1=None,
         player2=None,
         starting_player=1,
+        random_play=False,
         frame_rate=1000,
         initial_state=None,
         cartesian_cords=True,
@@ -35,6 +36,11 @@ class GameVisualizer:
         self.state_manager = StateManager(board_size, starting_player)
         if initial_state:
             self.state_manager.set_state_manager(initial_state)
+        self.random_play = random_play
+
+        # Setting players
+        self.player1 = player1
+        self.player2 = player2
 
         # WINDOW
         self.master = Tk()
@@ -50,6 +56,7 @@ class GameVisualizer:
         )
         self.perform_action_button.pack()
 
+        # TODO: Add label to describe the players currently playing
         self.label = Label(self.master)
         self.label.pack()
 
@@ -103,13 +110,12 @@ class GameVisualizer:
             self.draw_initial_state()
         if len(self.actions):
             self.master.after(self.frame_rate, self.draw)
-        if self.model and self.model_first_move:
             self.model_perform_action()
         mainloop()
 
-    def model_perform_action(self):
+    def model_perform_action(self, model: ANET):
         print(self.state_manager.get_state())
-        distribution = self.model.predict(self.state_manager.get_state())
+        distribution = model.predict(self.state_manager.get_state())
         print(distribution)
         argmax_distribution_index = int(
             np.argmax(distribution)
@@ -120,20 +126,24 @@ class GameVisualizer:
         self.perform_action(GameVisualizer.preprocess_action(action))
 
     def button_clicked(self):
+        if self.state_manager.is_end_state():
+            return
         try:
-            input_action = (
-                f"{self.action_input.get()}:{self.state_manager.current_player()}"
-            )
-            input_action = random.choice(
-                self.state_manager.generate_possible_actions(
-                    self.state_manager.get_state()
+            current_player = self.player1 if self.state_manager.current_player() == 1 else self.player2
+            if current_player:
+                self.model_perform_action(current_player)
+            else:
+                input_action = (
+                    f"{self.action_input.get()}:{self.state_manager.current_player()}"
                 )
-            )
-            self.perform_action(GameVisualizer.preprocess_action(input_action))
+                if self.random_play:
+                    input_action = random.choice(
+                        self.state_manager.generate_possible_actions(
+                            self.state_manager.get_state()
+                        )
+                    )
+                self.perform_action(GameVisualizer.preprocess_action(input_action))
             self.action_input.delete(0, "end")
-            if self.model and not self.state_manager.is_end_state():
-                self.model_perform_action()
-
         except ValueError:
             self.label["text"] = "Something went wrong"
         if self.state_manager.is_end_state():
@@ -394,51 +404,3 @@ class Cell:
             fill=self.color,
             outline=BOARD_OUTLINE_COLOR,
         )
-
-
-# EXAMPLES OF USE
-def play_random_game():
-    """
-    Play a random game using the StateManager
-     to generate new states and check if game is over
-    """
-    import random
-
-    my_k = 4
-    game = GameVisualizer(my_k)
-    state_manager = StateManager(my_k, 1)
-    while not state_manager.is_end_state():
-        previous_state = state_manager.get_state()
-        print(previous_state)
-        possible_states = state_manager.generate_child_states(previous_state)
-        current_state = random.choice(possible_states)
-        taken_action = state_manager.get_action(previous_state, current_state)
-        state_manager.perform_action(taken_action)
-        game.add_action(taken_action)
-    game.run()
-
-
-def init_state():
-    initial_state = "1221012101221200:2"
-    game = GameVisualizer(4, initial_state=initial_state)
-    game.run()
-
-
-def test():
-    state_manager = StateManager(8, 1)
-    actions = ["1,2:1", "7,3:2"]
-    game = GameVisualizer(
-        8, cartesian_cords=True, initial_state=state_manager.get_state()
-    )
-    for action in actions:
-        state_manager.perform_action(action)
-        game.add_action(action)
-    print(state_manager.pretty_state_string())
-    game.run()
-
-
-def play_game():
-    game = GameVisualizer(
-        4, model1_path="../runs/run1/trained_models/model_300.h5", model_first_move=True
-    )
-    game.run()
