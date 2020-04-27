@@ -85,7 +85,7 @@ class GameSimulator:
             print(f"--- Starting game {i} ---")
             print(f"Start state: {self.state_manager.pretty_state_string()}")
         else:
-            print_loader(i, self.number_of_episodes_to_play, 1)
+            print_loader(i, self.number_of_episodes_to_play, 10)
 
     def print_action(self, action: str):
         if self.verbose:
