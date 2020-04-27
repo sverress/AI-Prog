@@ -17,7 +17,7 @@ class ANET:
     def __init__(
         self,
         size_of_board,
-        batch_size=350,
+        buffer_batch_size=350,
         max_size_buffer=2000,
         replay_buffer_cutoff_rate=0.3,
         epochs=5,
@@ -26,11 +26,12 @@ class ANET:
         episode_number=0,
         save_directory="trained_models",
         hidden_layers_structure=None,
-        learning_rate=0.01
+        learning_rate=0.01,
+        batch_size = 32
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
-        self.batch_size = batch_size
+        self.buffer_batch_size = buffer_batch_size
         self.epochs = epochs
         self.verbose = verbose
         self.replay_buffer = []
@@ -41,6 +42,7 @@ class ANET:
         # If model is loaded from file, this field indicates number of episodes ran before saving
         self.episode_number = episode_number
         self.save_directory = save_directory
+        self.batch_size= batch_size
 
         if model is None:
             # Deleting current models in directory
@@ -179,13 +181,13 @@ class ANET:
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
         """
-        :return: Random sample of size self.batch_size from the the replay buffer.
+        :return: Random sample of size self.buffer_batch_size from the the replay buffer.
         If the replay buffer is smaller than the batch size it will return the whole replay buffer
         """
-        if len(self.replay_buffer) < self.batch_size:
+        if len(self.replay_buffer) < self.buffer_batch_size:
             batch = self.replay_buffer.copy()
         else:
-            batch = random.sample(self.replay_buffer, self.batch_size)
+            batch = random.sample(self.replay_buffer, self.buffer_batch_size)
         x = []
         y = []
         for case in batch:
