@@ -51,7 +51,15 @@ class TOPP:
                 print(self.state_manager.pretty_state_string())
                 distribution = model.predict(state)
                 for i in range(0, self.board_size):
-                    print([distribution[j] for j in range(self.board_size * i, self.board_size * i + self.board_size)])
+                    print(
+                        [
+                            distribution[j]
+                            for j in range(
+                                self.board_size * i,
+                                self.board_size * i + self.board_size,
+                            )
+                        ]
+                    )
                 argmax_distribution_index = int(
                     np.argmax(distribution)
                 )  # Greedy best from distribution
@@ -82,3 +90,12 @@ class TOPP:
                 line.append(cell)
             t.add_row(line)
         print(t)
+
+
+def main():
+    tournament = TOPP(3, "trained_models")
+    tournament.play(4)
+
+
+if __name__ == "__main__":
+    main()
