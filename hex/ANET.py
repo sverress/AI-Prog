@@ -83,7 +83,7 @@ class ANET:
             )
             self.model.compile(
                 loss="categorical_crossentropy",
-                optimizer=optimizers.Adam(learning_rate=learning_rate),
+                optimizer=optimizers.SGD(learning_rate=learning_rate),
                 metrics=["mse"],
             )
         else:
@@ -150,17 +150,21 @@ class ANET:
             episode_number=episode_number,
         )
 
-    def load_models(self):
+    @staticmethod
+    def load_models(directory: str):
         """
         Fetches all file paths in the trained_models folder. Loads all models and appends to list
         :return: list of player objects, list of the number of episodes trained for each model: [obj], [int]
         """
         # Get list of paths to all saved models
-        all_models = glob.glob(self.save_directory + "/*.h5")
+        all_models = glob.glob(directory + "/*.h5")
         return sorted(
             [ANET.load_model(model_path) for model_path in all_models],
             key=lambda model: model.episode_number,
         )
+
+    def load_directory_models(self):
+        return ANET.load_models(self.save_directory)
 
     @staticmethod
     def delete_models(path_to_models: str):
