@@ -124,6 +124,7 @@ class GameSimulator:
         starting_player = StartingPlayerOptions.get_starting_player(
             self.starting_player_option
         )
+        self.actor_network.save_model(episode_number=0)
         for i in range(1, self.number_of_episodes_to_play + 1):
             self.state_manager = StateManager(self.k, starting_player)
             self.print_start_state(i)
