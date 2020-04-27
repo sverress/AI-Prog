@@ -286,7 +286,7 @@ class MCTS:
         self.random_simulation_rate = new_rate
 
     def choose_action_stochastically(self, distribution, state):
-        chosen_index = np.choose([i for i in range(len(distribution))], p=distribution)
+        chosen_index = np.random.choice([i for i in range(len(distribution))], p=distribution)
         return self.state_manager.get_action_from_flattened_board_index(
             chosen_index, state
         )
