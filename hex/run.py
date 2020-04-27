@@ -11,7 +11,7 @@ verbose = False
 save_interval = 30  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 4  # board size kxk, 3 <= k <= 10
+k = 3  # board size kxk, 3 <= k <= 10
 
 actor_net_parameters = {
     "batch_size": 350,
@@ -26,7 +26,7 @@ actor_net_parameters = {
 mcts_parameters = {
     "max_tree_height": 10,
     "c": 1.5,  # Exploration constant
-    "number_of_simulations": 2000,  # number of simulations (and hence roll-outs) per actual game move
+    "number_of_simulations": 10,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 
@@ -54,5 +54,5 @@ TOPP parameters
 num_games_per_match = 2
 
 # TOPP
-turnament = TOPP(k, game.actor_network)
+turnament = TOPP(game.actor_network.save_directory)
 turnament.play(num_games_per_match)
