@@ -21,6 +21,8 @@ class TOPP:
         score_matrix = np.zeros((len(self.models), len(self.models)), dtype=int)
         for index1, player1 in enumerate(self.models):
             for index2, player2 in enumerate(self.models[index1 + 1 :]):
+                print(player1.episode_number)
+                print(player2.episode_number)
                 wins_p1, wins_p2 = self.play_match(
                     num_games_per_match, player1, player2
                 )
