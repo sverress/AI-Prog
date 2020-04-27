@@ -22,50 +22,57 @@ class GameVisualizer:
     def __init__(
         self,
         board_size,
-        model=None,
-        model_path=None,
+        player1=None,
+        player2=None,
+        starting_player=1,
         frame_rate=1000,
         initial_state=None,
         cartesian_cords=True,
-        starting_player=1,
-        model_first_move=False,
     ):
+        # Game logic
         self.board_size = board_size
-        self.frame_rate = frame_rate
-        self.initial_state_given = initial_state is not None
         self.initial_state = initial_state
-        self.model_first_move = model_first_move
-        if model_path:
-            model = ANET.load_model(model_path)
-        self.model = model
+        self.state_manager = StateManager(board_size, starting_player)
+        if initial_state:
+            self.state_manager.set_state_manager(initial_state)
+
+        # WINDOW
         self.master = Tk()
         self.master.title("HexGameVisualizer")
-        self.start_pos = (60, 30)
         self.master.protocol("WM_DELETE_WINDOW", self.quit_application)
+
+        self.action_input = Entry(self.master)
+        self.action_input.bind("<Return>", lambda event: self.button_clicked())
+        self.action_input.pack()
+
+        self.perform_action_button = Button(
+            self.master, text="perform move", command=self.button_clicked
+        )
+        self.perform_action_button.pack()
+
+        self.label = Label(self.master)
+        self.label.pack()
+
+        self.start_pos = (60, 30)
         self.canvas = Canvas(
             self.master,
             width=self.start_pos[0] + self.board_size * 55 + self.start_pos[0],
             height=self.start_pos[1] + self.board_size * 33 + self.start_pos[1],
         )
         self.canvas.pack()
-        self.action_input = Entry(self.master)
-        self.action_input.bind("<Return>", lambda event: self.button_clicked())
-        self.action_input.pack()
-        self.perform_action_button = Button(
-            self.master, text="perform move", command=self.button_clicked
-        )
-        self.perform_action_button.pack()
-        self.label = Label(self.master)
-        self.label.pack()
+
+        # CONSTANTS
+        self.frame_rate = frame_rate
+        self.border_size = 10
         self.counter = 0
+        self.size = 20
+        self.cartesian_cords = cartesian_cords
+
+        # LISTS CONTROLLING GAME AND DRAWING OF BOARD
         self.board = []
         self.board_border = []
-        self.border_size = 10
-        self.size = 20
         self.actions = []
         self.player_pieces = []
-        self.cartesian_cords = cartesian_cords
-        self.state_manager = StateManager(board_size, starting_player)
 
     def quit_application(self):
         import sys
@@ -91,7 +98,7 @@ class GameVisualizer:
     def run(self):
         self.actions = self.preprocess_actions()
         self.build_and_draw_board()
-        if self.initial_state_given:
+        if self.initial_state:
             self.state_manager.set_state_manager(self.initial_state)
             self.draw_initial_state()
         if len(self.actions):
@@ -432,6 +439,6 @@ def test():
 
 def play_game():
     game = GameVisualizer(
-        4, model_path="../runs/run1/trained_models/model_300.h5", model_first_move=True
+        4, model1_path="../runs/run1/trained_models/model_300.h5", model_first_move=True
     )
     game.run()
