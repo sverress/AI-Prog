@@ -5,11 +5,11 @@ from prettytable import PrettyTable
 
 
 class TOPP:
-    def __init__(self, board_size, path: str):
+    def __init__(self, path: str):
 
         self.models = ANET.load_models(path)
         self.state_manager = None
-        self.board_size = board_size
+        self.board_size = ANET.infer_board_size_from_model(self.models[0].model)
 
     def play(self, num_games_per_match):
         """
@@ -93,9 +93,8 @@ class TOPP:
             t.add_row(line)
         print(t)
 
-
 def main():
-    tournament = TOPP(3, "trained_models")
+    tournament = TOPP("trained_models")
     tournament.play(4)
 
 
