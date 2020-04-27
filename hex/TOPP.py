@@ -5,9 +5,9 @@ from prettytable import PrettyTable
 
 
 class TOPP:
-    def __init__(self, board_size, actor_network: ANET):
+    def __init__(self, board_size, path: str):
 
-        self.models = actor_network.load_models()
+        self.models = ANET.load_models(path)
         self.state_manager = None
         self.board_size = board_size
 
@@ -21,8 +21,6 @@ class TOPP:
         score_matrix = np.zeros((len(self.models), len(self.models)), dtype=int)
         for index1, player1 in enumerate(self.models):
             for index2, player2 in enumerate(self.models[index1 + 1 :]):
-                print(player1.episode_number)
-                print(player2.episode_number)
                 wins_p1, wins_p2 = self.play_match(
                     num_games_per_match, player1, player2
                 )
