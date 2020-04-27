@@ -255,12 +255,13 @@ class ANET:
         return generated_cases
 
     @staticmethod
-    def save_buffer_to_file(num_episodes, k, ANET):
+    def save_buffer_to_file(num_episodes, k, ANET, cases_directory="cases"):
         x = []
         y = []
         for case in ANET.replay_buffer:
             x.append(case[0])  # Add state as x
             y.append(case[1])  # Add distribution as y
-
-        np.save(f"cases/x_{k}x{k}_{num_episodes}", np.array(x))
-        np.save(f"cases/y_{k}x{k}_{num_episodes}", np.array(y))
+        if not os.path.exists(cases_directory):
+            os.mkdir(cases_directory)
+        np.save(f"{cases_directory}/x_{k}x{k}_{num_episodes}", np.array(x))
+        np.save(f"{cases_directory}/y_{k}x{k}_{num_episodes}", np.array(y))
