@@ -3,14 +3,28 @@ import time
 from datetime import timedelta
 
 
-def print_loader(progress, total, interval):
+def print_loader(progress, total, interval, timer, total_number_of_episodes):
     bar = (
         "=" * int(progress / interval)
         + ">"
         + " " * (int(total / interval) - int(progress / interval))
     )
-    sys.stdout.write(f"\r[{bar}] {int(progress / total * 100)}%")
+    remaining_time = print_remaining_time_estimation(
+        timer, progress, total_number_of_episodes
+    )
+    sys.stdout.write(f"\r[{bar}] {int(progress / total * 100)}% {remaining_time}")
     sys.stdout.flush()
+
+
+def print_remaining_time_estimation(
+    timer, current_episode_number, number_of_episodes_to_play
+):
+    if not timer.end_time:
+        return ""
+    time_string = Timer.seconds_to_str(
+        timer.time() * (number_of_episodes_to_play - current_episode_number)
+    )
+    return f"Minimum {time_string} remaining"
 
 
 def random_string(string_length=8):
@@ -51,16 +65,22 @@ class Timer:
     def time(self):
         return self.end_time - self.start_time
 
-    def time_str(self):
+    @staticmethod
+    def seconds_to_str(seconds):
+        time_tuple = Timer.get_seconds_tuple(seconds)
         output = ""
         time_lables = ["days", "hours", "minutes", "seconds"]
-        for index, time_value in enumerate(self.get_time_tuple()):
+        for index, time_value in enumerate(time_tuple):
             if time_value:
                 output += f"{time_value} {time_lables[index] if time_value>1 else time_lables[index][:-1]} "
         return output
 
-    def get_time_tuple(self):
-        time_d = timedelta(seconds=self.time())
+    def time_str(self):
+        Timer.seconds_to_str(self.time())
+
+    @staticmethod
+    def get_seconds_tuple(seconds):
+        time_d = timedelta(seconds=seconds)
         if time_d.days == 0:
             return tuple([0] + time_list_from_timedelta_string(str(time_d)))
         else:
@@ -68,6 +88,9 @@ class Timer:
                 [time_d.days]
                 + time_list_from_timedelta_string(str(time_d).split(",")[-1])
             )
+
+    def get_time_tuple(self):
+        return Timer.get_seconds_tuple(self.time())
 
 
 class TimerManager:

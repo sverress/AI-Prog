@@ -6,7 +6,7 @@ import math
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from hex.MCTS import MCTS
-from libs.helpers import print_loader
+from libs.helpers import print_loader, Timer
 
 
 class StartingPlayerOptions:
@@ -62,8 +62,12 @@ class GameSimulator:
         print("k:", self.k)
         print("save interval:", self.save_interval)
         print("===================================")
-        self.print_parameters(self.actor_net_parameters, "          ANET-PARAMETERS          ")
-        self.print_parameters(self.mcts_parameters, "          MCTS-PARAMETERS          ")
+        self.print_parameters(
+            self.actor_net_parameters, "          ANET-PARAMETERS          "
+        )
+        self.print_parameters(
+            self.mcts_parameters, "          MCTS-PARAMETERS          "
+        )
 
     @staticmethod
     def print_parameters(parameters, header):
@@ -71,21 +75,22 @@ class GameSimulator:
             print(header)
             print("===================================")
             print(
-                "".join(
-                    [
-                        f"{key}: {parameters[key]} \n"
-                        for key in parameters.keys()
-                    ]
-                )
+                "".join([f"{key}: {parameters[key]} \n" for key in parameters.keys()])
             )
             print("===================================")
 
-    def print_start_state(self, i):
+    def print_start_state(self, i, timer):
         if self.verbose:
             print(f"--- Starting game {i} ---")
             print(f"Start state: {self.state_manager.pretty_state_string()}")
         else:
-            print_loader(i, self.number_of_episodes_to_play, 1)
+            print_loader(
+                i,
+                self.number_of_episodes_to_play,
+                10,
+                timer,
+                self.number_of_episodes_to_play,
+            )
 
     def print_action(self, action: str):
         if self.verbose:
@@ -124,13 +129,17 @@ class GameSimulator:
         starting_player = StartingPlayerOptions.get_starting_player(
             self.starting_player_option
         )
+        self.actor_network.save_model(episode_number=0)
+        timer = Timer()
         for i in range(1, self.number_of_episodes_to_play + 1):
             self.state_manager = StateManager(self.k, starting_player)
-            self.print_start_state(i)
+            self.print_start_state(i, timer)
+            timer.start()
             mcts = MCTS(
                 self.state_manager,
                 self.actor_network,
-                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play) * 1.2,
+                random_simulation_rate=math.tanh(i / self.number_of_episodes_to_play)
+                * 1.2,
                 **self.mcts_parameters,
             )
             while not self.state_manager.is_end_state():
@@ -144,4 +153,8 @@ class GameSimulator:
                 starting_player = StateManager.get_opposite_player(starting_player)
             if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_number=i)
+            timer.stop()
         self.print_run_summary()
+        ANET.save_buffer_to_file(
+            self.number_of_episodes_to_play, self.k, self.actor_network
+        )

@@ -49,13 +49,13 @@ class MCTS:
 
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
-        best_action = self.epsilon_greedy_action_from_distribution(
-            np.array(distribution), self.tree.root_state, epsilon=0.0
+        chosen_action = self.choose_action_stochastically(
+            np.array(distribution), self.tree.root_state
         )
         if self.verbose:
             print("distribution", distribution)
-            print("best_action", best_action)
-        return best_action
+            print("chosen_action", chosen_action)
+        return chosen_action
 
     # MAIN ALGORITHM METHODS
 
@@ -238,7 +238,7 @@ class MCTS:
                 chosen_index = int(np.argmax(distribution))
             else:
                 chosen_index = random.choice(
-                [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
+                    [i[0] for i, prob in np.ndenumerate(distribution) if prob > 0]
                 )
         return self.state_manager.get_action_from_flattened_board_index(
             chosen_index, state
@@ -284,6 +284,12 @@ class MCTS:
 
     def set_random_simulation_rate(self, new_rate: float):
         self.random_simulation_rate = new_rate
+
+    def choose_action_stochastically(self, distribution, state):
+        chosen_index = np.random.choice([i for i in range(len(distribution))], p=distribution)
+        return self.state_manager.get_action_from_flattened_board_index(
+            chosen_index, state
+        )
 
 
 class TreeConstants:

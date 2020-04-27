@@ -17,7 +17,7 @@ class ANET:
     def __init__(
         self,
         size_of_board,
-        batch_size=350,
+        buffer_batch_size=350,
         max_size_buffer=2000,
         replay_buffer_cutoff_rate=0.3,
         epochs=5,
@@ -26,11 +26,12 @@ class ANET:
         episode_number=0,
         save_directory="trained_models",
         hidden_layers_structure=None,
-        learning_rate=0.01
+        learning_rate=0.01,
+        batch_size = 32
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
-        self.batch_size = batch_size
+        self.buffer_batch_size = buffer_batch_size
         self.epochs = epochs
         self.verbose = verbose
         self.replay_buffer = []
@@ -41,6 +42,7 @@ class ANET:
         # If model is loaded from file, this field indicates number of episodes ran before saving
         self.episode_number = episode_number
         self.save_directory = save_directory
+        self.batch_size= batch_size
 
         if model is None:
             # Deleting current models in directory
@@ -83,7 +85,7 @@ class ANET:
             )
             self.model.compile(
                 loss="categorical_crossentropy",
-                optimizer=optimizers.Adam(learning_rate=learning_rate),
+                optimizer=optimizers.SGD(learning_rate=learning_rate),
                 metrics=["mse"],
             )
         else:
@@ -150,17 +152,21 @@ class ANET:
             episode_number=episode_number,
         )
 
-    def load_models(self):
+    @staticmethod
+    def load_models(directory: str):
         """
         Fetches all file paths in the trained_models folder. Loads all models and appends to list
         :return: list of player objects, list of the number of episodes trained for each model: [obj], [int]
         """
         # Get list of paths to all saved models
-        all_models = glob.glob(self.save_directory + "/*.h5")
+        all_models = glob.glob(directory + "/*.h5")
         return sorted(
             [ANET.load_model(model_path) for model_path in all_models],
             key=lambda model: model.episode_number,
         )
+
+    def load_directory_models(self):
+        return ANET.load_models(self.save_directory)
 
     @staticmethod
     def delete_models(path_to_models: str):
@@ -175,13 +181,13 @@ class ANET:
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
         """
-        :return: Random sample of size self.batch_size from the the replay buffer.
+        :return: Random sample of size self.buffer_batch_size from the the replay buffer.
         If the replay buffer is smaller than the batch size it will return the whole replay buffer
         """
-        if len(self.replay_buffer) < self.batch_size:
+        if len(self.replay_buffer) < self.buffer_batch_size:
             batch = self.replay_buffer.copy()
         else:
-            batch = random.sample(self.replay_buffer, self.batch_size)
+            batch = random.sample(self.replay_buffer, self.buffer_batch_size)
         x = []
         y = []
         for case in batch:
@@ -249,3 +255,15 @@ class ANET:
         if self.verbose:
             print(generated_cases)
         return generated_cases
+
+    @staticmethod
+    def save_buffer_to_file(num_episodes, k, ANET, cases_directory="cases"):
+        x = []
+        y = []
+        for case in ANET.replay_buffer:
+            x.append(case[0])  # Add state as x
+            y.append(case[1])  # Add distribution as y
+        if not os.path.exists(cases_directory):
+            os.mkdir(cases_directory)
+        np.save(f"{cases_directory}/x_{k}x{k}_{num_episodes}", np.array(x))
+        np.save(f"{cases_directory}/y_{k}x{k}_{num_episodes}", np.array(y))

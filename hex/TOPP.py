@@ -5,11 +5,11 @@ from prettytable import PrettyTable
 
 
 class TOPP:
-    def __init__(self, board_size, actor_network: ANET):
+    def __init__(self, path: str):
 
-        self.models = actor_network.load_models()
+        self.models = ANET.load_models(path)
         self.state_manager = None
-        self.board_size = board_size
+        self.board_size = ANET.infer_board_size_from_model(self.models[0].model)
 
     def play(self, num_games_per_match):
         """
@@ -21,8 +21,8 @@ class TOPP:
         score_matrix = np.zeros((len(self.models), len(self.models)), dtype=int)
         for index1, player1 in enumerate(self.models):
             for index2, player2 in enumerate(self.models[index1 + 1 :]):
-                print(self.episode_num_list[index1])
-                print(self.episode_num_list[index2 + index1 + 1])
+                print(player1.episode_number)
+                print(player2.episode_number)
                 wins_p1, wins_p2 = self.play_match(
                     num_games_per_match, player1, player2
                 )
@@ -53,7 +53,15 @@ class TOPP:
                 print(self.state_manager.pretty_state_string())
                 distribution = model.predict(state)
                 for i in range(0, self.board_size):
-                    print([distribution[j] for j in range(self.board_size * i, self.board_size * i + self.board_size)])
+                    print(
+                        [
+                            distribution[j]
+                            for j in range(
+                                self.board_size * i,
+                                self.board_size * i + self.board_size,
+                            )
+                        ]
+                    )
                 argmax_distribution_index = int(
                     np.argmax(distribution)
                 )  # Greedy best from distribution
@@ -84,3 +92,11 @@ class TOPP:
                 line.append(cell)
             t.add_row(line)
         print(t)
+
+def main():
+    tournament = TOPP("trained_models")
+    tournament.play(4)
+
+
+if __name__ == "__main__":
+    main()
