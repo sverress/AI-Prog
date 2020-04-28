@@ -92,6 +92,17 @@ class ANET:
             self.model = model
 
     @staticmethod
+    def train_network_from_cases(cases_directory, anet_parameters):
+        x_path = [filename for filename in os.listdir(cases_directory) if filename.startswith("x")][0]
+        y_path = [filename for filename in os.listdir(cases_directory) if filename.startswith("y")][0]
+        x, y = np.load(f"{cases_directory}/{x_path}"), np.load(f"{cases_directory}/{y_path}")
+        anet = ANET(int(x_path[2]), **anet_parameters)
+        history = anet.model.fit(
+            x, y, batch_size=anet.batch_size, epochs=anet.epochs, verbose=anet.verbose
+        )
+        return anet, history
+
+    @staticmethod
     def convert_state_to_network_format(state: str):
         board_str, player_str = StateManager.extract_state(state)
         board_nn_representation = [int(player_str == "1")] * 5 + [
