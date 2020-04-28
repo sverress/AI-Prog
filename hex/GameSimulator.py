@@ -143,7 +143,7 @@ class GameSimulator:
                 **self.mcts_parameters,
             )
             while not self.state_manager.is_end_state():
-                action = mcts.run(self.state_manager.get_state())
+                action = mcts.run(self.state_manager.get_state(), i / self.number_of_episodes_to_play)
                 self.state_manager.perform_action(action)
                 self.print_action(action)
             self.update_winner_stats(starting_player)

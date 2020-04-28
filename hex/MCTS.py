@@ -32,7 +32,7 @@ class MCTS:
         self.verbose = verbose
         self.random_simulation_rate = random_simulation_rate
 
-    def run(self, root_state: str):
+    def run(self, root_state: str, progress: float):
         """
         Main method: Runs the monte carlo tree search algorithm, tree traversal -> rollout -> backprop, m times.
         Then finds the greedy best move from root state of the current tree
@@ -49,9 +49,14 @@ class MCTS:
 
         distribution = self.get_distribution(self.tree.root_state)
         self.actor_net.add_case(self.tree.root_state, distribution.copy())
-        chosen_action = self.choose_action_stochastically(
-            np.array(distribution), self.tree.root_state
-        )
+        if random.random() > math.tanh(progress):
+            chosen_action = self.choose_action_stochastically(
+                np.array(distribution), self.tree.root_state
+            )
+        else:
+            chosen_action = self.epsilon_greedy_action_from_distribution(
+                np.array(distribution), self.tree.root_state, epsilon=0.0
+            )
         if self.verbose:
             print("distribution", distribution)
             print("chosen_action", chosen_action)
@@ -104,8 +109,8 @@ class MCTS:
         while not self.state_manager.is_end_state():
             if random.random() < self.random_simulation_rate:
                 distribution = self.actor_net.predict(self.state_manager.get_state())
-                chosen_action = self.choose_action_stochastically(
-                    distribution, self.state_manager.get_state()
+                chosen_action = self.epsilon_greedy_action_from_distribution(
+                    distribution, self.state_manager.get_state(), epsilon=0.0
                 )
             else:
                 chosen_action = random.choice(
