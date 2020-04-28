@@ -23,14 +23,16 @@ def train_from_cases_and_show_loss():
         "buffer_batch_size": 350,
         "max_size_buffer": 3000,
         "replay_buffer_cutoff_rate": 0.3,
-        "epochs": 100,
+        "epochs": 200,
         "verbose": 2,  # 2: one line per epoch
         "save_directory": "trained_models",
-        "hidden_layers_structure": [25, 15],
-        "learning_rate": 0.1,
+        "hidden_layers_structure": [200, 200],
+        "learning_rate": 0.05,
     }
     anet, history = ANET.train_network_from_cases(cases_directory, actor_net_parameters)
+    anet.save_model(32)
     plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
@@ -39,8 +41,8 @@ def train_from_cases_and_show_loss():
 
 
 def main():
-    train_from_cases_and_show_loss()
-    #model_match("/Users/svoss/KODE/AI-Prog/runs/overnight/trained_models", 0, 300, starting_player=1)
+    #train_from_cases_and_show_loss()
+    model_match("trained_models", None, 32, starting_player=1)
 
 
 if __name__ == "__main__":

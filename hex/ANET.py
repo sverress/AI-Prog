@@ -98,7 +98,7 @@ class ANET:
         x, y = np.load(f"{cases_directory}/{x_path}"), np.load(f"{cases_directory}/{y_path}")
         anet = ANET(int(x_path[2]), **anet_parameters)
         history = anet.model.fit(
-            x, y, batch_size=anet.batch_size, epochs=anet.epochs, verbose=anet.verbose
+            x, y, epochs=anet.epochs, verbose=anet.verbose, validation_split=0.2
         )
         return anet, history
 
