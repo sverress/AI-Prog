@@ -2,6 +2,8 @@ from hex.GameVisualizer import GameVisualizer
 from hex.ANET import ANET
 import matplotlib.pyplot as plt
 
+from hex.TOPP import TOPP
+
 
 def model_match(models_directory, player1, player2, starting_player=1):
     models_dict = {}
@@ -38,6 +40,11 @@ def train_from_cases_and_show_loss():
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
+
+
+def play_TOPP():
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/overnight/trained_models")
+    tournament.play(4)
 
 
 def main():
