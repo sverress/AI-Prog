@@ -2,6 +2,7 @@ import random
 from prettytable import PrettyTable
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -119,6 +120,15 @@ class GameSimulator:
             t.add_row(line)
         print(t)
 
+    def print_loss_graph(self, loss, val_loss):
+        plt.plot(loss)
+        plt.plot(val_loss)
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Games')
+        plt.legend(['Train', 'Test'], loc='upper left')
+        plt.show()
+
     def update_winner_stats(self, starting_player: int) -> None:
         second_index = starting_player - 1
         winning_player = 1 if self.state_manager.current_player() == 2 else 2
@@ -130,6 +140,8 @@ class GameSimulator:
             self.starting_player_option
         )
         self.actor_network.save_model(episode_number=0)
+        loss = []
+        val_loss = []
         timer = Timer()
         for i in range(1, self.number_of_episodes_to_play + 1):
             self.state_manager = StateManager(self.k, starting_player)
@@ -147,14 +159,19 @@ class GameSimulator:
                 self.state_manager.perform_action(action)
                 self.print_action(action)
             self.update_winner_stats(starting_player)
-            self.actor_network.train()
+            history = self.actor_network.train()
+            loss.append(np.average(history.history['loss']))
+            val_loss.append(np.average(history.history['val_loss']))
             self.print_winner_of_batch_game()
             if self.starting_player_option == StartingPlayerOptions.ALTERNATING:
                 starting_player = StateManager.get_opposite_player(starting_player)
             if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_number=i)
             timer.stop()
+        self.print_loss_graph(loss, val_loss)
         self.print_run_summary()
         ANET.save_buffer_to_file(
             self.number_of_episodes_to_play, self.k, self.actor_network
         )
+
+

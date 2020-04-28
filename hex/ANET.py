@@ -145,7 +145,7 @@ class ANET:
         x, y = self._get_random_mini_batch()
         if self.verbose == 2:
             print("Size of replay buffer:", len(self.replay_buffer))
-        self.model.fit(
+        return self.model.fit(
             x,
             y,
             batch_size=self.batch_size,

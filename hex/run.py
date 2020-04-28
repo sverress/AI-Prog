@@ -6,7 +6,7 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 50  # number of games in a batch
+G = 3  # number of games in a batch
 P = StartingPlayerOptions.P1  # starting-player option
 verbose = False
 save_interval = 10  # number of games between each time we save a model
