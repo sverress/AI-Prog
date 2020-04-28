@@ -27,7 +27,7 @@ class ANET:
         save_directory="trained_models",
         hidden_layers_structure=None,
         learning_rate=0.01,
-        batch_size = 32
+        batch_size=32,
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
@@ -42,7 +42,7 @@ class ANET:
         # If model is loaded from file, this field indicates number of episodes ran before saving
         self.episode_number = episode_number
         self.save_directory = save_directory
-        self.batch_size= batch_size
+        self.batch_size = batch_size
 
         if model is None:
             # Deleting current models in directory
@@ -93,9 +93,20 @@ class ANET:
 
     @staticmethod
     def train_network_from_cases(cases_directory, anet_parameters):
-        x_path = [filename for filename in os.listdir(cases_directory) if filename.startswith("x")][0]
-        y_path = [filename for filename in os.listdir(cases_directory) if filename.startswith("y")][0]
-        x, y = np.load(f"{cases_directory}/{x_path}"), np.load(f"{cases_directory}/{y_path}")
+        x_path = [
+            filename
+            for filename in os.listdir(cases_directory)
+            if filename.startswith("x")
+        ][0]
+        y_path = [
+            filename
+            for filename in os.listdir(cases_directory)
+            if filename.startswith("y")
+        ][0]
+        x, y = (
+            np.load(f"{cases_directory}/{x_path}"),
+            np.load(f"{cases_directory}/{y_path}"),
+        )
         anet = ANET(int(x_path[2]), **anet_parameters)
         history = anet.model.fit(
             x, y, epochs=anet.epochs, verbose=anet.verbose, validation_split=0.2
@@ -132,10 +143,15 @@ class ANET:
 
     def train(self):
         x, y = self._get_random_mini_batch()
-        if self.verbose:
+        if self.verbose == 2:
             print("Size of replay buffer:", len(self.replay_buffer))
         self.model.fit(
-            x, y, batch_size=self.batch_size, epochs=self.epochs, verbose=self.verbose
+            x,
+            y,
+            batch_size=self.batch_size,
+            epochs=self.epochs,
+            verbose=self.verbose,
+            validation_data=self._get_random_mini_batch(),
         )
 
     def save_model(self, episode_number):
@@ -233,7 +249,7 @@ class ANET:
         generated_cases = [(state, dist)]
 
         # reverse both board rep of state string and distribution
-        state_180 = ''.join(reversed(state[:-2])) + state[-2:]
+        state_180 = "".join(reversed(state[:-2])) + state[-2:]
         dist_180 = dist[::-1]
         tuple = (state_180, dist_180)
         generated_cases.append(tuple)
@@ -245,25 +261,27 @@ class ANET:
             for col in range(0, self.size_of_board):
                 flatten_position_board = row * self.size_of_board + col
                 flatten_position_new_board = col * self.size_of_board + row
-                if state[flatten_position_board] == '0':
+                if state[flatten_position_board] == "0":
                     board_90[flatten_position_new_board] = state[flatten_position_board]
                 else:
-                    board_90[flatten_position_new_board] = '1' if state[flatten_position_board] == '2' else '2'
+                    board_90[flatten_position_new_board] = (
+                        "1" if state[flatten_position_board] == "2" else "2"
+                    )
                 dist_90[flatten_position_new_board] = dist[flatten_position_board]
 
-        player_str = '1' if state[-1] == '2' else '2'
-        state_90 = ''.join(board_90.astype(str)) + ':' + player_str
+        player_str = "1" if state[-1] == "2" else "2"
+        state_90 = "".join(board_90.astype(str)) + ":" + player_str
 
         tuple = (state_90, list(dist_90))
         generated_cases.append(tuple)
 
         # reverse both board rep of state string and distribution for the state_90
-        state_270 = ''.join(reversed(state_90[:-2])) + state_90[-2:]
+        state_270 = "".join(reversed(state_90[:-2])) + state_90[-2:]
         dist_270 = dist_90[::-1]
         tuple = (state_270, list(dist_270))
         generated_cases.append(tuple)
 
-        if self.verbose:
+        if self.verbose == 2:
             print(generated_cases)
         return generated_cases
 

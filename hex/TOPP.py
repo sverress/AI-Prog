@@ -85,16 +85,19 @@ class TOPP:
         header = ["wins \ losses"]
         for model in self.models:
             header.append(model.episode_number)
+        header.append("sum")
         t = PrettyTable(header)
         for index, row in enumerate(score_matrix):
             line = [self.models[index].episode_number]
             for cell in row:
                 line.append(cell)
+            line.append(sum(line[1:]))
             t.add_row(line)
         print(t)
 
+
 def main():
-    tournament = TOPP("trained_models")
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/overnight/trained_models")
     tournament.play(4)
 
 

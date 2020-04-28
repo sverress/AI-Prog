@@ -12,7 +12,7 @@ def print_loader(progress, total, interval, timer, total_number_of_episodes):
     remaining_time = print_remaining_time_estimation(
         timer, progress, total_number_of_episodes
     )
-    sys.stdout.write(f"\r[{bar}] {int(progress / total * 100)}% {remaining_time}")
+    sys.stdout.write(f"\r[{bar}] {int((progress-1) / total * 100)}% Game {progress - 1 } finished. {remaining_time}")
     sys.stdout.flush()
 
 
