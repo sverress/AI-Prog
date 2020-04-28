@@ -76,7 +76,7 @@ class Timer:
         return output
 
     def time_str(self):
-        Timer.seconds_to_str(self.time())
+        return Timer.seconds_to_str(self.time())
 
     @staticmethod
     def get_seconds_tuple(seconds):

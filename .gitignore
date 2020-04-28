@@ -6,5 +6,5 @@ __pycache__/
 hex/trained_models
 output_files/
 runs/
-hex/cases
 hex/run.py
+hex/cases

@@ -12,13 +12,13 @@ verbose = False
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 5  # board size kxk, 3 <= k <= 10
+k = 3  # board size kxk, 3 <= k <= 10
 
 actor_net_parameters = {
     "buffer_batch_size": 350,
     "max_size_buffer": 3000,
     "replay_buffer_cutoff_rate": 0.3,
-    "epochs": 50,
+    "epochs": 2,
     "verbose": 1,  # 2: one line per epoch
     "save_directory": "trained_models",
     "hidden_layers_structure": [1500, 1500],
@@ -27,7 +27,7 @@ actor_net_parameters = {
 mcts_parameters = {
     "max_tree_height": 18,
     "c": 1.5,  # Exploration constant
-    "number_of_simulations": 200,  # number of simulations (and hence roll-outs) per actual game move
+    "number_of_simulations": 1,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 
