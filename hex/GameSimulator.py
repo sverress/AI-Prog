@@ -170,8 +170,8 @@ class GameSimulator:
             timer.stop()
         self.print_loss_graph(loss, val_loss)
         self.print_run_summary()
-        ActorNet.save_buffer_to_file(
-            self.number_of_episodes_to_play, self.k, self.actor_network
+        self.actor_network.save_buffer_to_file(
+            self.number_of_episodes_to_play, self.k
         )
 
 

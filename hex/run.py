@@ -9,7 +9,7 @@ FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 G = 3  # number of games in a batch
 P = StartingPlayerOptions.P1  # starting-player option
 verbose = False
-save_interval = 10  # number of games between each time we save a model
+save_interval = 1  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
 k = 3  # board size kxk, 3 <= k <= 10

@@ -1,9 +1,14 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import optimizers
+from tensorflow.keras.models import load_model
 import numpy as np
+import re
+import os
+import glob
 
 from hex.HexNet import HexNet
+from hex.StateManager import StateManager
 
 
 class ActorNet(HexNet):
@@ -13,7 +18,7 @@ class ActorNet(HexNet):
     def build_model(self, model, hidden_layers_structure, learning_rate):
         if model is None:
             # Deleting current models in directory
-            HexNet.delete_models(self.save_directory)
+            self.delete_associated_models()
             # Building model
             model = Sequential()
             # Adding first layer with input size depending on board sizes
@@ -57,12 +62,45 @@ class ActorNet(HexNet):
             )
         return model
 
+    def predict(self, state):
+        input_data = np.array([HexNet.convert_state_to_network_format(state)])
+        net_distribution_tensor = self.model(input_data)[0]
+        net_distribution = []
+        # Filter out taken cells in the board
+        for index, share_of_distribution in np.ndenumerate(net_distribution_tensor):
+            if StateManager.index_cell_is_occupied(index[0], state):
+                net_distribution.append(0.0)
+            else:
+                net_distribution.append(float(share_of_distribution))
+        # Normalize
+        return np.array(net_distribution) / sum(net_distribution)
+
     @staticmethod
-    def create_hex_net(board_size, **kwargs):
-        return ActorNet(board_size, **kwargs)
+    def train_network_from_cases(cases_directory, anet_parameters):
+        x_path = [
+            filename
+            for filename in os.listdir(cases_directory)
+            if filename.startswith("x")
+        ][0]
+        y_path = [
+            filename
+            for filename in os.listdir(cases_directory)
+            if filename.startswith("y")
+        ][0]
+        x, y = (
+            np.load(f"{cases_directory}/{x_path}"),
+            np.load(f"{cases_directory}/{y_path}"),
+        )
+        anet = ActorNet(int(x_path[2]), **anet_parameters)
+        history = anet.model.fit(
+            x, y, epochs=anet.epochs, verbose=anet.verbose, validation_split=0.2
+        )
+        return anet, history
 
     def save_model(self, episode_number):
-        super().save_model(episode_number)
+        self.episode_number = episode_number
+        if not os.path.exists(self.save_directory):
+            os.mkdir(self.save_directory)
         self.model.save(f"{self.save_directory}/model_{episode_number}.h5")
 
     def add_case(self, state, target):
@@ -71,6 +109,54 @@ class ActorNet(HexNet):
             state = case[0]
             target = case[1]
             super().add_case(state, target)
+
+    @staticmethod
+    def load_model(model_path: str):
+        episode_number = int(re.search(f"/model_(.*?).h5", model_path).group(1))
+        model = load_model(model_path)
+        return ActorNet(
+            HexNet.infer_board_size_from_model(model),
+            model=model,
+            episode_number=episode_number,
+        )
+
+    @staticmethod
+    def load_models(directory: str):
+        """
+        Fetches all file paths in the trained_models folder. Loads all models and appends to list
+        :return: list of player objects, list of the number of episodes trained for each model: [obj], [int]
+        """
+        # Get list of paths to all saved models
+        all_models = glob.glob(directory + "/*.h5")
+        return sorted(
+            [ActorNet.load_model(model_path) for model_path in all_models],
+            key=lambda model: model.episode_number,
+        )
+
+    def load_directory_models(self):
+        return ActorNet.load_models(self.save_directory)
+
+    def save_buffer_to_file(self, num_episodes, k, cases_directory="cases"):
+        x = []
+        y = []
+        for case in self.replay_buffer:
+            x.append(case[0])  # Add state as x
+            y.append(case[1])  # Add distribution as y
+        if not os.path.exists(cases_directory):
+            os.mkdir(cases_directory)
+        np.save(f"{cases_directory}/x_{k}x{k}_{num_episodes}", np.array(x))
+        np.save(f"{cases_directory}/y_{k}x{k}_{num_episodes}", np.array(y))
+
+    @staticmethod
+    def delete_models(path_to_models: str):
+        # Get list of paths to all saved models
+        all_models = glob.glob(f"{path_to_models}/*.h5")
+        for path_to_model in all_models:
+            # Remove file
+            os.remove(path_to_model)
+
+    def delete_associated_models(self):
+        ActorNet.delete_models(self.save_directory)
 
     def gen_cases(self, state, dist):
         """
@@ -117,6 +203,8 @@ class ActorNet(HexNet):
         if self.verbose == 2:
             print(generated_cases)
         return generated_cases
+
+
 def main():
     anet = ActorNet(4, epochs=3)
 
