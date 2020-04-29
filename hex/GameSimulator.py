@@ -5,7 +5,7 @@ import math
 import matplotlib.pyplot as plt
 
 from hex.StateManager import StateManager
-from hex.ANET import HexNet
+from hex.ActorNet import ActorNet
 from hex.MCTS import MCTS
 from libs.helpers import print_loader, Timer
 
@@ -46,9 +46,9 @@ class GameSimulator:
         self.mcts_parameters = mcts_parameters if mcts_parameters else {}
         if actor_net_parameters:
             self.actor_net_parameters = actor_net_parameters
-            self.actor_network = HexNet(k, **actor_net_parameters)
+            self.actor_network = ActorNet(k, **actor_net_parameters)
         else:
-            self.actor_network = HexNet(k)
+            self.actor_network = ActorNet(k)
         self.save_interval = save_interval
         if print_parameters:
             self.print_all_parameters()
@@ -64,7 +64,7 @@ class GameSimulator:
         print("save interval:", self.save_interval)
         print("===================================")
         self.print_parameters(
-            self.actor_net_parameters, "          ANET-PARAMETERS          "
+            self.actor_net_parameters, "          ActorNet-PARAMETERS          "
         )
         self.print_parameters(
             self.mcts_parameters, "          MCTS-PARAMETERS          "
@@ -170,7 +170,7 @@ class GameSimulator:
             timer.stop()
         self.print_loss_graph(loss, val_loss)
         self.print_run_summary()
-        HexNet.save_buffer_to_file(
+        ActorNet.save_buffer_to_file(
             self.number_of_episodes_to_play, self.k, self.actor_network
         )
 

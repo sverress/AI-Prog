@@ -1,19 +1,18 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from tensorflow.keras import optimizers
 from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Sequential
 import re
 import numpy as np
 import random
 import math
 import os
 import glob
+from abc import ABC, abstractmethod
 
 
 from hex.StateManager import StateManager
 
 
-class HexNet:
+class HexNet(ABC):
     def __init__(
         self,
         size_of_board,
@@ -43,53 +42,16 @@ class HexNet:
         self.episode_number = episode_number
         self.save_directory = save_directory
         self.batch_size = batch_size
+        self.model = self.build_model(model, hidden_layers_structure, learning_rate)
 
-        if model is None:
-            # Deleting current models in directory
-            HexNet.delete_models(save_directory)
-            # Building model
-            self.model = Sequential()
-            # Adding first layer with input size depending on board sizes
-            self.model.add(
-                Dense(
-                    units=self.input_shape[0],
-                    activation="relu",
-                    input_shape=self.input_shape,
-                    kernel_initializer="random_uniform",
-                )
-            )
-            if hidden_layers_structure:
-                for layer_units in hidden_layers_structure:
-                    self.model.add(
-                        Dense(
-                            units=layer_units,
-                            activation="relu",
-                            kernel_initializer="random_uniform",
-                        )
-                    )
-            else:
-                for i in range(1, 3):
-                    self.model.add(
-                        Dense(
-                            units=self.input_shape[0],
-                            activation="relu",
-                            kernel_initializer="random_uniform",
-                        )
-                    )
-            self.model.add(
-                Dense(
-                    units=size_of_board ** 2,
-                    activation="softmax",
-                    kernel_initializer="random_uniform",
-                )
-            )
-            self.model.compile(
-                loss="categorical_crossentropy",
-                optimizer=optimizers.SGD(learning_rate=learning_rate),
-                metrics=["mse"],
-            )
-        else:
-            self.model = model
+    @abstractmethod
+    def build_model(self, model, hidden_layers_structure, learning_rate):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def create_hex_net(board_size, **kwargs):
+        pass
 
     @staticmethod
     def train_network_from_cases(cases_directory, anet_parameters):
@@ -107,7 +69,7 @@ class HexNet:
             np.load(f"{cases_directory}/{x_path}"),
             np.load(f"{cases_directory}/{y_path}"),
         )
-        anet = HexNet(int(x_path[2]), **anet_parameters)
+        anet = HexNet.create_hex_net(int(x_path[2]), **anet_parameters)
         history = anet.model.fit(
             x, y, epochs=anet.epochs, verbose=anet.verbose, validation_split=0.2
         )
@@ -158,7 +120,6 @@ class HexNet:
         self.episode_number = episode_number
         if not os.path.exists(self.save_directory):
             os.mkdir(self.save_directory)
-        self.model.save(f"{self.save_directory}/model_{episode_number}.h5")
 
     @staticmethod
     def infer_board_size_from_model(model: Sequential) -> int:
@@ -173,7 +134,7 @@ class HexNet:
     def load_model(model_path: str):
         episode_number = int(re.search(f"/model_(.*?).h5", model_path).group(1))
         model = load_model(model_path)
-        return HexNet(
+        return HexNet.create_hex_net(
             HexNet.infer_board_size_from_model(model),
             model=model,
             episode_number=episode_number,
@@ -222,68 +183,18 @@ class HexNet:
             y.append(case[1])  # Add distribution as y
         return np.array(x), np.array(y)
 
-    def add_case(self, state, distribution_of_visit_counts):
-        generated_cases = self.gen_cases(state, distribution_of_visit_counts)
-        for case in generated_cases:
-            state = case[0]
-            distribution_of_visit_counts = case[1]
-            self.replay_buffer.append(
-                (
-                    HexNet.convert_state_to_network_format(state),
-                    distribution_of_visit_counts,
-                )
+    def add_case(self, state, target):
+        self.replay_buffer.append(
+            (
+                HexNet.convert_state_to_network_format(state),
+                target,
             )
-            if len(self.replay_buffer) > self.max_size_buffer:
-                index = random.randint(
-                    1, math.floor(self.max_size_buffer * self.replay_buffer_cutoff_rate)
-                )
-                del self.replay_buffer[index]
-
-    def gen_cases(self, state, dist):
-        """
-        Flips the board 180 deg to create another training case.
-        :param state:
-        :param distribution_of_visit_counts:
-        :return:
-        """
-        generated_cases = [(state, dist)]
-
-        # reverse both board rep of state string and distribution
-        state_180 = "".join(reversed(state[:-2])) + state[-2:]
-        dist_180 = dist[::-1]
-        tuple = (state_180, dist_180)
-        generated_cases.append(tuple)
-
-        # swith row and cols for case rot 90
-        board_90 = np.zeros(self.size_of_board ** 2, dtype=int)
-        dist_90 = np.zeros(self.size_of_board ** 2)
-        for row in range(0, self.size_of_board):
-            for col in range(0, self.size_of_board):
-                flatten_position_board = row * self.size_of_board + col
-                flatten_position_new_board = col * self.size_of_board + row
-                if state[flatten_position_board] == "0":
-                    board_90[flatten_position_new_board] = state[flatten_position_board]
-                else:
-                    board_90[flatten_position_new_board] = (
-                        "1" if state[flatten_position_board] == "2" else "2"
-                    )
-                dist_90[flatten_position_new_board] = dist[flatten_position_board]
-
-        player_str = "1" if state[-1] == "2" else "2"
-        state_90 = "".join(board_90.astype(str)) + ":" + player_str
-
-        tuple = (state_90, list(dist_90))
-        generated_cases.append(tuple)
-
-        # reverse both board rep of state string and distribution for the state_90
-        state_270 = "".join(reversed(state_90[:-2])) + state_90[-2:]
-        dist_270 = dist_90[::-1]
-        tuple = (state_270, list(dist_270))
-        generated_cases.append(tuple)
-
-        if self.verbose == 2:
-            print(generated_cases)
-        return generated_cases
+        )
+        if len(self.replay_buffer) > self.max_size_buffer:
+            index = random.randint(
+                1, math.floor(self.max_size_buffer * self.replay_buffer_cutoff_rate)
+            )
+            del self.replay_buffer[index]
 
     @staticmethod
     def save_buffer_to_file(num_episodes, k, ANET, cases_directory="cases"):

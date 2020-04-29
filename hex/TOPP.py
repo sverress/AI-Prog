@@ -1,15 +1,15 @@
 import numpy as np
 from hex.StateManager import StateManager
-from hex.ANET import HexNet
+from hex.ActorNet import ActorNet
 from prettytable import PrettyTable
 
 
 class TOPP:
     def __init__(self, path: str, verbose=False):
 
-        self.models = HexNet.load_models(path)
+        self.models = ActorNet.load_models(path)
         self.state_manager = None
-        self.board_size = HexNet.infer_board_size_from_model(self.models[0].model)
+        self.board_size = ActorNet.infer_board_size_from_model(self.models[0].model)
         self.verbose = verbose
 
     def play(self, num_games_per_match):
