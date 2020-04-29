@@ -168,6 +168,10 @@ class GameSimulator:
             if i % self.save_interval == 0:
                 self.actor_network.save_model(episode_number=i)
             timer.stop()
+            if i % 50 == 0:
+                self.actor_network.save_buffer_to_file(
+                    i, self.k, self.mcts_parameters["number_of_simulations"]
+                )
         self.print_loss_graph(loss, val_loss)
         self.print_run_summary()
         ANET.save_buffer_to_file(
