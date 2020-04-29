@@ -155,6 +155,7 @@ class ActorNet(HexNet):
         if not os.path.exists(self.save_directory):
             os.mkdir(self.save_directory)
         self.model.save(f"{self.save_directory}/model_{episode_number}.h5")
+
     @staticmethod
     def load_model(model_path: str):
         episode_number = int(re.search(f"/model_(.*?).h5", model_path).group(1))
@@ -202,12 +203,3 @@ class ActorNet(HexNet):
 
     def delete_associated_models(self):
         ActorNet.delete_models(self.save_directory)
-
-
-
-
-def main():
-    anet = ActorNet(4, epochs=3)
-
-if __name__ == "__main__":
-    main()
