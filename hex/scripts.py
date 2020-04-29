@@ -33,24 +33,24 @@ def train_from_cases_and_show_loss():
     }
     anet, history = ANET.train_network_from_cases(cases_directory, actor_net_parameters)
     anet.save_model(32)
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('Model loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.plot(history.history["loss"])
+    plt.plot(history.history["val_loss"])
+    plt.title("Model loss")
+    plt.ylabel("Loss")
+    plt.xlabel("Epoch")
+    plt.legend(["Train", "Test"], loc="upper left")
     plt.show()
 
 
 def play_TOPP():
-    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/overnight/trained_models")
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/small_5/trained_models")
     tournament.play(4)
 
 
 def main():
-    #train_from_cases_and_show_loss()
-    model_match("trained_models", None, 32, starting_player=1)
-
+    # train_from_cases_and_show_loss()
+    #model_match("trained_models", None, 32, starting_player=1)
+    play_TOPP()
 
 if __name__ == "__main__":
     main()

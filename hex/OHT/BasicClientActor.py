@@ -1,6 +1,9 @@
-import math
 from hex.OHT.BasicClientActorAbs import BasicClientActorAbs
 from hex.ANET import ANET
+from hex.StateManager import StateManager
+
+import math
+import numpy as np
 
 
 class BasicClientActor(BasicClientActorAbs):
@@ -20,7 +23,12 @@ class BasicClientActor(BasicClientActorAbs):
         :return: Your actor's selected action as a tuple (row, column)
         """
         board = ''.join([str(cell) for cell in state[1:]])
-        return self.model.predict(f"{board}:{state[0]}")
+        local_state_rep = f"{board}:{state[0]}"
+        state_manager = StateManager(int(math.sqrt(len(board))), state[0])
+        distribution = self.model.predict(local_state_rep)
+        chosen_index = int(np.argmax(distribution))
+        action_string = state_manager.get_action_from_flattened_board_index(chosen_index, local_state_rep)
+        return state_manager.check_and_extract_action_string(action_string, check_player_turn=False)[:-1]
 
     def handle_series_start(
         self, unique_id, series_id, player_map, num_games, game_params
@@ -129,5 +137,5 @@ class BasicClientActor(BasicClientActorAbs):
 
 
 if __name__ == "__main__":
-    bsa = BasicClientActor("../../runs/big_net/trained_models/model_300.h5", verbose=True)
+    bsa = BasicClientActor("/Users/svoss/KODE/AI-Prog/runs/oht_check/trained_models/model_100.h5", verbose=True)
     bsa.connect_to_server()
