@@ -13,7 +13,7 @@ import glob
 from hex.StateManager import StateManager
 
 
-class ANET:
+class HexNet:
     def __init__(
         self,
         size_of_board,
@@ -46,7 +46,7 @@ class ANET:
 
         if model is None:
             # Deleting current models in directory
-            ANET.delete_models(save_directory)
+            HexNet.delete_models(save_directory)
             # Building model
             self.model = Sequential()
             # Adding first layer with input size depending on board sizes
@@ -107,7 +107,7 @@ class ANET:
             np.load(f"{cases_directory}/{x_path}"),
             np.load(f"{cases_directory}/{y_path}"),
         )
-        anet = ANET(int(x_path[2]), **anet_parameters)
+        anet = HexNet(int(x_path[2]), **anet_parameters)
         history = anet.model.fit(
             x, y, epochs=anet.epochs, verbose=anet.verbose, validation_split=0.2
         )
@@ -126,7 +126,7 @@ class ANET:
 
     @staticmethod
     def predict_and_normalize(model: Sequential, state: str) -> np.array:
-        input_data = np.array([ANET.convert_state_to_network_format(state)])
+        input_data = np.array([HexNet.convert_state_to_network_format(state)])
         net_distribution_tensor = model(input_data)[0]
         net_distribution = []
         # Filter out taken cells in the board
@@ -139,7 +139,7 @@ class ANET:
         return np.array(net_distribution) / sum(net_distribution)
 
     def predict(self, state):
-        return ANET.predict_and_normalize(self.model, state)
+        return HexNet.predict_and_normalize(self.model, state)
 
     def train(self):
         x, y = self._get_random_mini_batch()
@@ -173,8 +173,8 @@ class ANET:
     def load_model(model_path: str):
         episode_number = int(re.search(f"/model_(.*?).h5", model_path).group(1))
         model = load_model(model_path)
-        return ANET(
-            ANET.infer_board_size_from_model(model),
+        return HexNet(
+            HexNet.infer_board_size_from_model(model),
             model=model,
             episode_number=episode_number,
         )
@@ -188,12 +188,12 @@ class ANET:
         # Get list of paths to all saved models
         all_models = glob.glob(directory + "/*.h5")
         return sorted(
-            [ANET.load_model(model_path) for model_path in all_models],
+            [HexNet.load_model(model_path) for model_path in all_models],
             key=lambda model: model.episode_number,
         )
 
     def load_directory_models(self):
-        return ANET.load_models(self.save_directory)
+        return HexNet.load_models(self.save_directory)
 
     @staticmethod
     def delete_models(path_to_models: str):
@@ -204,7 +204,7 @@ class ANET:
             os.remove(path_to_model)
 
     def delete_associated_models(self):
-        ANET.delete_models(self.save_directory)
+        HexNet.delete_models(self.save_directory)
 
     def _get_random_mini_batch(self) -> (np.array, np.array):
         """
@@ -229,7 +229,7 @@ class ANET:
             distribution_of_visit_counts = case[1]
             self.replay_buffer.append(
                 (
-                    ANET.convert_state_to_network_format(state),
+                    HexNet.convert_state_to_network_format(state),
                     distribution_of_visit_counts,
                 )
             )

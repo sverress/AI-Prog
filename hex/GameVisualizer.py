@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 from hex.StateManager import StateManager
-from hex.ANET import ANET
+from hex.ANET import HexNet
 
 # COLORS
 PLAYER_ONE_COLOR = "#3232ff"  # Blue
@@ -113,7 +113,7 @@ class GameVisualizer:
             self.model_perform_action()
         mainloop()
 
-    def model_perform_action(self, model: ANET):
+    def model_perform_action(self, model: HexNet):
         print(self.state_manager.get_state())
         distribution = model.predict(self.state_manager.get_state())
         print(distribution)

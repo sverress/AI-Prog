@@ -1,5 +1,5 @@
 from hex.GameVisualizer import GameVisualizer
-from hex.ANET import ANET
+from hex.ANET import HexNet
 import matplotlib.pyplot as plt
 
 from hex.TOPP import TOPP
@@ -7,8 +7,8 @@ from hex.TOPP import TOPP
 
 def model_match(models_directory, player1, player2, starting_player=1):
     models_dict = {}
-    models = ANET.load_models(models_directory)
-    board_size = ANET.infer_board_size_from_model(models[0].model)
+    models = HexNet.load_models(models_directory)
+    board_size = HexNet.infer_board_size_from_model(models[0].model)
     for model in models:
         models_dict[model.episode_number] = model
     player1 = models_dict.get(player1)
@@ -31,7 +31,7 @@ def train_from_cases_and_show_loss():
         "hidden_layers_structure": [200, 200],
         "learning_rate": 0.05,
     }
-    anet, history = ANET.train_network_from_cases(cases_directory, actor_net_parameters)
+    anet, history = HexNet.train_network_from_cases(cases_directory, actor_net_parameters)
     anet.save_model(32)
     plt.plot(history.history["loss"])
     plt.plot(history.history["val_loss"])

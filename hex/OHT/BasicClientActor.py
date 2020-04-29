@@ -1,5 +1,5 @@
 from hex.OHT.BasicClientActorAbs import BasicClientActorAbs
-from hex.ANET import ANET
+from hex.ANET import HexNet
 from hex.StateManager import StateManager
 
 import math
@@ -10,7 +10,7 @@ class BasicClientActor(BasicClientActorAbs):
     def __init__(self, model_path: str, IP_address=None, verbose=True):
         self.series_id = -1
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
-        self.model = ANET.load_model(model_path)
+        self.model = HexNet.load_model(model_path)
 
     def handle_get_action(self, state):
         """
