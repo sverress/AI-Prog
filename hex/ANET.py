@@ -28,6 +28,8 @@ class ANET:
         hidden_layers_structure=None,
         learning_rate=0.01,
         batch_size=32,
+        optimizer=optimizers.SGD,
+        activation_function="relu"
     ):
         self.size_of_board = size_of_board
         self.max_size_buffer = max_size_buffer
@@ -53,7 +55,7 @@ class ANET:
             self.model.add(
                 Dense(
                     units=self.input_shape[0],
-                    activation="relu",
+                    activation=activation_function,
                     input_shape=self.input_shape,
                     kernel_initializer="random_uniform",
                 )
@@ -63,7 +65,7 @@ class ANET:
                     self.model.add(
                         Dense(
                             units=layer_units,
-                            activation="relu",
+                            activation=activation_function,
                             kernel_initializer="random_uniform",
                         )
                     )
@@ -72,7 +74,7 @@ class ANET:
                     self.model.add(
                         Dense(
                             units=self.input_shape[0],
-                            activation="relu",
+                            activation=activation_function,
                             kernel_initializer="random_uniform",
                         )
                     )
@@ -85,7 +87,7 @@ class ANET:
             )
             self.model.compile(
                 loss="categorical_crossentropy",
-                optimizer=optimizers.SGD(learning_rate=learning_rate),
+                optimizer=optimizer(learning_rate=learning_rate),
                 metrics=["mse"],
             )
         else:

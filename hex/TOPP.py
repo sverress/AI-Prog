@@ -2,6 +2,7 @@ import numpy as np
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from prettytable import PrettyTable
+import matplotlib.pyplot as plt
 
 
 class TOPP:
@@ -91,18 +92,27 @@ class TOPP:
             header.append(model.episode_number)
         header.append("sum")
         t = PrettyTable(header)
+        x_axis = []
+        y_axis = []
         for index, row in enumerate(score_matrix):
             line = [self.models[index].episode_number]
+            x_axis.append(self.models[index].episode_number)
             for cell in row:
                 line.append(cell)
             line.append(sum(line[1:]))
+            y_axis.append(sum(line[1:]))
             t.add_row(line)
         print(t)
+        plt.plot(x_axis, y_axis)
+        plt.title('TOPP')
+        plt.ylabel('Number of games won')
+        plt.xlabel('Episode saved')
+        plt.show()
 
 
 def main():
-    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/overnight/trained_models")
-    tournament.play(4)
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models")
+    tournament.play(2)
 
 
 if __name__ == "__main__":

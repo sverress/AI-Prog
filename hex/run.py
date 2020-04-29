@@ -1,3 +1,5 @@
+from tensorflow.keras import optimizers
+
 from hex.GameSimulator import GameSimulator, StartingPlayerOptions
 from hex.TOPP import TOPP
 from libs.helpers import Timer
@@ -6,28 +8,30 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 3  # number of games in a batch
+G = 200  # number of games in a batch
 P = StartingPlayerOptions.P1  # starting-player option
 verbose = False
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 3  # board size kxk, 3 <= k <= 10
+k = 5  # board size kxk, 3 <= k <= 10
 
 actor_net_parameters = {
     "buffer_batch_size": 350,
     "max_size_buffer": 3000,
     "replay_buffer_cutoff_rate": 0.3,
-    "epochs": 2,
+    "epochs": 60,
     "verbose": 1,  # 2: one line per epoch
     "save_directory": "trained_models",
-    "hidden_layers_structure": [1500, 1500],
-    "learning_rate": 0.03,
+    "hidden_layers_structure": [1500, 1500, 1000],
+    "learning_rate": 1.0,
+    "optimizer": optimizers.Adadelta,  # Adadelta/SGD
+    "activation_function": "relu",  # relu/sigmoid/linear
 }
 mcts_parameters = {
-    "max_tree_height": 18,
-    "c": 1.5,  # Exploration constant
-    "number_of_simulations": 1,  # number of simulations (and hence roll-outs) per actual game move
+    "max_tree_height": 12,
+    "c": 1.3,  # Exploration constant
+    "number_of_simulations": 100,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 

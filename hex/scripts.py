@@ -43,13 +43,13 @@ def train_from_cases_and_show_loss():
 
 
 def play_TOPP():
-    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/small_5/trained_models")
-    tournament.play(4)
+    tournament = TOPP("trained_models")
+    tournament.play(2)
 
 
 def main():
     # train_from_cases_and_show_loss()
-    #model_match("trained_models", None, 32, starting_player=1)
+    #model_match("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models", None, 32, starting_player=1)
     play_TOPP()
 
 if __name__ == "__main__":

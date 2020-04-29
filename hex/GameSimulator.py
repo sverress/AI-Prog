@@ -3,6 +3,7 @@ from prettytable import PrettyTable
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import os
 
 from hex.StateManager import StateManager
 from hex.ANET import ANET
@@ -120,14 +121,25 @@ class GameSimulator:
             t.add_row(line)
         print(t)
 
-    def print_loss_graph(self, loss, val_loss):
-        plt.plot(loss)
-        plt.plot(val_loss)
-        plt.title('Model loss')
-        plt.ylabel('Loss')
-        plt.xlabel('Games')
-        plt.legend(['Train', 'Test'], loc='upper left')
-        plt.show()
+    def save_loss_graph(self, loss, val_loss, id):
+        loss = np.array(loss)
+        val_loss = np.array(val_loss)
+        fig, ax1 = plt.subplots()
+        ax1.set_xlabel("Games")
+        ax1.set_ylabel("Loss")
+        ax1.plot(loss, label="Loss")
+        ax1.plot(val_loss, label="Test")
+        ax1.legend(loc="upper right")
+        ax1.set_title("Model loss")
+
+        ax2 = ax1.twinx()
+        color = "tab:green"
+        ax2.set_ylabel("Delta train test", color=color)
+        ax2.plot(np.sqrt(np.power((loss - val_loss), 2)), color=color)
+        fig.tight_layout()
+        if not os.path.exists("loss_graphs"):
+            os.mkdir("loss_graphs")
+        plt.savefig(f"loss_graphs/{id}.png")
 
     def update_winner_stats(self, starting_player: int) -> None:
         second_index = starting_player - 1
@@ -155,13 +167,15 @@ class GameSimulator:
                 **self.mcts_parameters,
             )
             while not self.state_manager.is_end_state():
-                action = mcts.run(self.state_manager.get_state(), i / self.number_of_episodes_to_play)
+                action = mcts.run(
+                    self.state_manager.get_state(), i / self.number_of_episodes_to_play
+                )
                 self.state_manager.perform_action(action)
                 self.print_action(action)
             self.update_winner_stats(starting_player)
             history = self.actor_network.train()
-            loss.append(np.average(history.history['loss']))
-            val_loss.append(np.average(history.history['val_loss']))
+            loss.append(np.average(history.history["loss"]))
+            val_loss.append(np.average(history.history["val_loss"]))
             self.print_winner_of_batch_game()
             if self.starting_player_option == StartingPlayerOptions.ALTERNATING:
                 starting_player = StateManager.get_opposite_player(starting_player)
@@ -169,10 +183,8 @@ class GameSimulator:
                 self.actor_network.save_model(episode_number=i)
             timer.stop()
             if i % 50 == 0:
+                self.save_loss_graph(loss, val_loss, i)
                 self.actor_network.save_buffer_to_file(
                     i, self.k, self.mcts_parameters["number_of_simulations"]
                 )
-        self.print_loss_graph(loss, val_loss)
         self.print_run_summary()
-
-

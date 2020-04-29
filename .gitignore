@@ -8,3 +8,4 @@ output_files/
 runs/
 hex/run.py
 hex/cases
+hex/loss_graphs
