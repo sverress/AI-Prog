@@ -63,8 +63,7 @@ class ActorNet(HexNet):
         return model
 
     def predict(self, state):
-        input_data = np.array([HexNet.convert_state_to_network_format(state)])
-        net_distribution_tensor = self.model(input_data)[0]
+        net_distribution_tensor = super().predict(state)[0]
         net_distribution = []
         # Filter out taken cells in the board
         for index, share_of_distribution in np.ndenumerate(net_distribution_tensor):
@@ -74,6 +73,59 @@ class ActorNet(HexNet):
                 net_distribution.append(float(share_of_distribution))
         # Normalize
         return np.array(net_distribution) / sum(net_distribution)
+
+    def add_case(self, state, target):
+        generated_cases = self.gen_cases(state, target)
+        for case in generated_cases:
+            state = case[0]
+            target = case[1]
+            super().add_case(state, target)
+
+    def gen_cases(self, state, dist):
+        """
+        Flips the board 180 deg to create another training case.
+        :param state:
+        :param distribution_of_visit_counts:
+        :return:
+        """
+        generated_cases = [(state, dist)]
+
+        # reverse both board rep of state string and distribution
+        state_180 = "".join(reversed(state[:-2])) + state[-2:]
+        dist_180 = dist[::-1]
+        tuple = (state_180, dist_180)
+        generated_cases.append(tuple)
+
+        # swith row and cols for case rot 90
+        board_90 = np.zeros(self.size_of_board ** 2, dtype=int)
+        dist_90 = np.zeros(self.size_of_board ** 2)
+        for row in range(0, self.size_of_board):
+            for col in range(0, self.size_of_board):
+                flatten_position_board = row * self.size_of_board + col
+                flatten_position_new_board = col * self.size_of_board + row
+                if state[flatten_position_board] == "0":
+                    board_90[flatten_position_new_board] = state[flatten_position_board]
+                else:
+                    board_90[flatten_position_new_board] = (
+                        "1" if state[flatten_position_board] == "2" else "2"
+                    )
+                dist_90[flatten_position_new_board] = dist[flatten_position_board]
+
+        player_str = "1" if state[-1] == "2" else "2"
+        state_90 = "".join(board_90.astype(str)) + ":" + player_str
+
+        tuple = (state_90, list(dist_90))
+        generated_cases.append(tuple)
+
+        # reverse both board rep of state string and distribution for the state_90
+        state_270 = "".join(reversed(state_90[:-2])) + state_90[-2:]
+        dist_270 = dist_90[::-1]
+        tuple = (state_270, list(dist_270))
+        generated_cases.append(tuple)
+
+        if self.verbose == 2:
+            print(generated_cases)
+        return generated_cases
 
     @staticmethod
     def train_network_from_cases(cases_directory, anet_parameters):
@@ -97,19 +149,12 @@ class ActorNet(HexNet):
         )
         return anet, history
 
+    # Saving functionality
     def save_model(self, episode_number):
         self.episode_number = episode_number
         if not os.path.exists(self.save_directory):
             os.mkdir(self.save_directory)
         self.model.save(f"{self.save_directory}/model_{episode_number}.h5")
-
-    def add_case(self, state, target):
-        generated_cases = self.gen_cases(state, target)
-        for case in generated_cases:
-            state = case[0]
-            target = case[1]
-            super().add_case(state, target)
-
     @staticmethod
     def load_model(model_path: str):
         episode_number = int(re.search(f"/model_(.*?).h5", model_path).group(1))
@@ -158,51 +203,7 @@ class ActorNet(HexNet):
     def delete_associated_models(self):
         ActorNet.delete_models(self.save_directory)
 
-    def gen_cases(self, state, dist):
-        """
-        Flips the board 180 deg to create another training case.
-        :param state:
-        :param distribution_of_visit_counts:
-        :return:
-        """
-        generated_cases = [(state, dist)]
 
-        # reverse both board rep of state string and distribution
-        state_180 = "".join(reversed(state[:-2])) + state[-2:]
-        dist_180 = dist[::-1]
-        tuple = (state_180, dist_180)
-        generated_cases.append(tuple)
-
-        # swith row and cols for case rot 90
-        board_90 = np.zeros(self.size_of_board ** 2, dtype=int)
-        dist_90 = np.zeros(self.size_of_board ** 2)
-        for row in range(0, self.size_of_board):
-            for col in range(0, self.size_of_board):
-                flatten_position_board = row * self.size_of_board + col
-                flatten_position_new_board = col * self.size_of_board + row
-                if state[flatten_position_board] == "0":
-                    board_90[flatten_position_new_board] = state[flatten_position_board]
-                else:
-                    board_90[flatten_position_new_board] = (
-                        "1" if state[flatten_position_board] == "2" else "2"
-                    )
-                dist_90[flatten_position_new_board] = dist[flatten_position_board]
-
-        player_str = "1" if state[-1] == "2" else "2"
-        state_90 = "".join(board_90.astype(str)) + ":" + player_str
-
-        tuple = (state_90, list(dist_90))
-        generated_cases.append(tuple)
-
-        # reverse both board rep of state string and distribution for the state_90
-        state_270 = "".join(reversed(state_90[:-2])) + state_90[-2:]
-        dist_270 = dist_90[::-1]
-        tuple = (state_270, list(dist_270))
-        generated_cases.append(tuple)
-
-        if self.verbose == 2:
-            print(generated_cases)
-        return generated_cases
 
 
 def main():

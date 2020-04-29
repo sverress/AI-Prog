@@ -58,7 +58,7 @@ class HexNet(ABC):
 
     @abstractmethod
     def predict(self, state):
-        pass
+        return self.model(np.array([HexNet.convert_state_to_network_format(state)]))
 
     def train(self):
         x, y = self._get_random_mini_batch()
