@@ -110,7 +110,6 @@ class GameVisualizer:
             self.draw_initial_state()
         if len(self.actions):
             self.master.after(self.frame_rate, self.draw)
-            self.model_perform_action()
         mainloop()
 
     def model_perform_action(self, model: ANET):

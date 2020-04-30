@@ -5,7 +5,6 @@ import math
 import matplotlib.pyplot as plt
 import os
 
-from hex.GameVisualizer import GameVisualizer
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from hex.MCTS import MCTS

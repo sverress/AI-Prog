@@ -99,7 +99,7 @@ class TOPP:
             x_axis.append(self.models[index].episode_number)
             for cell in row:
                 line.append(cell)
-            line.append(sum(line[1:-1]))
+            line.append(sum(line[1:]))
             y_axis.append(sum(line[1:-1]))
             t.add_row(line)
         print(t)
@@ -112,7 +112,7 @@ class TOPP:
 
 
 def main():
-    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models")
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models", verbose=True)
     tournament.play(2)
 
 

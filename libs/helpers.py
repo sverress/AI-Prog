@@ -4,7 +4,6 @@ from datetime import timedelta
 import math
 
 
-
 def print_loader(progress, total, interval, timer, total_number_of_episodes):
     bar = (
         "=" * int(progress / interval)

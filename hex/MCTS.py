@@ -63,7 +63,6 @@ class MCTS:
         return chosen_action
 
     # MAIN ALGORITHM METHODS
-
     def traverse_tree(self, state: str, depth: int) -> str:
         """
         Traversing the tree expanding nodes by using the tree policy (tree_policy)
