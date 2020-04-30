@@ -134,8 +134,8 @@ class GameSimulator:
 
         ax2 = ax1.twinx()
         color = "tab:green"
-        ax2.set_ylabel("Delta train test", color=color)
-        ax2.plot(np.sqrt(np.power((loss - val_loss), 2)), color=color)
+        ax2.set_ylabel("Delta train test", color=color, alpha=0.5)
+        ax2.plot(np.sqrt(np.power((loss - val_loss), 2)), color=color, alpha=0.5)
         fig.tight_layout()
         if not os.path.exists("loss_graphs"):
             os.mkdir("loss_graphs")
@@ -180,10 +180,10 @@ class GameSimulator:
             if self.starting_player_option == StartingPlayerOptions.ALTERNATING:
                 starting_player = StateManager.get_opposite_player(starting_player)
             if i % self.save_interval == 0:
+                self.save_loss_graph(loss, val_loss, i)
                 self.actor_network.save_model(episode_number=i)
             timer.stop()
             if i % 50 == 0:
-                self.save_loss_graph(loss, val_loss, i)
                 self.actor_network.save_buffer_to_file(
                     i, self.k, self.mcts_parameters["number_of_simulations"]
                 )
