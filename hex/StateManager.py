@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 from libs.board import Board
+from libs.helpers import board_visualize_in_console
 
 
 class StateManager(Board):
@@ -296,9 +297,7 @@ class StateManager(Board):
         """
         :return: nice looking string showing the board for console
         """
-        return "\n" + "\n".join(
-            ["".join(["{:2}".format(item) for item in row]) for row in self.board]
-        )
+        return board_visualize_in_console(self.board)
 
     def get_action(self, current_state: str, next_state: str,) -> str:
         """
@@ -385,3 +384,4 @@ class StateManager(Board):
             state = self.get_state()
         game = GameVisualizer(self.board_size, initial_state=state)
         game.run()
+

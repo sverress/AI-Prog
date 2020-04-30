@@ -8,9 +8,9 @@ from libs.helpers import Timer
 """
 FILE FOR SETTING UP A RUN OF THE MCTS ALGORITHM WITH PARAMETERS
 """
-G = 200  # number of games in a batch
-P = StartingPlayerOptions.P1  # starting-player option
-verbose = False
+G = 10  # number of games in a batch
+P = StartingPlayerOptions.ALTERNATING  # starting-player option
+verbose = True
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
@@ -23,15 +23,15 @@ actor_net_parameters = {
     "epochs": 60,
     "verbose": 1,  # 2: one line per epoch
     "save_directory": "trained_models",
-    "hidden_layers_structure": [1500, 1500, 1000],
-    "learning_rate": 1.0,
-    "optimizer": optimizers.Adadelta,  # Adadelta/SGD
+    "hidden_layers_structure": [1500, 1500],
+    "learning_rate": 0.005,
+    "optimizer": optimizers.SGD,  # Adadelta/SGD
     "activation_function": "relu",  # relu/sigmoid/linear
 }
 mcts_parameters = {
     "max_tree_height": 12,
     "c": 1.3,  # Exploration constant
-    "number_of_simulations": 100,  # number of simulations (and hence roll-outs) per actual game move
+    "number_of_simulations": 50,  # number of simulations (and hence roll-outs) per actual game move
     "verbose": verbose,
 }
 
