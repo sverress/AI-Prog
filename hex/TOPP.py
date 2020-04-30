@@ -99,8 +99,8 @@ class TOPP:
             x_axis.append(self.models[index].episode_number)
             for cell in row:
                 line.append(cell)
-            line.append(sum(line[1:]))
-            y_axis.append(sum(line[1:]))
+            line.append(sum(line[1:-1]))
+            y_axis.append(sum(line[1:-1]))
             t.add_row(line)
         print(t)
         plt.plot(x_axis, y_axis)
@@ -111,7 +111,7 @@ class TOPP:
 
 
 def main():
-    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models")
+    tournament = TOPP("/Users/jensalfsen/Documents/NTNU/AI_programming/Project_1_Peg_Solitaire/AI-Prog/hex/trained_models")
     tournament.play(2)
 
 
