@@ -129,7 +129,7 @@ class GameSimulator:
         fig, ax1 = plt.subplots()
         ax1.set_xlabel("Games")
         ax1.set_ylabel("Loss")
-        ax1.plot(loss, label="Loss")
+        ax1.plot(loss, label="Train")
         ax1.plot(val_loss, label="Test")
         ax1.legend(loc="upper right")
         ax1.set_title("Model loss")

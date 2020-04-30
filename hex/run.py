@@ -14,7 +14,7 @@ verbose = True
 save_interval = 10  # number of games between each time we save a model
 
 # SETTINGS FOR HEX
-k = 5  # board size kxk, 3 <= k <= 10
+k = 10  # board size kxk, 3 <= k <= 10
 
 actor_net_parameters = {
     "buffer_batch_size": 350,
@@ -26,7 +26,7 @@ actor_net_parameters = {
     "hidden_layers_structure": [1500, 1500],
     "learning_rate": 0.005,
     "optimizer": optimizers.SGD,  # Adadelta/SGD
-    "activation_function": "relu",  # relu/sigmoid/linear
+    "activation_function": "tanh",  # relu/sigmoid/linear/tanh
 }
 mcts_parameters = {
     "max_tree_height": 12,
