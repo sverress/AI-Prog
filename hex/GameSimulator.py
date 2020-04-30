@@ -125,6 +125,7 @@ class GameSimulator:
     def save_loss_graph(self, loss, val_loss, id):
         loss = np.array(loss)
         val_loss = np.array(val_loss)
+        plt.clf()
         fig, ax1 = plt.subplots()
         ax1.set_xlabel("Games")
         ax1.set_ylabel("Loss")

@@ -103,6 +103,7 @@ class TOPP:
             y_axis.append(sum(line[1:-1]))
             t.add_row(line)
         print(t)
+        plt.clf()
         plt.plot(x_axis, y_axis)
         plt.title('TOPP')
         plt.ylabel('Number of games won')
@@ -111,7 +112,7 @@ class TOPP:
 
 
 def main():
-    tournament = TOPP("/Users/jensalfsen/Documents/NTNU/AI_programming/Project_1_Peg_Solitaire/AI-Prog/hex/trained_models")
+    tournament = TOPP("/Users/svoss/KODE/AI-Prog/runs/jens_reccomend/trained_models")
     tournament.play(2)
 
 
