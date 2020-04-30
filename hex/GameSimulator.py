@@ -5,6 +5,7 @@ import math
 import matplotlib.pyplot as plt
 import os
 
+from hex.GameVisualizer import GameVisualizer
 from hex.StateManager import StateManager
 from hex.ANET import ANET
 from hex.MCTS import MCTS
@@ -173,10 +174,10 @@ class GameSimulator:
                 self.state_manager.perform_action(action)
                 self.print_action(action)
             self.update_winner_stats(starting_player)
+            self.print_winner_of_batch_game()
             history = self.actor_network.train()
             loss.append(np.average(history.history["loss"]))
             val_loss.append(np.average(history.history["val_loss"]))
-            self.print_winner_of_batch_game()
             if self.starting_player_option == StartingPlayerOptions.ALTERNATING:
                 starting_player = StateManager.get_opposite_player(starting_player)
             if i % self.save_interval == 0:

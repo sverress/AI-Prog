@@ -1,6 +1,8 @@
 import sys
 import time
 from datetime import timedelta
+import math
+
 
 
 def print_loader(progress, total, interval, timer, total_number_of_episodes):
@@ -112,3 +114,46 @@ class TimerManager:
     def stop_timer(self, timer_id: str):
         timer = self.get_timer(timer_id)
         timer.stop()
+
+def x_pos(board_size):
+    index_list = []
+    for i in range(board_size):
+        index_list.append([j for j in range(i, -1, -1)])
+    full_row = index_list[-1]
+    for i in range(1, board_size):
+        index_list.append(full_row[:-i])
+    return index_list
+
+
+def y_pos(board_size):
+    index_list = []
+    for i in range(board_size):
+        index_list.append([j for j in range(i+1)])
+    full_row = index_list[-1]
+    for i in range(1, board_size):
+        index_list.append(full_row[i:])
+    return index_list
+
+
+def get_spaces(row_index, total):
+    middle = math.floor(total/2)
+    number = abs(middle-row_index)
+    return " " * number
+
+
+def board_visualize_in_console(state_board):
+    x = x_pos(len(state_board))
+    y = y_pos(len(state_board))
+    hex_format_list = []
+    for i in range(len(state_board)*2-1):
+        new_row = []
+        for position_index, index in enumerate(x[i]):
+            new_row.append(state_board[x[i][position_index]][y[i][position_index]])
+        hex_format_list.append(new_row)
+    output = "\n"
+    for index, row in enumerate(hex_format_list):
+        output += get_spaces(index, len(hex_format_list))
+        for cell in row:
+            output += f" {cell}"
+        output += "\n"
+    return output
